@@ -62,7 +62,9 @@
 1. to have the user stories well organized and easily viewable.
 1. that the sprints be well planned out and manageable.
 1. to easily communicate within the group.
-1. make the algorithm as efficient as possible.
+1. create heuristics for the algorithm.
+1. create a caching system for searches.
+1. create a caching system for connections.
 1. make the algorithm use as few API requests as possible.
 1. be able to handle multiple requests at the same time.
 1. be able to deal with users trying to trick us (entering same name twice, people that don't exists).
