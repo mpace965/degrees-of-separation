@@ -1,2 +1,2 @@
-# degrees-of-friendship
-The webapp and server of the CS307 Degrees of Friendship project.
+# degrees-of-separation
+The webapp and server of the CS307 Degrees of Separation project.
