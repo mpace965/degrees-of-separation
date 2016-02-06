@@ -45,6 +45,7 @@
 1. keep a record of searches users have made.
 1. create an algorithm that finds how nodes are connected.
 1. keep the algorithm generic so it may be used in the future with other sites.
+1. view the number of API requests a user has made, and discretely display this information on the site.
 
 ####As a front-end developer I would like to...
 1. create a minimalistic design for the site.
