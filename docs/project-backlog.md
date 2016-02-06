@@ -20,18 +20,21 @@
 1. see how two random nodes are connected.
 1. have a drop down menu appear to try and autocomplete my query.
 1. view the connection chain.
-1. click on nodes in my connection chain and view more information about it.
+1. click on nodes in my connection chain.
+1. view more information about each node in the chain.
 1. share my connection chain on social media.
 1. export my connection chain to my personal computer.
 1. be notified of any crashes, bugs, or problems that the program might run into as it is trying to find a connection.
 1. be prompted to continue if computation is taking longer than expected.
 1. have the option to stop computation if they don't want to wait any longer.
 1. be entertained while I have to wait for the result.
+1. be able to read about the algorithm being used and the project in general.
 
 ####As a back-end developer I would like to...
 1. keep a record of people that have used the app.
-1. create an algorithm that finds how two users are connected.
-1. keep the algorithm generic so it may be used in the future with other social media sites.
+1. keep a record of searches users have made.
+1. create an algorithm that finds how nodes are connected.
+1. keep the algorithm generic so it may be used in the future with other sites.
 
 ####As a front-end developer I would like to…
 1. create a minimalistic design for the site.
@@ -41,17 +44,15 @@
 
 ####As a user I would like...
 1. that the app responds quickly (in less than 10 seconds of my query).
-1. to not have my Twitter information leaked or stolen (without my permission).
 1. be able to intuitively understand website layout.
 
 ####As a developer I would like...
 1. that the version control is well organized with with a release branch, a development branch, and a branch for each feature that gets merged into the development branch upon completion.
-1. have Twitter not limit how much we access their API.
 1. that release versions are tagged in version control.
 1. to have the user stories well organized and easily viewable.
 1. that the sprints be well planned out and manageable.
 1. to easily communicate within the group.
 1. make the algorithm as efficient as possible.
-1. make the algorithm use as few Twitter API requests as possible.
+1. make the algorithm use as few API requests as possible.
 1. be able to handle multiple requests at the same time.
-1. be able to deal with users trying to trick us (entering same name twice, people that don't exist, friendless Twitter accounts).
+1. be able to deal with users trying to trick us (entering same name twice, people that don't exists).
