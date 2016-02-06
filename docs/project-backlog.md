@@ -14,6 +14,9 @@
 ##Functional Requirements
 
 ####As a user I would like to...
+1. be able to view band connections on last.fm
+1. be able to view article connections on Wikipedia.
+1. select the site I would like to view connections on.
 1. see how I am related to a node of my choice.
 1. see how I am related to a node.
 1. see how two nodes of my choice are connected.
@@ -29,6 +32,13 @@
 1. have the option to stop computation if they don't want to wait any longer.
 1. be entertained while I have to wait for the result.
 1. be able to read about the algorithm being used and the project in general.
+1. see how many times the algorithm has run for each site.
+1. view searches I have recently made.
+1. being able to click on recently made searches to go back to them.
+1. view what other users have been searching.
+1. be able to view friend connections on Twitter (time permitting).
+1. be able to view related actors on IMDb (time permitting).
+1. be able to view friend connections on Steam (time permitting).
 
 ####As a back-end developer I would like to...
 1. keep a record of people that have used the app.
@@ -36,7 +46,7 @@
 1. create an algorithm that finds how nodes are connected.
 1. keep the algorithm generic so it may be used in the future with other sites.
 
-####As a front-end developer I would like to…
+####As a front-end developer I would like to...
 1. create a minimalistic design for the site.
 1. create a way to support the various methods of inputting who will be connected.
 
