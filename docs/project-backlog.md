@@ -18,7 +18,7 @@
 1. be able to view article connections on Wikipedia.
 1. select the site I would like to view connections on.
 1. see how I am related to a node of my choice.
-1. see how I am related to a node.
+1. see how I am related to a random node.
 1. see how two nodes of my choice are connected.
 1. see how two random nodes are connected.
 1. have a drop down menu appear to try and autocomplete my query.
