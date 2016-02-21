@@ -18,7 +18,7 @@ public class WebApp extends SimpleWebServer {
 	private ArrayList<Comment> comments;
 
 	public WebApp() throws IOException {
-		super("cs307team4.cs.purdue.edu", 80, new File("client/"), false);
+		super("localhost", 8000, new File("client/"), false);
 		comments = new ArrayList<Comment>();
 	}
 	
