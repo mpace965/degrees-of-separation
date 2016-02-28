@@ -6,11 +6,13 @@ public class Node {
 	private static Site site;
 	private ArrayList<Node> connections;
 	private Integer nodeID;
+	private int location;
+	private int distance;
 
 	public Node(Integer nodeID) {
 		this.nodeID = nodeID;
 		if (site == null) {
-			// TODO error check
+			
 		}
 	}
 
@@ -19,6 +21,12 @@ public class Node {
 	}
 	public boolean addConnection(ArrayList<Node> arr) {
 		return this.connections.addAll(arr);
+	}
+	public void setDistance(int distance) {
+		this.distance = distance;
+	}
+	public void setLocation(int location) {
+		this.location = location;
 	}
 	public static void setSite(Site s) {
 		site = s;
@@ -33,6 +41,12 @@ public class Node {
 	}
 	public Integer getNodeID() {
 		return this.nodeID;
+	}
+	public int getDistance() {
+		return this.distance;
+	}
+	public int getLocation() {
+		return this.location;
 	}
 	public String toString() {
 		return nodeID.toString();

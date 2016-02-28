@@ -76,17 +76,26 @@ public class Site {
 		}
 		else {
 			// TODO search through file and check that node exists
+			this.start = new Node(id);
+			allNodes.put(id, this.start);
 		}
 	}
-	
 	public void setEnd(Integer id) {
 		if (allNodes.containsKey(id)) {
 			this.end = allNodes.get(id);
 			return;
 		}
 		else {
-			
+			this.end = new Node(id);
+			allNodes.put(id, this.end);
 		}
+	}
+	
+	public Node getStart() {
+		return this.start;
+	}
+	public Node getEnd() {
+		return this.end;
 	}
 
 	private String getFirstNode(String line) {

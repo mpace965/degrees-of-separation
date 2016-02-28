@@ -8,8 +8,9 @@ public class AlgorithmTest {
 	public static void main(String[] args) {
 		// TODO account for unix system
 		Site site = new Site("C:\\Users\\Ryan\\Downloads\\facebook_combined.txt");
-		Site.setStart(0);
-		Site.setEnd(500);
+		Node.setSite(site);
+		site.setStart(0);
+		site.setEnd(348);
 		ArrayList<Node> connection = Algorithm.processConnection(site); 
 		
 		

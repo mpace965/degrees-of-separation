@@ -8,11 +8,15 @@ import java.util.Map.Entry;
 import siteClasses.*;
 
 public class Algorithm {
-	public static ArrayList<Node> processConnection(Node start, Node end) {
+	public static ArrayList<Node> processConnection(Site site) {
+		Node start = site.getStart();
+		Node end = site.getEnd();
+		
 		HashMap<Node, Integer> dist = new HashMap<Node, Integer>();
 		HashMap<Node, Node> prev = new HashMap<Node, Node>();
 
 		dist.put(start, 0);
+		prev.put(start, null);
 
 		Node node;
 		while (!dist.isEmpty()) {
