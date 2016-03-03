@@ -6,8 +6,37 @@ var AdjacencyListSiteSearchView = React.createClass({
   getInitialState: function() {
     return {
       connectionBegin: '',
-      connectionEnd: ''
+      connectionEnd: '',
+      apiResponse: {}
     };
+  },
+
+  //Make the api request to the server
+  loadChainFromServer: function() {
+    $.ajax({
+        url: '/api/connect',
+        dataType: 'json',
+        cache: false,
+        data: {begin: this.state.connectionBegin, end: this.state.connectionEnd},
+        success: function(data) {
+          this.setState({apiResponse: data}, function() {
+            var newGraph = this.processApiResponse();
+            this.props.setActiveView(ResultView, {graph: newGraph});
+          });
+        }.bind(this),
+        error: function(xhr, status, err) {
+          console.error('/api/connect', status, err.toString());
+        }.bind(this)
+    });
+  },
+
+  processApiResponse: function() {
+    var graph = {
+      nodes: d3.range(this.state.apiResponse.nodeCount).map(Object),
+      links: this.state.apiResponse.edgeList
+    };
+
+    return graph;
   },
 
   //Handle input changes by updating the state.
@@ -32,33 +61,7 @@ var AdjacencyListSiteSearchView = React.createClass({
       return;
     }
 
-    //add handler to send to server
-
-    /* hard coded data. This is how data flows up through to the mainView, then
-    back down to the resultView */
-    this.props.setActiveView(ResultView, {graph: {
-      nodes: d3.range(13).map(Object),
-      links: [
-        {source:  0, target:  1},
-        {source:  1, target:  2},
-        {source:  2, target:  0},
-        {source:  1, target:  3},
-        {source:  3, target:  2},
-        {source:  3, target:  4},
-        {source:  4, target:  5},
-        {source:  5, target:  6},
-        {source:  5, target:  7},
-        {source:  6, target:  7},
-        {source:  6, target:  8},
-        {source:  7, target:  8},
-        {source:  9, target:  4},
-        {source:  9, target: 11},
-        {source:  9, target: 10},
-        {source: 10, target: 11},
-        {source: 11, target: 12},
-        {source: 12, target: 10}
-        ]
-      }});
+    this.loadChainFromServer();
     this.setState({connectionBegin: '', connectionEnd: ''});
   },
 
