@@ -7,12 +7,16 @@ var AdjacencyListSiteSearchView = React.createClass({
     return {
       connectionBegin: '',
       connectionEnd: '',
-      apiResponse: {}
+      apiResponse: {},
+      loadingMessage: '',
+      errorMessage: ''
     };
   },
 
   //Make the api request to the server
   loadChainFromServer: function() {
+    this.setState({errorMessage: ''});
+
     $.ajax({
         url: '/api/connectAdjacency',
         dataType: 'json',
@@ -20,14 +24,19 @@ var AdjacencyListSiteSearchView = React.createClass({
         data: {begin: this.state.connectionBegin, end: this.state.connectionEnd},
         success: function(data) {
           this.setState({apiResponse: data}, function() {
+            this.setState({loadingMessage: ''});
             var newGraph = this.processApiResponse();
             this.props.setActiveView(ResultView, {graph: newGraph});
           });
         }.bind(this),
         error: function(xhr, status, err) {
+          this.setState({loadingMessage: ''});
+          this.setState({errorMessage: xhr.responseText});
           console.error('/api/connectAdjacency', status, err.toString());
         }.bind(this)
     });
+
+    this.setState({loadingMessage: 'Loading...'});
   },
 
   processApiResponse: function() {
@@ -66,6 +75,15 @@ var AdjacencyListSiteSearchView = React.createClass({
   },
 
   render: function() {
+    var messageString = '';
+
+    if (this.state.loadingMessage) {
+      messageString = this.state.loadingMessage;
+    }
+    if (this.state.errorMessage) {
+      messageString = this.state.errorMessage;
+    }
+
     return (
       <div className="adjacencyListSiteSearchView">
         <div className="flexRowItem">
@@ -77,6 +95,7 @@ var AdjacencyListSiteSearchView = React.createClass({
           <input type="text" placeholder="...to node B" value={this.state.connectionEnd} onChange={this.handleConnectionEndChange} />
           <input type="submit" value="Submit" />
         </form>
+        <p>{messageString}</p>
       </div>
     );
   }
