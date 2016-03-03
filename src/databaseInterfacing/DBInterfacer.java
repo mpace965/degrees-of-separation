@@ -62,7 +62,7 @@ public class DBInterfacer {
 	
 	/**
 	 * Adds a connection between 2 Vertices to the graph
-	 * @return 0 if empty, 1 if removed
+	 * @return 1 if success, 0 if fail
 	 */
 	public Object addNewConnection(String name1, String name2) {
 		try {
@@ -82,7 +82,7 @@ public class DBInterfacer {
 	
 	/**
 	 * Removes all Vertices in the graph
-	 * @return 0 if empty, 1 if removed
+	 * @return 1 if removed, 0 if empty
 	 */
 	public int removeAllConnections() {
 		if (graph.countVertices() == 0)
