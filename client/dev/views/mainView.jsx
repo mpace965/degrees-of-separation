@@ -1,12 +1,12 @@
 var React = require('react');
 
 var Header = require('./header');
-var A = require('./a');
+var LandingPage = require('./landingPage');
 
 var Wrapper = React.createClass({
   getInitialState: function() {
     return {
-      activeView: A
+      activeView: LandingPage
     };
   },
 

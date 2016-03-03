@@ -1,0 +1,37 @@
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+/* site wide style */
+#wrapper {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* utility */
+.text-button {
+  margin: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none;   /* Chrome/Safari/Opera */
+  -khtml-user-select: none;    /* Konqueror */
+  -moz-user-select: none;      /* Firefox */
+  -ms-user-select: none;       /* IE/Edge */
+  user-select: none;
+}
+
+/* header.jsx */
+.header {
+  border: 1px solid black;
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: flex-start;
+}
+
+/* landingPage.jsx */
+.landingPage {
+  padding: 10px;
+}

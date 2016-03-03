@@ -1,7 +1,7 @@
 var React = require('react');
 
-var A = require('./a');
-var B = require('./b');
+var LandingPage = require('./landingPage');
+var ResultView = require('./resultView');
 
 var Header = React.createClass({
   handleClick: function(param) {
@@ -11,8 +11,9 @@ var Header = React.createClass({
   render: function() {
     return (
       <div className="header">
-        <button onClick={this.handleClick.bind(null, A)} >Set A as active content</button>
-        <button onClick={this.handleClick.bind(null, B)} >Set B as active content</button>
+        <h2 className="text-button" onClick={this.handleClick.bind(null, LandingPage)}>Degrees of Separation</h2>
+        <h3 className="text-button">About</h3>
+        <h3 className="text-button" onClick={this.handleClick.bind(null, ResultView)}>Connect</h3>
       </div>
     );
   }
