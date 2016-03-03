@@ -14,7 +14,7 @@ var AdjacencyListSiteSearchView = React.createClass({
   //Make the api request to the server
   loadChainFromServer: function() {
     $.ajax({
-        url: '/api/connect',
+        url: '/api/connectAdjacency',
         dataType: 'json',
         cache: false,
         data: {begin: this.state.connectionBegin, end: this.state.connectionEnd},
@@ -25,7 +25,7 @@ var AdjacencyListSiteSearchView = React.createClass({
           });
         }.bind(this),
         error: function(xhr, status, err) {
-          console.error('/api/connect', status, err.toString());
+          console.error('/api/connectAdjacency', status, err.toString());
         }.bind(this)
     });
   },

@@ -1,6 +1,7 @@
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import API.AdjacencyListConnectResponse;
 import API.AdjacencyListEdge;
@@ -42,7 +43,8 @@ public class WebApp extends SimpleWebServer {
 		Response r = null;
 		
 		switch (uri) {
-			case "/api/connect": {
+			case "/api/connectAdjacency": {
+				Map<String, String> parms = session.getParms();				
 				AdjacencyListConnectResponse c = new AdjacencyListConnectResponse();
 				c.setNodeCount(13);
 				c.addEdge(new AdjacencyListEdge(0, 1));
