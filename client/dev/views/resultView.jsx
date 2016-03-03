@@ -10,8 +10,8 @@ var ResultView = React.createClass({
     };
   },
 
+  //http://bl.ocks.org/mbostock/3311124
   renderGraph: function() {
-    //http://bl.ocks.org/mbostock/3311124
     var width = 960,
         height = 500;
 
@@ -50,6 +50,7 @@ var ResultView = React.createClass({
     }
   },
 
+  //This is where you apply activeViewState, if its defined.
   componentWillMount: function() {
     if (this.props.activeViewState != null) {
       this.setState(this.props.activeViewState);

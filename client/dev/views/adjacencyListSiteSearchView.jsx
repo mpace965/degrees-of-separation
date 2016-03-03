@@ -10,6 +10,7 @@ var AdjacencyListSiteSearchView = React.createClass({
     };
   },
 
+  //Handle input changes by updating the state.
   handleConnectionBeginChange: function(e) {
     this.setState({connectionBegin: e.target.value});
   },
@@ -19,7 +20,10 @@ var AdjacencyListSiteSearchView = React.createClass({
   },
 
   handleSubmit: function(e) {
+    //don't do default form submit action
     e.preventDefault();
+
+    //basic string sanitation
     var connectionBegin = this.state.connectionBegin.trim();
     var connectionEnd = this.state.connectionEnd.trim();
 
@@ -29,6 +33,9 @@ var AdjacencyListSiteSearchView = React.createClass({
     }
 
     //add handler to send to server
+
+    /* hard coded data. This is how data flows up through to the mainView, then
+    back down to the resultView */
     this.props.setActiveView(ResultView, {graph: {
       nodes: d3.range(13).map(Object),
       links: [

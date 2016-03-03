@@ -11,6 +11,10 @@ var Wrapper = React.createClass({
     };
   },
 
+  /* Handles navigation from all child views.
+  Optionally, you can pass in a state that will get applied to the activeView.
+  This is not automatic, you need to apply it in the view's componentWillMount.
+  See resultView.jsx for an example */
   setActiveView: function(activeView, state) {
     this.setState({activeView: activeView});
 

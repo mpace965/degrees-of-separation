@@ -8,6 +8,7 @@ var Header = React.createClass({
     this.props.setActiveView(param);
   },
 
+  //Simple navigation. Null must be bound as the first parameter, something weird with React.
   render: function() {
     return (
       <div className="header">
