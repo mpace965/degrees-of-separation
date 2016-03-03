@@ -6,11 +6,11 @@ import siteClasses.*;
 
 public class AlgorithmTest {
 	public static void main(String[] args) {
-		// TODO account for unix system
-		Site site = new Site("C:\\Users\\Ryan\\Downloads\\facebook_combined.txt");
+		String fileSeparator = System.getProperty("file.separator");
+		Site site = new Site("docs" + fileSeparator + "facebook_combined.txt");
 		Node.setSite(site);
 		site.setStart(0);
-		site.setEnd(4038);
+		site.setEnd(500);
 		
 		long time1 = System.currentTimeMillis();
 		ArrayList<Node> connection = Algorithm.processConnection(site); 
