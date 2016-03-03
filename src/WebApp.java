@@ -44,29 +44,7 @@ public class WebApp extends SimpleWebServer {
 		
 		switch (uri) {
 			case "/api/connectAdjacency": {
-				Map<String, String> parms = session.getParms();				
-				AdjacencyListConnectResponse c = new AdjacencyListConnectResponse();
-				c.setNodeCount(13);
-				c.addEdge(new AdjacencyListEdge(0, 1));
-				c.addEdge(new AdjacencyListEdge(1, 2));
-				c.addEdge(new AdjacencyListEdge(2, 0));
-				c.addEdge(new AdjacencyListEdge(1, 3));
-				c.addEdge(new AdjacencyListEdge(3, 2));
-				c.addEdge(new AdjacencyListEdge(3, 4));
-				c.addEdge(new AdjacencyListEdge(4, 5));
-				c.addEdge(new AdjacencyListEdge(5, 6));
-				c.addEdge(new AdjacencyListEdge(5, 7));
-				c.addEdge(new AdjacencyListEdge(6, 7));
-				c.addEdge(new AdjacencyListEdge(6, 8));
-				c.addEdge(new AdjacencyListEdge(7, 8));
-				c.addEdge(new AdjacencyListEdge(9, 4));
-				c.addEdge(new AdjacencyListEdge(9, 11));
-				c.addEdge(new AdjacencyListEdge(9, 10));
-				c.addEdge(new AdjacencyListEdge(10, 11));
-				c.addEdge(new AdjacencyListEdge(11, 12));
-				c.addEdge(new AdjacencyListEdge(12, 10));
-				
-				r = newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(c));
+				r = connectAdjacency(session, gson);
 				break;
 			}
 			default: {
@@ -75,5 +53,50 @@ public class WebApp extends SimpleWebServer {
 		}
 		
 		return r;
+	}
+	
+	private Response connectAdjacency(IHTTPSession session, Gson gson) {
+		Map<String, String> parms = session.getParms();
+		String beginString = parms.get("begin");
+		String endString = parms.get("end");
+		int begin = -1;
+		int end = -1;
+		
+		try {
+			begin = Integer.parseInt(beginString);
+			end = Integer.parseInt(endString);
+		} catch (NumberFormatException nfe) {
+			return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "One of your inputs was not a number.");
+		}
+		
+		AdjacencyListConnectResponse c = new AdjacencyListConnectResponse();
+		c.setNodeCount(13);
+		c.addEdge(new AdjacencyListEdge(0, 1));
+		c.addEdge(new AdjacencyListEdge(1, 2));
+		c.addEdge(new AdjacencyListEdge(2, 0));
+		c.addEdge(new AdjacencyListEdge(1, 3));
+		c.addEdge(new AdjacencyListEdge(3, 2));
+		c.addEdge(new AdjacencyListEdge(3, 4));
+		c.addEdge(new AdjacencyListEdge(4, 5));
+		c.addEdge(new AdjacencyListEdge(5, 6));
+		c.addEdge(new AdjacencyListEdge(5, 7));
+		c.addEdge(new AdjacencyListEdge(6, 7));
+		c.addEdge(new AdjacencyListEdge(6, 8));
+		c.addEdge(new AdjacencyListEdge(7, 8));
+		c.addEdge(new AdjacencyListEdge(9, 4));
+		c.addEdge(new AdjacencyListEdge(9, 11));
+		c.addEdge(new AdjacencyListEdge(9, 10));
+		c.addEdge(new AdjacencyListEdge(10, 11));
+		c.addEdge(new AdjacencyListEdge(11, 12));
+		c.addEdge(new AdjacencyListEdge(12, 10));
+		
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(c));
 	}
 }
