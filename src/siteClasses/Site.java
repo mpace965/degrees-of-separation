@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 public class Site {
 	private String filePath;
+	public int fileAccesses = 0;
 	private HashMap<Integer, Node> allNodes;
 	private Node start;
 	private Node end;
@@ -21,9 +22,10 @@ public class Site {
 		}
 		try {
 			FileReader fileReader = new FileReader(this.filePath);
-
+			
 			BufferedReader bufferedReader = new BufferedReader(fileReader);
-
+			fileAccesses++;
+			
 			String nodeStr = source.getNodeID().toString();
 			String line;
 			boolean reachedEnd = false;

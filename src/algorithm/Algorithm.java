@@ -2,61 +2,43 @@ package algorithm;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
 
 import siteClasses.*;
+import org.jgrapht.util.*;
 
 public class Algorithm {
 	public static ArrayList<Node> processConnection(Site site) {
-		Node start = site.getStart();
-		Node end = site.getEnd();
-		
-		HashMap<Node, Integer> dist = new HashMap<Node, Integer>();
+		FibonacciHeapNode<Node> start = site.getStart().getFibNode();
+		FibonacciHeapNode<Node> end = site.getEnd().getFibNode();
+
+		FibonacciHeap<Node> heap = new FibonacciHeap<Node>();
 		HashMap<Node, Node> prev = new HashMap<Node, Node>();
 
-		dist.put(start, 0);
-		prev.put(start, null);
+		heap.insert(start, 0);
+		prev.put(start.getData(), null);
 
-		Node node;
-		while (!dist.isEmpty()) {
-			node = getMin(dist);
-			if (node.equals(end))
-				return flip(prev, end);
-
-			for (Node neighbor : node.getConnections()) {
-				if (dist.get(neighbor) == null || dist.get(neighbor) > dist.get(node) + 1) {
-					dist.put(neighbor, dist.get(node) + 1);
-					prev.put(neighbor, node);
+		FibonacciHeapNode<Node> node;
+		while (!heap.isEmpty()) {
+			node = heap.removeMin();
+			for (Node neighbor : node.getData().getConnections()) {
+				if (neighbor.equals(end.getData())) {
+					prev.put(end.getData(), node.getData());
+					return flip(prev, end.getData());
+				}
+				else if (!prev.containsKey(neighbor)) {
+					heap.insert(neighbor.getFibNode(), node.getKey() + 1);
+					prev.put(neighbor, node.getData());
+				}
+				else {
+					if (neighbor.getFibNode().getKey() > node.getKey() + 1) {
+						heap.decreaseKey(neighbor.getFibNode(), node.getKey() + 1);
+						prev.put(neighbor, node.getData());
+					}
 				}
 			}
-			dist.remove(node);
 		}
 
 		return null;
-	}
-
-	private static Node getMin(HashMap<Node, Integer> dist) {
-		Iterator<Entry<Node, Integer>> it = dist.entrySet().iterator();
-
-		Integer min = Integer.MAX_VALUE;
-		Node minNode = null;
-		Entry<Node, Integer> temp;
-		while (it.hasNext()) {
-			temp = it.next();
-			if (temp.getValue() < min) {
-				min = temp.getValue();
-				minNode = temp.getKey();
-			}
-			else if (temp.getValue() == min) {
-				if (temp.getKey().getNodeID() < minNode.getNodeID()) {
-					min = temp.getValue();
-					minNode = temp.getKey();
-				}
-			}
-		}
-
-		return minNode;
 	}
 
 	private static ArrayList<Node> flip(HashMap<Node, Node> prev, Node end) {
@@ -66,6 +48,12 @@ public class Algorithm {
 		while (curr != null) {
 			list.add(curr);
 			curr = prev.get(curr);
+		}
+		
+		for (int i = 0; i < list.size() / 2; i++) {
+			Node temp = list.get(i);
+			list.set(i, list.get(list.size() - 1 - i));
+			list.set(list.size() - 1 - i, temp);
 		}
 
 		return list;

@@ -2,12 +2,15 @@ package siteClasses;
 
 import java.util.ArrayList;
 
+import org.jgrapht.util.FibonacciHeapNode;
+
 public class Node {
 	private static Site site;
 	private ArrayList<Node> connections;
 	private Integer nodeID;
 	private int location;
 	private int distance;
+	private FibonacciHeapNode<Node> fibNode;
 
 	public Node(Integer nodeID) {
 		this.nodeID = nodeID;
@@ -47,6 +50,12 @@ public class Node {
 	}
 	public int getLocation() {
 		return this.location;
+	}
+	public FibonacciHeapNode<Node> getFibNode() {
+		if (this.fibNode == null) {
+			this.fibNode = new FibonacciHeapNode<Node>(this);
+		}
+		return this.fibNode;
 	}
 	public String toString() {
 		return nodeID.toString();
