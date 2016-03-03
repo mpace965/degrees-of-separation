@@ -35,3 +35,19 @@ html, body {
 .landingPage {
   padding: 10px;
 }
+
+/* resultView.jsx */
+.resultView {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.link {
+  stroke: #000;
+}
+
+.node {
+  fill: #ccc;
+  stroke: #000;
+}
