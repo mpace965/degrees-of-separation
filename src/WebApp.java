@@ -1,10 +1,9 @@
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Random;
 
-import API.Comment;
+import API.AdjacencyListConnectResponse;
+import API.AdjacencyListEdge;
 
 import com.google.gson.Gson;
 
@@ -15,11 +14,9 @@ public class WebApp extends SimpleWebServer {
 	
 	public static final String MIME_JSON = "application/json";
 	
-	private ArrayList<Comment> comments;
 
 	public WebApp() throws IOException {
 		super("localhost", 8000, new File("client/"), false);
-		comments = new ArrayList<Comment>();
 	}
 	
 	public static void main(String[] args) {
@@ -45,11 +42,29 @@ public class WebApp extends SimpleWebServer {
 		Response r = null;
 		
 		switch (uri) {
-			case "/api/comments": {
-				Random rand = new Random();
-				comments.add(new Comment(rand.nextInt(), "Tom", "I have commented " + (comments.size() + 1) + " times"));
+			case "/api/connect": {
+				AdjacencyListConnectResponse c = new AdjacencyListConnectResponse();
+				c.setNodeCount(13);
+				c.addEdge(new AdjacencyListEdge(0, 1));
+				c.addEdge(new AdjacencyListEdge(1, 2));
+				c.addEdge(new AdjacencyListEdge(2, 0));
+				c.addEdge(new AdjacencyListEdge(1, 3));
+				c.addEdge(new AdjacencyListEdge(3, 2));
+				c.addEdge(new AdjacencyListEdge(3, 4));
+				c.addEdge(new AdjacencyListEdge(4, 5));
+				c.addEdge(new AdjacencyListEdge(5, 6));
+				c.addEdge(new AdjacencyListEdge(5, 7));
+				c.addEdge(new AdjacencyListEdge(6, 7));
+				c.addEdge(new AdjacencyListEdge(6, 8));
+				c.addEdge(new AdjacencyListEdge(7, 8));
+				c.addEdge(new AdjacencyListEdge(9, 4));
+				c.addEdge(new AdjacencyListEdge(9, 11));
+				c.addEdge(new AdjacencyListEdge(9, 10));
+				c.addEdge(new AdjacencyListEdge(10, 11));
+				c.addEdge(new AdjacencyListEdge(11, 12));
+				c.addEdge(new AdjacencyListEdge(12, 10));
 				
-				r = newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(comments));
+				r = newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(c));
 				break;
 			}
 			default: {
