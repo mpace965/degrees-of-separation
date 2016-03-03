@@ -22,6 +22,25 @@ html, body {
   user-select: none;
 }
 
+.flexRowItem {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: center;
+}
+
+/* adjacencyListSiteSearchView.jsx */
+.adjacencyListSiteSearchView {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.adjListForm input {
+  margin: 10px;
+}
+
 /* header.jsx */
 .header {
   border: 1px solid black;
