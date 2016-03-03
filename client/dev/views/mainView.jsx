@@ -1,17 +1,26 @@
 var React = require('react');
 
 var Header = require('./header');
-var A = require('./a');
+var LandingPage = require('./landingPage');
 
 var Wrapper = React.createClass({
   getInitialState: function() {
     return {
-      activeView: A
+      activeView: LandingPage,
+      activeViewState: {}
     };
   },
 
-  setActiveView: function(activeView) {
-    this.setState({activeView: activeView})
+  /* Handles navigation from all child views.
+  Optionally, you can pass in a state that will get applied to the activeView.
+  This is not automatic, you need to apply it in the view's componentWillMount.
+  See resultView.jsx for an example */
+  setActiveView: function(activeView, state) {
+    this.setState({activeView: activeView});
+
+    if (state != null) {
+      this.setState({activeViewState: state});
+    }
   },
 
   render: function() {
@@ -20,7 +29,7 @@ var Wrapper = React.createClass({
     return (
       <div>
         <Header setActiveView={this.setActiveView} />
-        <ActiveView />
+        <ActiveView setActiveView={this.setActiveView} activeViewState={this.state.activeViewState}/>
       </div>
     );
   }
