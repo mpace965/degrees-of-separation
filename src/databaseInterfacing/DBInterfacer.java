@@ -11,9 +11,9 @@ public class DBInterfacer {
 	
 	/**
 	 * Constructor for Interfacer
-	 * @param database	the database that you want to connect to
-	 * @param username	the username you want to connect with
-	 * @param password	the password you want to connect with
+	 * @param database	The database that you want to connect to
+	 * @param username	The username you want to connect with
+	 * @param password	The password you want to connect with
 	 */
 	public DBInterfacer(String database, String username, String password) {
 		graph = new OrientGraph(database, username, password);
@@ -21,7 +21,7 @@ public class DBInterfacer {
 	
 	/**
 	 * Adds a vertex with no initial properties to graph
-	 * @return id that is associated with that vertex
+	 * @return ID that is associated with that vertex
 	 */
 	public Object addVertex() {
 		try {
@@ -35,8 +35,8 @@ public class DBInterfacer {
 	
 	/**
 	 * Sets the properties of a vertex v using the props list
-	 * @param vertexid	id used to look up the vertex
-	 * @param props		list of props that are to be set to the vertex
+	 * @param vertexid	ID used to look up the vertex
+	 * @param props		List of props that are to be set to the vertex
 	 * 					must be an even number of props
 	 * 					Ex: ["name", "John", "band", "Beatles"]
 	 * @return 1 if success, 0 if fail
@@ -70,7 +70,7 @@ public class DBInterfacer {
 			v1.setProperty("name", name1);
 			
 			Vertex v2 = graph.addVertex(null);
-			v1.setProperty("name", name2);
+			v2.setProperty("name", name2);
 			
 			Edge connection = graph.addEdge(null, v1, v2, "connected");
 			return connection.getId();
@@ -95,5 +95,9 @@ public class DBInterfacer {
 		}
 		
 		return 1;
+	}
+	
+	public void close() {
+		graph.shutdown();
 	}
 }

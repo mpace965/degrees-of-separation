@@ -9,5 +9,9 @@ public class DBInterfaceTest {
 		interfacer.setVertexProperties(interfacer.addVertex(), props);
 		
 		interfacer.addNewConnection("Tom", "Matt");
+		
+		//interfacer.removeAllConnections();
+		
+		interfacer.close();
 	}
 }
