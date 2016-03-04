@@ -1,5 +1,7 @@
 package databaseInterfacing;
 
+import java.util.Iterator;
+
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
@@ -8,6 +10,8 @@ import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 
 public class DBInterfacer {
 	private OrientGraph graph;
+	private long currentNodes, maxNodes;
+	private double purgePercent;
 	
 	/**
 	 * Constructor for Interfacer
@@ -15,17 +19,26 @@ public class DBInterfacer {
 	 * @param username	The username you want to connect with
 	 * @param password	The password you want to connect with
 	 */
-	public DBInterfacer(String database, String username, String password) {
-		graph = new OrientGraph(database, username, password);
+	public DBInterfacer(String database, String username, String password, long maxNodes) {
+		this.graph = new OrientGraph(database, username, password);
+		this.currentNodes = graph.countVertices();
+		this.maxNodes = maxNodes;
+		this.purgePercent = 0.2;
 	}
 	
 	/**
-	 * Adds a vertex with no initial properties to graph
-	 * @return ID that is associated with that vertex
+	 * Adds a vertex with no fields
+	 * @param className	Name of class and cluster that the node will be added to
+	 * @return ID that is associated with that vertex or 0 if failed
 	 */
-	public Object addVertex() {
+	public Object addVertex(String className) {
 		try {
-			Vertex v = graph.addVertex(null);
+			Vertex v = graph.addVertex(className, className);
+			
+			currentNodes++;
+			if (currentNodes >= maxNodes)
+				cachePurge();
+			
 			return v.getId();
 		}
 		catch (Exception e) {
@@ -34,49 +47,64 @@ public class DBInterfacer {
 	}
 	
 	/**
-	 * Sets the properties of a vertex v using the props list
+	 * Adds a vertex with the supplied fields
+	 * @param className	Name of class and cluster that the node will be added to
 	 * @param vertexid	ID used to look up the vertex
 	 * @param props		List of props that are to be set to the vertex
 	 * 					must be an even number of props
 	 * 					Ex: ["name", "John", "band", "Beatles"]
-	 * @return 1 if success, 0 if fail
+	 * @return ID that is associated with that vertex or 0 if failed
 	 */
-	public int setVertexProperties(Object vertexid, String[] props) {
-		if (props.length % 2 != 0)
-			return 0;
+	public Object addVertex(String className, String[] names, Object[] values) {
+		if (names.length % 2 != 0 || values.length % 2 != 0)
+			return null;
 		
 		try {
-			Vertex v = graph.getVertex(vertexid);
+			Vertex v = graph.addVertex(className, className);
 			
-			int i = 0;
-			while (i < props.length) {
-				v.setProperty(props[i], props[i + 1]);
-				i += 2;
-			}
-			return 1;
+			for (int i = 0; i < names.length; i++)
+				v.setProperty(names[i], values[i]);
+			
+			currentNodes++;
+			if (currentNodes >= maxNodes)
+				cachePurge();
+			
+			return v.getId();
 		}
 		catch (Exception e) {
-			return 0;
+			return null;
 		}
+	}
+	
+	public Iterable<Vertex> getVerticesByFieldProps(String label, String[] names, Object[] values) {
+		return graph.getVertices("Node", names, values);
 	}
 	
 	/**
 	 * Adds a connection between 2 Vertices to the graph
 	 * @return 1 if success, 0 if fail
 	 */
-	public Object addNewConnection(String name1, String name2) {
+	public Object addNewConnection(String edgeName, Object id1, Object id2) {
 		try {
-			Vertex v1 = graph.addVertex(null);
-			v1.setProperty("name", name1);
+			Vertex v1 = graph.getVertex(id1);
+			Vertex v2 = graph.getVertex(id2);
 			
-			Vertex v2 = graph.addVertex(null);
-			v2.setProperty("name", name2);
-			
-			Edge connection = graph.addEdge(null, v1, v2, "connected");
+			Edge connection = graph.addEdge(edgeName, v1, v2, "connection");
 			return connection.getId();
 		} 
 		catch (Exception e){
 			return null;
+		}
+	}
+	
+	public void cachePurge() {
+		long purgeAmount = (long) (currentNodes * purgePercent);
+		
+		Iterator<Vertex> vIter = graph.getVertices().iterator();
+		
+		while (purgeAmount > 0) {
+			graph.removeVertex((Vertex) vIter.next());
+			purgeAmount--;
 		}
 	}
 	
@@ -85,7 +113,8 @@ public class DBInterfacer {
 	 * @return 1 if removed, 0 if empty
 	 */
 	public int removeAllConnections() {
-		if (graph.countVertices() == 0)
+		
+		if (currentNodes == 0)
 			return 0;
 		
 		Iterable<Vertex> vertices = graph.getVertices();
@@ -99,5 +128,16 @@ public class DBInterfacer {
 	
 	public void close() {
 		graph.shutdown();
+	}
+	
+	public String toString() {
+		Iterable<Vertex> vertices = graph.getVertices();
+		String toStr = "";
+		
+		for (Vertex v : vertices) {
+			toStr += v.getId() + "\n";
+		}
+		
+		return toStr;
 	}
 }
