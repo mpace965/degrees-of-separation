@@ -2,6 +2,7 @@ package databaseInterfacing;
 
 import java.util.Iterator;
 
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
@@ -76,8 +77,24 @@ public class DBInterfacer {
 		}
 	}
 	
-	public Iterable<Vertex> getVerticesByFieldProps(String label, String[] names, Object[] values) {
-		return graph.getVertices("Node", names, values);
+	/**
+	 * Get a list of vertices by its field variables
+	 * @param label		USE "Node". Class to search through.
+	 * @param names		List of field names ex: {"name"}
+	 * @param values	List of field values ex: {"Tom"}
+	 * @return List of vertices
+	 */
+	public Iterable<Vertex> getVerticesByFields(String label, String[] names, Object[] values) {
+		return graph.getVertices(label, names, values);
+	}
+	
+	/**
+	 * Gets the neighbors that are connected to a given vertex
+	 * @param id	Id of the vertex
+	 * @return List of neighbors
+	 */
+	public Iterable<Vertex> getConnectedNeighbors(Object id) {
+		return graph.getVertex(id).getVertices(Direction.BOTH);
 	}
 	
 	/**
@@ -91,12 +108,15 @@ public class DBInterfacer {
 			
 			Edge connection = graph.addEdge(edgeName, v1, v2, "connection");
 			return connection.getId();
-		} 
+		}
 		catch (Exception e){
 			return null;
 		}
 	}
 	
+	/**
+	 * Purges the oldest percent of the cache
+	 */
 	public void cachePurge() {
 		long purgeAmount = (long) (currentNodes * purgePercent);
 		
@@ -126,10 +146,16 @@ public class DBInterfacer {
 		return 1;
 	}
 	
+	/**
+	 * Shutdown the server
+	 */
 	public void close() {
 		graph.shutdown();
 	}
 	
+	/**
+	 * Prints the IDs of the vertices
+	 */
 	public String toString() {
 		Iterable<Vertex> vertices = graph.getVertices();
 		String toStr = "";

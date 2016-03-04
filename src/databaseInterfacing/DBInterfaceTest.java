@@ -5,16 +5,25 @@ public class DBInterfaceTest {
 	public static void main(String[] args) {
 		DBInterfacer interfacer = new DBInterfacer("remote:localhost/Connections", "root", "team4", 10);
 		
-		String[] props = {"name", "time"};
-		Object[] values1 = {"sam", "4:30"};
-		Object[] values2 = {"Tom", "3:46"};
 		
-		Object node1 = interfacer.addVertex("Node", props, values1);
-		Object node2 = interfacer.addVertex("Node", props, values2);
+		String[] props = {"name", "access_time"};
+		Object[] values1 = {"sam", "2016-03-03 08:50:31"};
+		Object[] values2 = {"Tom", "2016-03-03 08:50:32"};
 		
-		interfacer.addNewConnection("Connection", node1, node2);
+//		Object node1 = interfacer.addVertex("Node", props, values1);
+//		Object node2 = interfacer.addVertex("Node", props, values2);
+//		Object node3 = interfacer.addVertex("Node", props, values1);
+//		
+//		interfacer.addNewConnection("Connection", node1, node2);
+//		interfacer.addNewConnection("Connection", node2, node3);
 		
-		System.out.println(interfacer);
+		//interfacer.removeAllConnections();
+		Object node = interfacer.getVerticesByFields("Node", new String[]{"name"}, new Object[] {"Tom"});
+		//System.out.println(node);
+		
+		interfacer.getConnectedNeighbors(node);
+		
+		//System.out.println(interfacer);
 		
 		interfacer.close();
 	}
