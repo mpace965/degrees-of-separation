@@ -110,6 +110,7 @@ public class AdjListSite implements Site {
 			this.start = allNodes.get(startID);
 		}
 		else {
+			
 			allNodes.put(startID, new AdjListNode(startID));
 			this.start = allNodes.get(startID);
 		}
