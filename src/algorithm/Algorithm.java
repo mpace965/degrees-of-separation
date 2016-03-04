@@ -4,8 +4,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import siteClasses.*;
-import org.jgrapht.util.*;
+import org.jgrapht.util.FibonacciHeap;
+import org.jgrapht.util.FibonacciHeapNode;
+
+import siteClasses.Node;
+import siteClasses.Site;
+import databaseInterfacing.DBInterfacer;
 
 public class Algorithm {
 	/**
@@ -64,11 +68,15 @@ public class Algorithm {
 			closedSet.add(node);
 
 			// corner case of the nodes being the same
-			if (end.equals(node))
-				return flip(prev, end, flipped);
-			else if (endSet.contains(node)) {
+			if (end.equals(node)) {
+				ArrayList<Node> nodes = flip(prev, end, flipped);
+				insertIntoDatabase(nodes);
+				return nodes;
+			} else if (endSet.contains(node)) {
 				prev.put(end, node);
-				return flip(prev, end, flipped);
+				ArrayList<Node> nodes = flip(prev, end, flipped);
+				insertIntoDatabase(nodes);
+				return nodes;
 			}
 
 			// check if connections are null, populate if the are
@@ -84,11 +92,15 @@ public class Algorithm {
 				if (endSet.contains(neighbor)) {
 					prev.put(neighbor, node);
 					prev.put(end, neighbor);
-					return flip(prev, end, flipped);
+					ArrayList<Node> nodes = flip(prev, end, flipped);
+					insertIntoDatabase(nodes);
+					return nodes;
 				}
 				else if (end.equals(neighbor)) {
 					prev.put(end, neighbor);
-					return flip(prev, end, flipped);
+					ArrayList<Node> nodes = flip(prev, end, flipped);
+					insertIntoDatabase(nodes);
+					return nodes;
 				}
 
 				// calculate new distance
@@ -116,6 +128,34 @@ public class Algorithm {
 		// will return null if no connection is found 
 		// and all nodes are exhausted
 		return null;
+	}
+	
+	/**
+	 * Inserts a complete list of connected nodes into the database.
+	 * @param nodes
+	 */
+	private static void insertIntoDatabase(ArrayList<Node> nodes) {
+		DBInterfacer interfacer = null;
+		try {
+			interfacer = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
+		} catch (Exception e) {
+			return;
+		}
+		
+		String[] props = {"name"};
+		
+		for (int i = 0; i < nodes.size() - 1; i++) {
+			Node n1 = nodes.get(i);
+			Node n2 = nodes.get(i + 1);
+			
+			Object[] values1 = {n1.getNodeID().toString()};
+			Object[] values2 = {n2.getNodeID().toString()};
+			Object node1 = interfacer.addVertex("Node", props, values1);
+			Object node2 = interfacer.addVertex("Node", props, values2);
+			interfacer.addNewConnection("Connection", node1, node2);
+		}
+		
+		interfacer.close();
 	}
 
 	/**
