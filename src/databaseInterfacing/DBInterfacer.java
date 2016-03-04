@@ -23,10 +23,18 @@ public class DBInterfacer {
 	 * @param purgeP	Percentage of the cache that is purged
 	 */
 	public DBInterfacer(String database, String username, String password, long maxNodes, double purgeP) {
-		this.graph = new OrientGraph(database, username, password);
-		this.currentNodes = graph.countVertices();
-		this.maxNodes = maxNodes;
-		this.purgePercent = purgeP;
+		try {
+			this.graph = new OrientGraph(database, username, password);
+			this.currentNodes = graph.countVertices();
+			this.maxNodes = maxNodes;
+			this.purgePercent = purgeP;
+		}
+		catch (Exception e) {
+			this.graph = null;
+			this.currentNodes = 0;
+			this.maxNodes = 0;
+			this.purgePercent = 0.0;
+		}
 	}
 	
 	/**
