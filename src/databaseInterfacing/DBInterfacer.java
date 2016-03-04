@@ -19,6 +19,7 @@ public class DBInterfacer {
 	 * @param database	The database that you want to connect to
 	 * @param username	The username you want to connect with
 	 * @param password	The password you want to connect with
+	 * @param maxNodes	Maximum number of nodes until there is a cache purge
 	 */
 	public DBInterfacer(String database, String username, String password, long maxNodes) {
 		this.graph = new OrientGraph(database, username, password);
