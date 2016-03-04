@@ -21,7 +21,7 @@ public class WebApp extends SimpleWebServer {
 	
 
 	public WebApp() throws IOException {
-		super("localhost", 8000, new File("client/"), false);
+		super("cs307team4.cs.purdue.edu", 80, new File("client/"), false);
 	}
 	
 	public static void main(String[] args) {
