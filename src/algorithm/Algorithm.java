@@ -14,15 +14,16 @@ public class Algorithm {
 	 * @param end
 	 * @return shortest path connection between the two nodes
 	 */
-	public static ArrayList<Node> processConnection(Site site, Node start, Node end) {
+	public static ArrayList<Node> processConnection(Site site) {
 		// keeps a reference of every nodes' fibonacciheapnode
 		HashMap<Node, FibonacciHeapNode<Node>> fibNodes = 
 				new HashMap<Node, FibonacciHeapNode<Node>>();
 
+		Node start = site.getStartNode();
+		Node end = site.getEndNode();
+		
 		fibNodes.put(start, new FibonacciHeapNode<Node>(start));
 		fibNodes.put(end, new FibonacciHeapNode<Node>(end));
-		site.addNode(start);
-		site.addNode(end);
 
 		// adds more optimization by checking node against
 		// a set in O(1) rather than checking against a single node

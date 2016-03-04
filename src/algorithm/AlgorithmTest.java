@@ -14,18 +14,17 @@ public class AlgorithmTest {
 
 		System.out.println("enter start and end node");
 		while (scan.hasNextLine()) {
-			int start = scan.nextInt();
-			int end = scan.nextInt();
+			String start = scan.nextLine();
+			String end = scan.nextLine();
 			
-			Node startNode = new AdjListNode(start);
-			Node endNode = new AdjListNode(end);
+			site.setStartAndEndNodes(start, end);
 
 			long time1 = System.currentTimeMillis();
 			ArrayList<Node> connection = null;
 			try {
 				site.resetAccessCount();
 				// all processing of the algorithm
-				connection = Algorithm.processConnection(site, startNode, endNode);
+				connection = Algorithm.processConnection(site);
 			}
 			catch (Exception e) {
 				System.err.println(e.getStackTrace().toString());

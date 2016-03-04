@@ -3,12 +3,6 @@ package siteClasses;
 public interface Site {
 	
 	/**
-	 * adds a node to this site's set of nodes
-	 * @param node
-	 */
-	public abstract void addNode(Node node);
-	
-	/**
 	 * @param node
 	 * @return estimated heuristic cost between start and end nodes
 	 */
@@ -24,4 +18,8 @@ public interface Site {
 	 * @return count of accesses to file/API/etc. for one iteration of the algorithm
 	 */
 	public abstract int getAccessCount();
+	
+	public abstract Node getStartNode();
+	public abstract Node getEndNode();
+	public abstract void setStartAndEndNodes(String start, String end);
 }

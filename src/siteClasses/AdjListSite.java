@@ -9,6 +9,8 @@ public class AdjListSite implements Site {
 	private int fileAccesses = 0;
 	private HashMap<Integer, Node> allNodes;
 	private Double heuristicConstant;
+	private Node start;
+	private Node end;
 
 	public AdjListSite(String filePath, Double heuristicConstant) {
 		this.allNodes = new HashMap<Integer, Node>();
@@ -16,10 +18,6 @@ public class AdjListSite implements Site {
 		this.heuristicConstant = heuristicConstant;
 	}
 
-	public void addNode(Node node) {
-		allNodes.put(node.getNodeID(), node);
-	}
-	
 	public void populateConnections(Node node) {
 		// parses the file and adds the connections
 		if (!allNodes.containsKey(node.getNodeID())) {
@@ -102,6 +100,33 @@ public class AdjListSite implements Site {
 	 */
 	public void setHeuristicConstant(double stddev) {
 		this.heuristicConstant = stddev;
+	}
+	
+	public void setStartAndEndNodes(String start, String end) {
+		Integer startID = Integer.parseInt(start);
+		Integer endID = Integer.parseInt(end);
+		
+		if (allNodes.containsKey(startID)) {
+			this.start = allNodes.get(startID);
+		}
+		else {
+			allNodes.put(startID, new AdjListNode(startID));
+			this.start = allNodes.get(startID);
+		}
+		
+		if (allNodes.containsKey(endID)) {
+			this.end = allNodes.get(endID);
+		}
+		else {
+			allNodes.put(endID, new AdjListNode(endID));
+			this.end = allNodes.get(endID);
+		}
+	}
+	public Node getStartNode() {
+		return this.start;
+	}
+	public Node getEndNode() {
+		return this.end;
 	}
 	
 	public int getAccessCount() {
