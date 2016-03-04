@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
@@ -8,3 +9,24 @@
 	<classpathentry kind="lib" path="lib/jgrapht-core-0.9.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
+=======
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/blueprints-core-2.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/concurrentlinkedhashmap-lru-1.4.1.jar"/>
+	<classpathentry kind="lib" path="lib/gson-2.6.1.jar"/>
+	<classpathentry kind="lib" path="lib/jna-4.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/jna-platform-4.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/nanohttpd-2.2.0.jar"/>
+	<classpathentry kind="lib" path="lib/nanohttpd-webserver-2.2.0.jar"/>
+	<classpathentry kind="lib" path="lib/orientdb-client-2.1.12.jar"/>
+	<classpathentry kind="lib" path="lib/orientdb-core-2.1.12.jar"/>
+	<classpathentry kind="lib" path="lib/orientdb-enterprise-2.1.12.jar"/>
+	<classpathentry kind="lib" path="lib/orientdb-graphdb-2.1.12.jar"/>
+	<classpathentry kind="lib" path="lib/sources/nanohttpd-2.2.0-sources.jar"/>
+	<classpathentry kind="lib" path="lib/sources/nanohttpd-webserver-2.2.0-sources.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
+>>>>>>> refs/remotes/origin/Database-Interfacing
