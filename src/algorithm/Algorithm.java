@@ -21,17 +21,25 @@ public class Algorithm {
 
 		Node start = site.getStartNode();
 		Node end = site.getEndNode();
-		
-		fibNodes.put(start, new FibonacciHeapNode<Node>(start));
-		fibNodes.put(end, new FibonacciHeapNode<Node>(end));
+		boolean flipped = false;
 
+		if (start.getConnections() == null)
+			site.populateConnections(start);
+		if (end.getConnections() == null)
+			site.populateConnections(end);
+
+		if (end.getConnections().size() < start.getConnections().size()) {
+			flipped = true;
+			start = site.getEndNode();
+			end = site.getStartNode();
+		}
 		// adds more optimization by checking node against
 		// a set in O(1) rather than checking against a single node
 		HashSet<Node> endSet = new HashSet<Node>();
-
-		if (end.getConnections() == null)
-			site.populateConnections(end);
 		endSet.addAll(end.getConnections());
+
+		fibNodes.put(start, new FibonacciHeapNode<Node>(start));
+		fibNodes.put(end, new FibonacciHeapNode<Node>(end));
 
 		// holds the fscore (heuristic score) of the nodes
 		FibonacciHeap<Node> fscore = new FibonacciHeap<Node>();
@@ -57,10 +65,10 @@ public class Algorithm {
 
 			// corner case of the nodes being the same
 			if (end.equals(node))
-				return flip(prev, end);
+				return flip(prev, end, flipped);
 			else if (endSet.contains(node)) {
 				prev.put(end, node);
-				return flip(prev, end);
+				return flip(prev, end, flipped);
 			}
 
 			// check if connections are null, populate if the are
@@ -76,11 +84,11 @@ public class Algorithm {
 				if (endSet.contains(neighbor)) {
 					prev.put(neighbor, node);
 					prev.put(end, neighbor);
-					return flip(prev, end);
+					return flip(prev, end, flipped);
 				}
 				else if (end.equals(neighbor)) {
 					prev.put(end, neighbor);
-					return flip(prev, end);
+					return flip(prev, end, flipped);
 				}
 
 				// calculate new distance
@@ -117,7 +125,7 @@ public class Algorithm {
 	 * @param end
 	 * @return in order connection of nodes
 	 */
-	private static ArrayList<Node> flip(HashMap<Node, Node> prev, Node end) {
+	private static ArrayList<Node> flip(HashMap<Node, Node> prev, Node end, boolean flipped) {
 		ArrayList<Node> list = new ArrayList<Node>();
 
 		Node curr = end;
@@ -126,11 +134,12 @@ public class Algorithm {
 			curr = prev.get(curr);
 		}
 
-		for (int i = 0; i < list.size() / 2; i++) {
-			Node temp = list.get(i);
-			list.set(i, list.get(list.size() - 1 - i));
-			list.set(list.size() - 1 - i, temp);
-		}
+		if (!flipped)
+			for (int i = 0; i < list.size() / 2; i++) {
+				Node temp = list.get(i);
+				list.set(i, list.get(list.size() - 1 - i));
+				list.set(list.size() - 1 - i, temp);
+			}
 
 		return list;
 	}
