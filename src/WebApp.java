@@ -1,10 +1,14 @@
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
 
+import siteClasses.AdjListSite;
+import siteClasses.Node;
 import API.AdjacencyListConnectResponse;
 import API.AdjacencyListEdge;
+import algorithm.Algorithm;
 
 import com.google.gson.Gson;
 
@@ -40,11 +44,13 @@ public class WebApp extends SimpleWebServer {
 	private Response handleAPIRequest(IHTTPSession session) {
 		String uri = session.getUri();
 		Gson gson = new Gson();
+		String fileSeparator = System.getProperty("file.separator");
+		AdjListSite site = new AdjListSite("docs" + fileSeparator + "facebook_combined.txt", 100d);
 		Response r = null;
 		
 		switch (uri) {
 			case "/api/connectAdjacency": {
-				r = connectAdjacency(session, gson);
+				r = connectAdjacency(session, gson, site);
 				break;
 			}
 			default: {
@@ -55,7 +61,8 @@ public class WebApp extends SimpleWebServer {
 		return r;
 	}
 	
-	private Response connectAdjacency(IHTTPSession session, Gson gson) {
+	private Response connectAdjacency(IHTTPSession session, Gson gson, AdjListSite site) {
+		AdjacencyListConnectResponse c = new AdjacencyListConnectResponse();
 		Map<String, String> parms = session.getParms();
 		String beginString = parms.get("begin");
 		String endString = parms.get("end");
@@ -68,33 +75,17 @@ public class WebApp extends SimpleWebServer {
 		} catch (NumberFormatException nfe) {
 			return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "One of your inputs was not a number.");
 		}
+		site.setStartAndEndNodes(beginString, endString);
+		ArrayList<Node> nodes = Algorithm.processConnection(site);
 		
-		AdjacencyListConnectResponse c = new AdjacencyListConnectResponse();
-		c.setNodeCount(13);
-		c.addEdge(new AdjacencyListEdge(0, 1));
-		c.addEdge(new AdjacencyListEdge(1, 2));
-		c.addEdge(new AdjacencyListEdge(2, 0));
-		c.addEdge(new AdjacencyListEdge(1, 3));
-		c.addEdge(new AdjacencyListEdge(3, 2));
-		c.addEdge(new AdjacencyListEdge(3, 4));
-		c.addEdge(new AdjacencyListEdge(4, 5));
-		c.addEdge(new AdjacencyListEdge(5, 6));
-		c.addEdge(new AdjacencyListEdge(5, 7));
-		c.addEdge(new AdjacencyListEdge(6, 7));
-		c.addEdge(new AdjacencyListEdge(6, 8));
-		c.addEdge(new AdjacencyListEdge(7, 8));
-		c.addEdge(new AdjacencyListEdge(9, 4));
-		c.addEdge(new AdjacencyListEdge(9, 11));
-		c.addEdge(new AdjacencyListEdge(9, 10));
-		c.addEdge(new AdjacencyListEdge(10, 11));
-		c.addEdge(new AdjacencyListEdge(11, 12));
-		c.addEdge(new AdjacencyListEdge(12, 10));
+		c.setNodeCount(nodes.size());
 		
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		for (Node n : nodes) {
+			c.addNodeValue(n.getNodeID());
+		}
+		
+		for (int i = 0; i < nodes.size() - 1; i++) {
+			c.addEdge(new AdjacencyListEdge(i, i + 1));
 		}
 		
 		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(c));
