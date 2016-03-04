@@ -137,7 +137,7 @@ public class Algorithm {
 	private static void insertIntoDatabase(ArrayList<Node> nodes) {
 		DBInterfacer interfacer = null;
 		try {
-			interfacer = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
+			interfacer = new DBInterfacer("remote:localhost/Connections", "root", "team4", 40, 0.2);
 		} catch (Exception e) {
 			return;
 		}
