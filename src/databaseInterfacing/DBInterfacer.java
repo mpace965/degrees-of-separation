@@ -67,8 +67,6 @@ public class DBInterfacer {
 	 * @return ID that is associated with that vertex or 0 if failed
 	 */
 	public Object addVertex(String className, String[] names, Object[] values) {
-		if (names.length % 2 != 0 || values.length % 2 != 0)
-			return null;
 		
 		try {
 			Vertex v = graph.addVertex(className, className);
