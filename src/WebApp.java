@@ -66,12 +66,10 @@ public class WebApp extends SimpleWebServer {
 		Map<String, String> parms = session.getParms();
 		String beginString = parms.get("begin");
 		String endString = parms.get("end");
-		int begin = -1;
-		int end = -1;
 		
 		try {
-			begin = Integer.parseInt(beginString);
-			end = Integer.parseInt(endString);
+			Integer.parseInt(beginString);
+			Integer.parseInt(endString);
 		} catch (NumberFormatException nfe) {
 			return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "One of your inputs was not a number.");
 		}
