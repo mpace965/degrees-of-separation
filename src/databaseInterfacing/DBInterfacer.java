@@ -20,12 +20,13 @@ public class DBInterfacer {
 	 * @param username	The username you want to connect with
 	 * @param password	The password you want to connect with
 	 * @param maxNodes	Maximum number of nodes until there is a cache purge
+	 * @param purgeP	Percentage of the cache that is purged
 	 */
-	public DBInterfacer(String database, String username, String password, long maxNodes) {
+	public DBInterfacer(String database, String username, String password, long maxNodes, double purgeP) {
 		this.graph = new OrientGraph(database, username, password);
 		this.currentNodes = graph.countVertices();
 		this.maxNodes = maxNodes;
-		this.purgePercent = 0.2;
+		this.purgePercent = purgeP;
 	}
 	
 	/**

@@ -3,7 +3,8 @@ package databaseInterfacing;
 public class DBInterfaceTest {
 
 	public static void main(String[] args) {
-		DBInterfacer interfacer = new DBInterfacer("remote:localhost/Connections", "root", "team4", 10);
+		DBInterfacer interfacer = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
+		
 		
 		
 		String[] props = {"name", "access_time"};
