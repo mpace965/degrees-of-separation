@@ -6,8 +6,47 @@ var AdjacencyListSiteSearchView = React.createClass({
   getInitialState: function() {
     return {
       connectionBegin: '',
-      connectionEnd: ''
+      connectionEnd: '',
+      apiResponse: {},
+      loadingMessage: '',
+      errorMessage: ''
     };
+  },
+
+  //Make the api request to the server
+  loadChainFromServer: function() {
+    this.setState({errorMessage: ''});
+
+    $.ajax({
+        url: '/api/connectAdjacency',
+        dataType: 'json',
+        cache: false,
+        data: {begin: this.state.connectionBegin, end: this.state.connectionEnd},
+        success: function(data) {
+          this.setState({apiResponse: data}, function() {
+            this.setState({loadingMessage: ''});
+            var newGraph = this.processApiResponse();
+            this.props.setActiveView(ResultView, {graph: newGraph});
+          });
+        }.bind(this),
+        error: function(xhr, status, err) {
+          this.setState({loadingMessage: ''});
+          this.setState({errorMessage: xhr.responseText});
+          console.error('/api/connectAdjacency', status, err.toString());
+        }.bind(this)
+    });
+
+    this.setState({loadingMessage: 'Loading...'});
+  },
+
+  processApiResponse: function() {
+    var graph = {
+      nodes: d3.range(this.state.apiResponse.nodeCount).map(Object),
+      links: this.state.apiResponse.edgeList,
+      nodeValues: d3.values(this.state.apiResponse.nodeValues)
+    };
+
+    return graph;
   },
 
   //Handle input changes by updating the state.
@@ -32,37 +71,20 @@ var AdjacencyListSiteSearchView = React.createClass({
       return;
     }
 
-    //add handler to send to server
-
-    /* hard coded data. This is how data flows up through to the mainView, then
-    back down to the resultView */
-    this.props.setActiveView(ResultView, {graph: {
-      nodes: d3.range(13).map(Object),
-      links: [
-        {source:  0, target:  1},
-        {source:  1, target:  2},
-        {source:  2, target:  0},
-        {source:  1, target:  3},
-        {source:  3, target:  2},
-        {source:  3, target:  4},
-        {source:  4, target:  5},
-        {source:  5, target:  6},
-        {source:  5, target:  7},
-        {source:  6, target:  7},
-        {source:  6, target:  8},
-        {source:  7, target:  8},
-        {source:  9, target:  4},
-        {source:  9, target: 11},
-        {source:  9, target: 10},
-        {source: 10, target: 11},
-        {source: 11, target: 12},
-        {source: 12, target: 10}
-        ]
-      }});
+    this.loadChainFromServer();
     this.setState({connectionBegin: '', connectionEnd: ''});
   },
 
   render: function() {
+    var messageString = '';
+
+    if (this.state.loadingMessage) {
+      messageString = this.state.loadingMessage;
+    }
+    if (this.state.errorMessage) {
+      messageString = this.state.errorMessage;
+    }
+
     return (
       <div className="adjacencyListSiteSearchView">
         <div className="flexRowItem">
@@ -74,6 +96,7 @@ var AdjacencyListSiteSearchView = React.createClass({
           <input type="text" placeholder="...to node B" value={this.state.connectionEnd} onChange={this.handleConnectionEndChange} />
           <input type="submit" value="Submit" />
         </form>
+        <p>{messageString}</p>
       </div>
     );
   }

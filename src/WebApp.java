@@ -2,9 +2,13 @@
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Random;
+import java.util.Map;
 
-import API.Comment;
+import siteClasses.AdjListSite;
+import siteClasses.Node;
+import API.AdjacencyListConnectResponse;
+import API.AdjacencyListEdge;
+import algorithm.Algorithm;
 
 import com.google.gson.Gson;
 
@@ -15,11 +19,9 @@ public class WebApp extends SimpleWebServer {
 	
 	public static final String MIME_JSON = "application/json";
 	
-	private ArrayList<Comment> comments;
 
 	public WebApp() throws IOException {
 		super("localhost", 8000, new File("client/"), false);
-		comments = new ArrayList<Comment>();
 	}
 	
 	public static void main(String[] args) {
@@ -42,14 +44,13 @@ public class WebApp extends SimpleWebServer {
 	private Response handleAPIRequest(IHTTPSession session) {
 		String uri = session.getUri();
 		Gson gson = new Gson();
+		String fileSeparator = System.getProperty("file.separator");
+		AdjListSite site = new AdjListSite("docs" + fileSeparator + "facebook_combined.txt", 100d);
 		Response r = null;
 		
 		switch (uri) {
-			case "/api/comments": {
-				Random rand = new Random();
-				comments.add(new Comment(rand.nextInt(), "Tom", "I have commented " + (comments.size() + 1) + " times"));
-				
-				r = newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(comments));
+			case "/api/connectAdjacency": {
+				r = connectAdjacency(session, gson, site);
 				break;
 			}
 			default: {
@@ -58,5 +59,35 @@ public class WebApp extends SimpleWebServer {
 		}
 		
 		return r;
+	}
+	
+	private Response connectAdjacency(IHTTPSession session, Gson gson, AdjListSite site) {
+		AdjacencyListConnectResponse c = new AdjacencyListConnectResponse();
+		Map<String, String> parms = session.getParms();
+		String beginString = parms.get("begin");
+		String endString = parms.get("end");
+		int begin = -1;
+		int end = -1;
+		
+		try {
+			begin = Integer.parseInt(beginString);
+			end = Integer.parseInt(endString);
+		} catch (NumberFormatException nfe) {
+			return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "One of your inputs was not a number.");
+		}
+		site.setStartAndEndNodes(beginString, endString);
+		ArrayList<Node> nodes = Algorithm.processConnection(site);
+		
+		c.setNodeCount(nodes.size());
+		
+		for (Node n : nodes) {
+			c.addNodeValue(n.getNodeID());
+		}
+		
+		for (int i = 0; i < nodes.size() - 1; i++) {
+			c.addEdge(new AdjacencyListEdge(i, i + 1));
+		}
+		
+		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(c));
 	}
 }
