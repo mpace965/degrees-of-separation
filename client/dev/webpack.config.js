@@ -8,7 +8,7 @@ module.exports = {
     // Output the bundled file.
     path: '../',
     // Use the name specified in the entry key as name for the bundle file.
-    filename: 'main.js'
+    filename: 'bundle.js'
   },
   module: {
     loaders: [
@@ -19,11 +19,6 @@ module.exports = {
         loader: 'babel'
       }
     ]
-  },
-  externals: {
-    // Don't bundle the 'react' npm package with the component.
-    'react': 'React',
-    'd3': 'd3'
   },
   resolve: {
     // Include empty string '' to resolve files by their explicit extension

@@ -79,7 +79,6 @@ public class WebApp extends SimpleWebServer {
 		c.setNodeCount(nodes.size());
 		
 		for (Node n : nodes) {
-			// TODO allow for adding a String value if possible
 			c.addNodeValue(n.getNodeID());
 		}
 		

@@ -1,4 +1,6 @@
 var React = require('react');
+var ReactDOM = require('react-dom');
+var rb = require('react-bootstrap');
 
 var Header = require('./header');
 var LandingPage = require('./landingPage');
