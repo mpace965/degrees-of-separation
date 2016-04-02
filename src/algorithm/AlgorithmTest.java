@@ -10,7 +10,7 @@ public class AlgorithmTest {
 		Scanner scan = new Scanner(System.in);
 
 		String fileSeparator = System.getProperty("file.separator");
-		AdjListSite site = new AdjListSite("docs" + fileSeparator + "facebook_combined.txt", 100d);
+		AdjListSite site = new AdjListSite("docs" + fileSeparator + "facebook_combined.txt");
 
 		System.out.println("enter start and end node");
 		while (scan.hasNextLine()) {

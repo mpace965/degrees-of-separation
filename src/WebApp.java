@@ -45,7 +45,7 @@ public class WebApp extends SimpleWebServer {
 		String uri = session.getUri();
 		Gson gson = new Gson();
 		String fileSeparator = System.getProperty("file.separator");
-		AdjListSite site = new AdjListSite("docs" + fileSeparator + "facebook_combined.txt", 100d);
+		AdjListSite site = new AdjListSite("docs" + fileSeparator + "facebook_combined.txt");
 		Response r = null;
 		
 		switch (uri) {
@@ -79,7 +79,8 @@ public class WebApp extends SimpleWebServer {
 		c.setNodeCount(nodes.size());
 		
 		for (Node n : nodes) {
-			c.addNodeValue(n.getNodeID());
+			// TODO allow for adding a String value if possible
+			//c.addNodeValue(n.getNodeID());
 		}
 		
 		for (int i = 0; i < nodes.size() - 1; i++) {

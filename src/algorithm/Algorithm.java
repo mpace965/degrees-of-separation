@@ -7,6 +7,10 @@ import java.util.HashSet;
 import org.jgrapht.util.FibonacciHeap;
 import org.jgrapht.util.FibonacciHeapNode;
 
+import siteClasses.AdjListNode;
+import siteClasses.AdjListSite;
+import siteClasses.LastfmNode;
+import siteClasses.LastfmSite;
 import siteClasses.Node;
 import siteClasses.Site;
 import databaseInterfacing.DBInterfacer;
@@ -25,6 +29,17 @@ public class Algorithm {
 
 		Node start = site.getStartNode();
 		Node end = site.getEndNode();
+		
+		// TODO: Check to make sure the SiteClass matches the proper Node class
+		if (site instanceof AdjListSite) 
+			if (!(start instanceof AdjListNode) || !(end instanceof AdjListNode)) 
+				return null;
+		else if (site instanceof LastfmSite) 
+			if (!(start instanceof LastfmNode) || !(end instanceof LastfmNode)) 
+				return null;
+		else 
+			return null;
+		
 		boolean flipped = false;
 
 		if (start.getConnections() == null)

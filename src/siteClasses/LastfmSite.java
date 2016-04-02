@@ -6,41 +6,19 @@ public class LastfmSite implements Site {
 
 	private int fileAccesses = 0;
 	private HashMap<String, Node> allNodes;
-	private Double heuristicConstant;
 	private Node start;
 	private Node end;
 	final String apiKey = "c6c45e68f6b2a663da996fc504cf9f8b";
 
-	
-	public LastfmSite(Double heuristicConstant) {
+	public LastfmSite() {
 		this.allNodes = new HashMap<String, Node>();
-		this.heuristicConstant = heuristicConstant;
 	}
-	
-	
+
 	public double heuristicCost(Node start, Node end) {
-		if (heuristicConstant == null)
-			return 1d;
-		
-		// heuristic based off an inverse normal curve 
-		// with the mean equal to the end point
-		// with SD given by the heuristicConsant
-		
-		// the denominator of the function
-		double den = heuristicConstant * Math.sqrt(2d * Math.PI);
-		
-		// building up the numerator
-		double num = 2d * Math.pow((double) heuristicConstant, 2d);
-		num = Math.pow(Integer.parseInt(start.getNodeID()) - Integer.parseInt(end.getNodeID()), 2d);
-		num = 0 - num;
-		num = Math.pow(Math.E, num);
-		
-		// return final product a number between 1 and 0
-		return num / den;
+		return 1d;
 	}
 
 	public void populateConnections(Node node) {
-		// TODO Auto-generated method stub
 		if (!allNodes.containsKey(node.getNodeID())) {
 			allNodes.put(node.getNodeID(), node);
 		}
@@ -48,29 +26,37 @@ public class LastfmSite implements Site {
 		fileAccesses++;
 		LastfmNode temp = new LastfmNode(node.getNodeID());
 
+		// TODO: why split the JSON object when you can use
+		// Json.get(String memeberName) to get it's elements?
+		// String manipulation is generally not good practice
+		// if there are other was to do it.
 		String[] parts = temp.getJson().toString().split(",");
 
 		for (int a = 0; a < parts.length; a++) {
 			if (parts[a].contains("name")) {
 				if (a == 0) {
 					fileAccesses++;
-					LastfmNode hold = new LastfmNode(parts[a].substring(38,
-							parts[a].length() - 1));
+					// TODO: again string manipulation is 
+					// generally not good practice
+					LastfmNode hold = new LastfmNode(parts[a].substring(38, parts[a].length() - 1));
 					String id = hold.getNodeID();
 					if (allNodes.containsKey(id)) {
 						node.addConnection(hold);
-					} else {
+					} 
+					else {
 						node.addConnection(hold);
 						allNodes.put(id, temp);
 					}
 				} else {
 					fileAccesses++;
-					LastfmNode hold = new LastfmNode(parts[a].substring(9,
-							parts[a].length() - 1));
+					// TODO: again string manipulation is 
+					// generally not good practice
+					LastfmNode hold = new LastfmNode(parts[a].substring(9, parts[a].length() - 1));
 					String id = hold.getNodeID();
 					if (allNodes.containsKey(id)) {
 						node.addConnection(hold);
-					} else {
+					} 
+					else {
 						node.addConnection(hold);
 						allNodes.put(id, temp);
 					}
@@ -96,17 +82,17 @@ public class LastfmSite implements Site {
 	}
 
 	public void setStartAndEndNodes(String start, String end) {
-		
-		
+
+
 		if (allNodes.containsKey(start)) {
 			this.start = allNodes.get(start);
 		}
 		else {
-			
+
 			allNodes.put(start, new LastfmNode(start));
 			this.start = allNodes.get(start);
 		}
-		
+
 		if (allNodes.containsKey(end)) {
 			this.end = allNodes.get(end);
 		}
@@ -114,8 +100,8 @@ public class LastfmSite implements Site {
 			allNodes.put(end, new LastfmNode(end));
 			this.end = allNodes.get(end);
 		}
-		
+
 		// TODO Auto-generated method stub
-		
+
 	}
 }

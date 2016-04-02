@@ -6,9 +6,8 @@ public interface Site {
 	 * @param start
 	 * @param end
 	 * @return heuristicCost from start node to end node
-	 * @throws Exception if nodes are incompatible for the given site class.
 	 */
-	public abstract double heuristicCost(Node start, Node end) throws Exception;
+	public abstract double heuristicCost(Node start, Node end);
 	
 	/**
 	 * populates the connections list of this node

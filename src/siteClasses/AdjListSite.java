@@ -72,11 +72,7 @@ public class AdjListSite implements Site {
 		}
 	}
 	
-	public double heuristicCost(Node start, Node end) throws Exception {
-		if (!(start instanceof AdjListNode) || !(end instanceof AdjListNode)) {
-			throw new Exception("Incompatible node object");
-		}
-		
+	public double heuristicCost(Node start, Node end){
 		if (heuristicConstant == null)
 			return 1d;
 		

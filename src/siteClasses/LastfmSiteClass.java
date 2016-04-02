@@ -5,6 +5,10 @@ import java.net.*;
 import java.io.*;
 import com.google.gson.*;
 
+
+// TODO: Where is this being used? 
+// Can we get rid of it? Or could we
+// use the "getInfo()" method in the LastfmSite
 @Deprecated
 public class LastfmSiteClass {
 
@@ -46,9 +50,6 @@ public class LastfmSiteClass {
 		return simArt;
 	}
 
-	
-	
-	
 	// When passed the name of an Artist will return additional information on that artist from the
 	// site last.fm
 	// Throws an IO exception if the artist passed was no valid
