@@ -84,4 +84,21 @@ public class LastfmSiteClass {
 
 		return simArt;
 	}
+	
+	
+	public static void main(String[] args) {
+		LastfmSiteClass lf = new LastfmSiteClass();
+		try {
+			JsonObject a = lf.getSimilar("cher");
+			JsonObject similar = a.getAsJsonObject("similarartists");
+			for (JsonElement x : similar.getAsJsonArray("artist")) {
+				System.out.println(x.getAsJsonObject().get("name"));
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+	}
 }
