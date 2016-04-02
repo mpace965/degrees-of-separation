@@ -47,8 +47,4 @@ public class LastfmNode implements Node {
 		return this.getJson();
 	}
 
-	// TODO: All api requests should be done directly 
-	// from the site class, not the node class. 
-	// The node class is supposed to be a simple Java object
-
 }

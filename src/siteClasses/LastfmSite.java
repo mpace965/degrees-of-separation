@@ -7,6 +7,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -25,15 +26,16 @@ public class LastfmSite implements Site {
 	public double heuristicCost(Node start, Node end) {
 		return 1d;
 	}
-	
+
 	private JsonObject makeJson(String a) {
 		String urlStart = "http://ws.audioscrobbler.com/2.0/?method=artist.getSimilar&format=json";
 		String artist = "&artist=" + a;
 		String key = "&api_key=" + "c6c45e68f6b2a663da996fc504cf9f8b";
 		String url = urlStart + artist + key;
 		JsonObject simArt = null;
-		
-		// Builds a buffered reader to interpret input received from the API request
+
+		// Builds a buffered reader to interpret input received from the API
+		// request
 		try {
 			URL lastfmGetSimilar = new URL(url);
 			URLConnection lfmSim = lastfmGetSimilar.openConnection();
@@ -69,46 +71,34 @@ public class LastfmSite implements Site {
 		}
 
 		fileAccesses++;
-		LastfmNode temp = new LastfmNode(node.getNodeID());
+		LastfmNode temp = (LastfmNode) node;
 		temp.setJson(makeJson(temp.getNodeID()));
-		
 
-		// TODO: why split the JSON object when you can use
-		// Json.get(String memeberName) to get it's elements?
-		// String manipulation is generally not good practice
-		// if there are other was to do it.
-		String[] parts = temp.getJson().toString().split(",");
+
+		String parts[] = new String[1024];
+		JsonObject z = temp.getJson();
+		int i = 0;
+		JsonObject similar = z.getAsJsonObject("similarartists");
+		for (JsonElement x : similar.getAsJsonArray("artist")) {
+			parts[i] = x.getAsJsonObject().get("name").toString();
+			parts[i] = parts[i].substring(1, parts[i].length() - 1);
+			System.out.println(parts[i]);
+			i++;
+		}
 
 		for (int a = 0; a < parts.length; a++) {
-				if (a == 0) {
-					fileAccesses++;
-					// TODO: again string manipulation is 
-					// generally not good practice
-					
-					temp.getJson().get("name");
-					LastfmNode hold = new LastfmNode(parts[a].substring(38, parts[a].length() - 1));
-					String id = hold.getNodeID();
-					if (allNodes.containsKey(id)) {
-						node.addConnection(hold);
-					} 
-					else {
-						node.addConnection(hold);
-						allNodes.put(id, temp);
-					}
-				} else {
-					fileAccesses++;
-					// TODO: again string manipulation is 
-					// generally not good practice
-					LastfmNode hold = new LastfmNode(parts[a].substring(9, parts[a].length() - 1));
-					String id = hold.getNodeID();
-					if (allNodes.containsKey(id)) {
-						node.addConnection(hold);
-					} 
-					else {
-						node.addConnection(hold);
-						allNodes.put(id, temp);
-					}
-				}
+
+			fileAccesses++;
+
+			LastfmNode hold = new LastfmNode(parts[a]);
+			String id = hold.getNodeID();
+			hold.setJson(makeJson(id));
+			if (allNodes.containsKey(id)) {
+				node.addConnection(hold);
+			} else {
+				node.addConnection(hold);
+				allNodes.put(id, hold);
+			}
 		}
 	}
 
@@ -130,11 +120,9 @@ public class LastfmSite implements Site {
 
 	public void setStartAndEndNodes(String start, String end) {
 
-
 		if (allNodes.containsKey(start)) {
 			this.start = allNodes.get(start);
-		}
-		else {
+		} else {
 
 			allNodes.put(start, new LastfmNode(start));
 			this.start = allNodes.get(start);
@@ -142,8 +130,7 @@ public class LastfmSite implements Site {
 
 		if (allNodes.containsKey(end)) {
 			this.end = allNodes.get(end);
-		}
-		else {
+		} else {
 			allNodes.put(end, new LastfmNode(end));
 			this.end = allNodes.get(end);
 		}
