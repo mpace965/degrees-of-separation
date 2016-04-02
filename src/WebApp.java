@@ -21,7 +21,7 @@ public class WebApp extends SimpleWebServer {
 	
 
 	public WebApp() throws IOException {
-		super("cs307team4.cs.purdue.edu", 80, new File("client/"), false);
+		super("localhost", 8000, new File("client/"), false);
 	}
 	
 	public static void main(String[] args) {
@@ -80,7 +80,7 @@ public class WebApp extends SimpleWebServer {
 		
 		for (Node n : nodes) {
 			// TODO allow for adding a String value if possible
-			//c.addNodeValue(n.getNodeID());
+			c.addNodeValue(n.getNodeID());
 		}
 		
 		for (int i = 0; i < nodes.size() - 1; i++) {
