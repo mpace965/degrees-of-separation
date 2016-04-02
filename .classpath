@@ -15,5 +15,6 @@
 	<classpathentry kind="lib" path="lib/orientdb-graphdb-2.1.12.jar"/>
 	<classpathentry kind="lib" path="lib/sources/nanohttpd-2.2.0-sources.jar"/>
 	<classpathentry kind="lib" path="lib/sources/nanohttpd-webserver-2.2.0-sources.jar"/>
+	<classpathentry kind="lib" path="lib/jgrapht-core-0.9.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

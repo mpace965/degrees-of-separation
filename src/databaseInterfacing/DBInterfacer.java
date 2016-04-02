@@ -19,12 +19,22 @@ public class DBInterfacer {
 	 * @param database	The database that you want to connect to
 	 * @param username	The username you want to connect with
 	 * @param password	The password you want to connect with
+	 * @param maxNodes	Maximum number of nodes until there is a cache purge
+	 * @param purgeP	Percentage of the cache that is purged
 	 */
-	public DBInterfacer(String database, String username, String password, long maxNodes) {
-		this.graph = new OrientGraph(database, username, password);
-		this.currentNodes = graph.countVertices();
-		this.maxNodes = maxNodes;
-		this.purgePercent = 0.2;
+	public DBInterfacer(String database, String username, String password, long maxNodes, double purgeP) {
+		try {
+			this.graph = new OrientGraph(database, username, password);
+			this.currentNodes = graph.countVertices();
+			this.maxNodes = maxNodes;
+			this.purgePercent = purgeP;
+		}
+		catch (Exception e) {
+			this.graph = null;
+			this.currentNodes = 0;
+			this.maxNodes = 0;
+			this.purgePercent = 0.0;
+		}
 	}
 	
 	/**
@@ -57,8 +67,6 @@ public class DBInterfacer {
 	 * @return ID that is associated with that vertex or 0 if failed
 	 */
 	public Object addVertex(String className, String[] names, Object[] values) {
-		if (names.length % 2 != 0 || values.length % 2 != 0)
-			return null;
 		
 		try {
 			Vertex v = graph.addVertex(className, className);

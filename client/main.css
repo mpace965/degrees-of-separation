@@ -1,0 +1,72 @@
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+/* site wide style */
+#wrapper {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* utility */
+.text-button {
+  margin: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none;   /* Chrome/Safari/Opera */
+  -khtml-user-select: none;    /* Konqueror */
+  -moz-user-select: none;      /* Firefox */
+  -ms-user-select: none;       /* IE/Edge */
+  user-select: none;
+}
+
+.flexRowItem {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: center;
+}
+
+/* adjacencyListSiteSearchView.jsx */
+.adjacencyListSiteSearchView {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.adjListForm input {
+  margin: 10px;
+}
+
+/* header.jsx */
+.header {
+  border: 1px solid black;
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: flex-start;
+}
+
+/* landingPage.jsx */
+.landingPage {
+  padding: 10px;
+}
+
+/* resultView.jsx */
+.resultView {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.link {
+  stroke: #000;
+}
+
+.node {
+  fill: #ccc;
+  stroke: #000;
+}

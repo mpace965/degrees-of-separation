@@ -3,8 +3,13 @@ package databaseInterfacing;
 public class DBInterfaceTest {
 
 	public static void main(String[] args) {
-		DBInterfacer interfacer = new DBInterfacer("remote:localhost/Connections", "root", "team4", 10);
-		
+		DBInterfacer interfacer = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
+//		String[] props = {"name"};
+//		Object[] values1 = {"PUT NODE1 NAME HERE"};
+//		Object[] values2 = {"PUT NODE2 NAME HERE"};
+//		Object node1 = interfacer.addVertex("Node", props, values1);
+//		Object node2 = interfacer.addVertex("Node", props, values2);
+//		interfacer.addNewConnection("Connection", node1, node2);
 		
 		String[] props = {"name", "access_time"};
 		Object[] values1 = {"sam", "2016-03-03 08:50:31"};

@@ -1,7 +1,27 @@
 package siteClasses;
 
+import java.util.ArrayList;
+
 public interface Node {
-	public boolean isConnected(Node node);
-	public void getNeighbors();
-	public void getJSON();
+	/**
+	 * @param node
+	 * @return if connection is added
+	 */
+	public abstract boolean addConnection(Node node);
+	
+	/**
+	 * Always check if this value is null before operating on it
+	 * @return connections if they've been populated, null otherwise
+	 */
+	public abstract ArrayList<Node> getConnections();
+	
+	/**
+	 * @return String value of the nodeID
+	 */
+	public abstract String getNodeID();
+	
+	/**
+	 * @return Object to be used as value by the site class
+	 */
+	public abstract Object getNodeVal();
 }
