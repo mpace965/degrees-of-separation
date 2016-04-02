@@ -16,7 +16,12 @@ public interface Node {
 	public abstract ArrayList<Node> getConnections();
 	
 	/**
-	 * @return Integer value of the nodeID
+	 * @return String value of the nodeID
 	 */
-	public abstract Integer getNodeID();
+	public abstract String getNodeID();
+	
+	/**
+	 * @return Object to be used as value by the site class
+	 */
+	public abstract Object getNodeVal();
 }

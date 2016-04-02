@@ -7,15 +7,14 @@ import java.util.HashMap;
 public class AdjListSite implements Site {
 	private String filePath;
 	private int fileAccesses = 0;
-	private HashMap<Integer, Node> allNodes;
+	private HashMap<String, Node> allNodes;
 	private Double heuristicConstant;
 	private Node start;
 	private Node end;
 
-	public AdjListSite(String filePath, Double heuristicConstant) {
-		this.allNodes = new HashMap<Integer, Node>();
+	public AdjListSite(String filePath) {
+		this.allNodes = new HashMap<String, Node>();
 		this.filePath = filePath;
-		this.heuristicConstant = heuristicConstant;
 	}
 
 	public void populateConnections(Node node) {
@@ -29,7 +28,7 @@ public class AdjListSite implements Site {
 			BufferedReader bufferedReader = new BufferedReader(fileReader);
 			fileAccesses++;
 			
-			String nodeStr = node.getNodeID().toString();
+			String nodeStr = node.getNodeID();
 			String line;
 			boolean reachedEnd = false;
 			boolean hitSection = false;
@@ -40,25 +39,25 @@ public class AdjListSite implements Site {
 				if (pos != Position.NONE) {
 					if (pos == Position.FIRST) {
 						hitSection = true;
-						Integer id = Integer.parseInt(getSecondNode(line));
-						if (allNodes.containsKey(id)) {
-							node.addConnection(allNodes.get(id));
+						String idstr = getSecondNode(line);
+						if (allNodes.containsKey(idstr)) {
+							node.addConnection(allNodes.get(idstr));
 						}
 						else {
-							temp = new AdjListNode(id);
+							temp = new AdjListNode(idstr);
 							node.addConnection(temp);
-							allNodes.put(id, temp);
+							allNodes.put(idstr, temp);
 						}
 					}
 					else if (pos == Position.SECOND) {
-						Integer id = Integer.parseInt(getFirstNode(line));
-						if (allNodes.containsKey(id)) {
-							node.addConnection(allNodes.get(id));
+						String idstr = getFirstNode(line);
+						if (allNodes.containsKey(idstr)) {
+							node.addConnection(allNodes.get(idstr));
 						}
 						else {
-							temp = new AdjListNode(id);
+							temp = new AdjListNode(idstr);
 							node.addConnection(temp);
-							allNodes.put(id, temp);
+							allNodes.put(idstr, temp);
 						}
 					}
 				}
@@ -73,7 +72,11 @@ public class AdjListSite implements Site {
 		}
 	}
 	
-	public double heuristicCost(Node start, Node end) {
+	public double heuristicCost(Node start, Node end) throws Exception {
+		if (!(start instanceof AdjListNode) || !(end instanceof AdjListNode)) {
+			throw new Exception("Incompatible node object");
+		}
+		
 		if (heuristicConstant == null)
 			return 1d;
 		
@@ -86,7 +89,7 @@ public class AdjListSite implements Site {
 		
 		// building up the numerator
 		double num = 2d * Math.pow((double) heuristicConstant, 2d);
-		num = Math.pow(start.getNodeID() - end.getNodeID(), 2d);
+		num = Math.pow((Integer) start.getNodeVal() - (Integer) end.getNodeVal(), 2d);
 		num = 0 - num;
 		num = Math.pow(Math.E, num);
 		
@@ -103,24 +106,20 @@ public class AdjListSite implements Site {
 	}
 	
 	public void setStartAndEndNodes(String start, String end) {
-		Integer startID = Integer.parseInt(start);
-		Integer endID = Integer.parseInt(end);
-		
-		if (allNodes.containsKey(startID)) {
-			this.start = allNodes.get(startID);
+		if (allNodes.containsKey(start)) {
+			this.start = allNodes.get(start);
 		}
 		else {
-			
-			allNodes.put(startID, new AdjListNode(startID));
-			this.start = allNodes.get(startID);
+			allNodes.put(start, new AdjListNode(start));
+			this.start = allNodes.get(start);
 		}
 		
-		if (allNodes.containsKey(endID)) {
-			this.end = allNodes.get(endID);
+		if (allNodes.containsKey(end)) {
+			this.end = allNodes.get(end);
 		}
 		else {
-			allNodes.put(endID, new AdjListNode(endID));
-			this.end = allNodes.get(endID);
+			allNodes.put(end, new AdjListNode(end));
+			this.end = allNodes.get(end);
 		}
 	}
 	public Node getStartNode() {

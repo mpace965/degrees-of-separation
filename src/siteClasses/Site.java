@@ -3,10 +3,12 @@ package siteClasses;
 public interface Site {
 	
 	/**
-	 * @param node
-	 * @return estimated heuristic cost between start and end nodes
+	 * @param start
+	 * @param end
+	 * @return heuristicCost from start node to end node
+	 * @throws Exception if nodes are incompatible for the given site class.
 	 */
-	public abstract double heuristicCost(Node start, Node end);
+	public abstract double heuristicCost(Node start, Node end) throws Exception;
 	
 	/**
 	 * populates the connections list of this node

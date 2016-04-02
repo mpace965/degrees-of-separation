@@ -5,6 +5,7 @@ import java.net.*;
 import java.io.*;
 import com.google.gson.*;
 
+@Deprecated
 public class LastfmSiteClass {
 
 	// This is our API key, never change this...

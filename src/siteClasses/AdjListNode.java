@@ -4,9 +4,9 @@ import java.util.ArrayList;
 
 public class AdjListNode implements Node {
 	private ArrayList<Node> connections;
-	private Integer nodeID;
+	private String nodeID;
 
-	public AdjListNode(Integer nodeID) {
+	public AdjListNode(String nodeID) {
 		this.nodeID = nodeID;
 	}
 	
@@ -19,13 +19,13 @@ public class AdjListNode implements Node {
 	public ArrayList<Node> getConnections() {
 		return this.connections;
 	}
-	public Integer getNodeID() {
+	public String getNodeID() {
 		return this.nodeID;
 	}
-	public Integer getNodeValue() {
-		return getNodeID();
+	public Integer getNodeVal() {
+		return Integer.parseInt(this.nodeID);
 	}
 	public String toString() {
-		return nodeID.toString();
+		return this.nodeID.toString();
 	}
 }
