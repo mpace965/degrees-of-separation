@@ -6,7 +6,7 @@ import CircularProgress from 'material-ui/lib/circular-progress';
 import TextField from 'material-ui/lib/text-field';
 import RaisedButton from 'material-ui/lib/raised-button';
 
-var ResultView = require('./resultView');
+var AdjacencyListResultView = require('./adjacencyListResultView');
 
 var AdjacencyListSiteSearchView = React.createClass({
   getInitialState: function() {
@@ -32,7 +32,7 @@ var AdjacencyListSiteSearchView = React.createClass({
           this.setState({apiResponse: data}, function() {
             this.setState({loadingMessage: ''});
             var newGraph = this.processApiResponse();
-            this.props.setActiveView(ResultView, {graph: newGraph});
+            this.props.setActiveView(AdjacencyListResultView, {graph: newGraph});
           });
         }.bind(this),
         error: function(xhr, status, err) {

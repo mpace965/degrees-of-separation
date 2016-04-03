@@ -3,7 +3,7 @@ var d3 = require('d3');
 import Paper from 'material-ui/lib/paper';
 import RaisedButton from 'material-ui/lib/raised-button';
 
-var ResultView = React.createClass({
+var AdjacencyListResultView = React.createClass({
   getInitialState: function() {
     return {
       graph: {
@@ -114,4 +114,4 @@ var ResultView = React.createClass({
   }
 });
 
-module.exports = ResultView;
+module.exports = AdjacencyListResultView;

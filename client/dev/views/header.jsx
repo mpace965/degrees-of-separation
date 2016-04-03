@@ -5,7 +5,7 @@ import List from 'material-ui/lib/lists/list';
 import ListItem from 'material-ui/lib/lists/list-item';
 
 var LandingPage = require('./landingPage');
-var AdjacencyListSiteSearchView = require('./adjacencyListSiteSearchView');
+var AdjacencyListSiteSearchView = require('./adjacencyList/adjacencyListSiteSearchView');
 
 var Header = React.createClass({
   getInitialState: function() {
