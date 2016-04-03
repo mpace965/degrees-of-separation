@@ -1,9 +1,11 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
-var rb = require('react-bootstrap');
+import injectTapEventPlugin from 'react-tap-event-plugin';
 
 var Header = require('./header');
 var LandingPage = require('./landingPage');
+
+injectTapEventPlugin();
 
 var Wrapper = React.createClass({
   getInitialState: function() {
