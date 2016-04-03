@@ -60,12 +60,3 @@ html, body {
   flex-direction: row;
   justify-content: center;
 }
-
-.link {
-  stroke: #000;
-}
-
-.node {
-  fill: #ccc;
-  stroke: #000;
-}

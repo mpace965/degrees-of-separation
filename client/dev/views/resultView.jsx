@@ -1,6 +1,7 @@
 var React = require('react');
 var d3 = require('d3');
 import Paper from 'material-ui/lib/paper';
+import RaisedButton from 'material-ui/lib/raised-button';
 
 var ResultView = React.createClass({
   getInitialState: function() {
@@ -33,7 +34,7 @@ var ResultView = React.createClass({
       .nodes(d3.values(nodes))
       .links(links)
       .size([width, height])
-      .charge(-200)
+      .charge(-1000)
       .on("tick", tick)
       .start();
 
@@ -44,19 +45,21 @@ var ResultView = React.createClass({
     var link = svg.selectAll(".link")
       .data(force.links())
       .enter().append("line")
-      .attr("class", "link");
+      .attr("stroke", "#000")
+      .attr("stroke-width", "2px");
 
     var node = svg.selectAll(".node")
       .data(force.nodes())
       .enter().append("g")
-      .attr("class", "node")
+      .attr("fill", "#ccc")
+      .attr("stroke", "#000")
       .call(force.drag);
 
     node.append("circle")
-      .attr("r", 4.5);
+      .attr("r", 15);
 
     node.append("text")
-      .attr("x", 10)
+      .attr("x", 20)
       .attr("dy", ".35em")
       .text(function(d) { return d.name; });
 
@@ -71,6 +74,13 @@ var ResultView = React.createClass({
         .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
     }
 
+  },
+
+  saveSvg: function() {
+    var link = document.createElement('a');
+    link.download = "connections.svg";
+    link.href = 'data:application/octet-stream;base64,' + btoa(d3.select('#graph').html());
+    link.click();
   },
 
   //This is where you apply activeViewState, if its defined.
@@ -96,7 +106,9 @@ var ResultView = React.createClass({
       <div className="resultView">
         <Paper style={style} zDepth={1}>
           <div id="graph" className="resultView"></div>
+          <RaisedButton label="Save" onMouseUp={this.saveSvg} />
         </Paper>
+        <div id="svgdataurl"></div>
       </div>
     );
   }
