@@ -19,8 +19,8 @@ public class DBInterfaceTest {
 		Object node2 = interfacer.addVertex("Node", props, values2);
 		Object node3 = interfacer.addVertex("Node", props, values1);
 		
-		interfacer.addNewConnection("Connection", node1, node2);
-		interfacer.addNewConnection("Connection", node2, node3);
+		interfacer.connect("Connection", node1, node2);
+		interfacer.connect("Connection", node2, node3);
 		
 		//interfacer.removeAllConnections();
 		//Object node = interfacer.getVerticesByFields("Node", new String[]{"name"}, new Object[] {"Tom"});

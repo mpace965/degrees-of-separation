@@ -70,7 +70,7 @@ public class DBInterfacer {
 	 * @param nodes List of nodes to be added
 	 * @return List of RIDs that are associated with the new nodes
 	 */
-	public ArrayList<Object> addVertex(ArrayList<Node> nodes) {
+	public ArrayList<Object> addVertices(ArrayList<Node> nodes) {
 		ArrayList<Object> RIDs = new ArrayList<Object>();
 		String className = null;
 		
@@ -97,7 +97,7 @@ public class DBInterfacer {
 				
 				// Cache management
 				currentNodes++;
-				if (currentNodes > maxNodes)
+				if (currentNodes >= maxNodes)
 					cachePurge();
 				
 				// Return the RID of the new node
@@ -162,7 +162,7 @@ public class DBInterfacer {
 	 * Adds a connection between 2 Vertices to the graph
 	 * @return 1 if success, 0 if fail
 	 */
-	public Object addNewConnection(String edgeName, Object id1, Object id2) {
+	public Object connect(String edgeName, Object id1, Object id2) {
 		try {
 			Vertex v1 = graph.getVertex(id1);
 			Vertex v2 = graph.getVertex(id2);

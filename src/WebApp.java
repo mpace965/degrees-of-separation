@@ -9,6 +9,7 @@ import siteClasses.Node;
 import API.AdjacencyListConnectResponse;
 import API.AdjacencyListEdge;
 import algorithm.Algorithm;
+import databaseInterfacing.DBInterfacer;
 
 import com.google.gson.Gson;
 
@@ -76,12 +77,15 @@ public class WebApp extends SimpleWebServer {
 		site.setStartAndEndNodes(beginString, endString);
 		ArrayList<Node> nodes = Algorithm.processConnection(site);
 		
+		InsertInDBThread thread = new InsertInDBThread(nodes);
+		thread.start();
+		
 		c.setNodeCount(nodes.size());
 		
-		for (Node n : nodes) {
+		//for (Node n : nodes) {
 			// TODO allow for adding a String value if possible
 			//c.addNodeValue(n.getNodeID());
-		}
+		//}
 		
 		for (int i = 0; i < nodes.size() - 1; i++) {
 			c.addEdge(new AdjacencyListEdge(i, i + 1));
@@ -89,4 +93,29 @@ public class WebApp extends SimpleWebServer {
 		
 		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(c));
 	}
+}
+
+class InsertInDBThread extends Thread {
+	private ArrayList<Node> nodes;
+	
+	InsertInDBThread(ArrayList<Node> nodes) {
+		this.nodes = nodes;
+	}
+	
+	public void run() {
+		DBInterfacer db;
+		try {
+			db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
+			ArrayList<Object> RIDs = db.addVertices(nodes);
+			
+			for (int i = 0; i < RIDs.size() - 1; i++) {
+				db.connect("Connection", RIDs.get(i), RIDs.get(i + 1));
+			}
+			
+			db.close();
+		} catch (Exception e) {
+			System.err.println("Error: Could not add nodes to database");
+		}
+	}
+	
 }
