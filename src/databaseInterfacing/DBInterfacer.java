@@ -1,9 +1,6 @@
 package databaseInterfacing;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 
 import com.tinkerpop.blueprints.Direction;
@@ -108,45 +105,6 @@ public class DBInterfacer {
 		}
 		
 		return RIDs;
-	}
-	
-	/**
-	 * Adds a vertex with the supplied fields
-	 * @param className	Name of class and cluster that the node will be added to
-	 * @param vertexid	ID used to look up the vertex
-	 * @param props		List of props that are to be set to the vertex
-	 * 					must be an even number of props
-	 * 					Ex: ["name", "John", "band", "Beatles"]
-	 * @return ID that is associated with that vertex or 0 if failed
-	 */
-	public Object addVertex(String className, String[] names, Object[] values) {
-		
-		try {
-			Vertex v = graph.addVertex(className, className);
-			
-			for (int i = 0; i < names.length; i++)
-				v.setProperty(names[i], values[i]);
-			
-			currentNodes++;
-			if (currentNodes >= maxNodes)
-				cachePurge();
-			
-			return v.getId();
-		}
-		catch (Exception e) {
-			return null;
-		}
-	}
-	
-	/**
-	 * Get a list of vertices by its field variables
-	 * @param label		USE "Node". Class to search through.
-	 * @param names		List of field names ex: {"name"}
-	 * @param values	List of field values ex: {"Tom"}
-	 * @return List of vertices
-	 */
-	public Iterable<Vertex> getVerticesByFields(String label, String[] names, Object[] values) {
-		return graph.getVertices(label, names, values);
 	}
 	
 	/**

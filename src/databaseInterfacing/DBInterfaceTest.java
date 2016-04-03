@@ -14,15 +14,10 @@ public class DBInterfaceTest {
 		AdjListNodes.add(new AdjListNode("Tom"));
 		AdjListNodes.add(new AdjListNode("Steph"));
 		
-		ArrayList<Object> RIDs = db.addVertices(AdjListNodes);
-				
-		for (int i = 0; i < RIDs.size() - 1; i++) {
-			db.connect("Connection", RIDs.get(i), RIDs.get(i + 1));
-		}
+		db.addVertices(AdjListNodes);
+		db.addConnections(AdjListNodes);
 		
-		//db.removeAllConnections();
-		//Object node = db.getVerticesByFields("Node", new String[]{"name"}, new Object[] {"Tom"});
-		
+		//db.removeAllConnections();		
 		//db.getConnectedNeighbors(node);
 		
 		System.out.println(db);
