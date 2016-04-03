@@ -63,12 +63,24 @@ public class DBInterfacer {
 	}
 	
 	/**
+	 * @param value	value used to look up vertex
+	 * @return Vertex with value attribute
+	 */
+	public Vertex getVertexByID(String value) {
+		Iterable<Vertex> vertices = graph.getVertices("ID", value);
+
+		if (!vertices.iterator().hasNext())
+			return null;
+		
+		return vertices.iterator().next();
+	}
+	
+	/**
 	 * Adds a vertex for each of the supplied nodes
 	 * @param nodes	List of nodes to be added
-	 * @return List of RIDs that are associated with the new nodes
+	 * @return true if success otherwise false
 	 */
-	public ArrayList<Object> addVertices(ArrayList<Node> nodes) {
-		ArrayList<Object> RIDs = new ArrayList<Object>();
+	public boolean addVertices(ArrayList<Node> nodes) {
 		String className = null;
 		
 		if (nodes.get(0) instanceof AdjListNode) {
@@ -81,6 +93,11 @@ public class DBInterfacer {
 			for (int i = 0; i < nodes.size(); i++) {
 				// Get current node and add to graph
 				Node cNode = nodes.get(i);
+				
+				if (getVertexByID(cNode.getNodeID()) != null) {
+					continue;
+				}
+				
 				Vertex v = graph.addVertex(className, className);
 				
 				// Format the date and time
@@ -96,24 +113,12 @@ public class DBInterfacer {
 				currentNodes++;
 				if (currentNodes >= maxNodes)
 					cachePurge();
-				
-				// Return the RID of the new node
-				RIDs.add(v.getId());
 			}
 		} catch (Exception e) {
-			return null;
+			return false;
 		}
 		
-		return RIDs;
-	}
-	
-	/**
-	 * Gets the neighbors that are connected to a given vertex
-	 * @param id	Id of the vertex
-	 * @return List of neighbors
-	 */
-	public Iterable<Vertex> getConnectedNeighbors(Object id) {
-		return graph.getVertex(id).getVertices(Direction.BOTH);
+		return true;
 	}
 	
 	/**
@@ -132,18 +137,34 @@ public class DBInterfacer {
 		try {
 			for (int i = 0; i < nodes.size() - 1; i++) {
 				// Get the 2 consecutive vertexes to add
-				Vertex v1 = graph.getVertices("ID",
-						nodes.get(i).getNodeID()).iterator().next();
-				Vertex v2 = graph.getVertices("ID",
-						nodes.get(i + 1).getNodeID()).iterator().next();
+				Vertex v1 = getVertexByID(nodes.get(i).getNodeID());
+				Vertex v2 = getVertexByID(nodes.get(i + 1).getNodeID());
 				
-				graph.addEdge(id, v1, v2, "Connection");
+				boolean found = false;
+				Iterable<Vertex> v1Connections = v1.getVertices(Direction.BOTH);
+				for (Vertex vc : v1Connections) {
+					if (vc.getProperty("ID").equals(v2.getProperty("ID"))) {
+						found = true;
+					}
+				}
+				
+				if (!found)
+					graph.addEdge(id, v1, v2, "Connection");
 			}
 		} catch (Exception e) {
 			return false;
 		}
 		
 		return true;
+	}
+	
+	/**
+	 * Gets the neighbors that are connected to a given vertex
+	 * @param id	Id of the vertex
+	 * @return List of neighbors
+	 */
+	public Iterable<Vertex> getConnectedNeighbors(Object id) {
+		return graph.getVertex(id).getVertices(Direction.BOTH);
 	}
 	
 	/**
