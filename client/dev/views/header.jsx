@@ -4,8 +4,10 @@ import LeftNav from 'material-ui/lib/left-nav';
 import List from 'material-ui/lib/lists/list';
 import ListItem from 'material-ui/lib/lists/list-item';
 
+
 var LandingPage = require('./landingPage');
 var AdjacencyListSiteSearchView = require('./adjacencyListSiteSearchView');
+var StatsPageView = require('./statsPageView');
 
 var Header = React.createClass({
   getInitialState: function() {
@@ -32,6 +34,11 @@ var Header = React.createClass({
     this.props.setActiveView(AdjacencyListSiteSearchView);
     this.setState({open: false});
   },
+  
+    handleStatsTap: function() {
+    this.props.setActiveView(StatsPageView);
+    this.setState({open: false});
+  },
 
   handleLastfmTap: function () {
     //this.props.setActiveView(LastfmSiteSearchView);
@@ -51,6 +58,7 @@ var Header = React.createClass({
         <LeftNav open={this.state.open} docked={false} onRequestChange={open => this.setState({open})}>
           <List>
             <ListItem primaryText="About" onTouchTap={this.handleAboutTap}/>
+            <ListItem primaryText="Statistics" onTouchTap={this.handleStatsTap}/>
             <ListItem
               primaryText="Connect"
               initiallyOpen={false}
