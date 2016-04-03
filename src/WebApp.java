@@ -106,11 +106,9 @@ class InsertInDBThread extends Thread {
 		DBInterfacer db;
 		try {
 			db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
-			ArrayList<Object> RIDs = db.addVertices(nodes);
 			
-			for (int i = 0; i < RIDs.size() - 1; i++) {
-				db.connect("Connection", RIDs.get(i), RIDs.get(i + 1));
-			}
+			db.addVertices(nodes);
+			db.addConnections(nodes);
 			
 			db.close();
 		} catch (Exception e) {

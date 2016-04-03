@@ -67,7 +67,7 @@ public class DBInterfacer {
 	
 	/**
 	 * Adds a vertex for each of the supplied nodes
-	 * @param nodes List of nodes to be added
+	 * @param nodes	List of nodes to be added
 	 * @return List of RIDs that are associated with the new nodes
 	 */
 	public ArrayList<Object> addVertices(ArrayList<Node> nodes) {
@@ -87,13 +87,13 @@ public class DBInterfacer {
 				Vertex v = graph.addVertex(className, className);
 				
 				// Format the date and time
-				DateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
-				Date date = new Date();
-				System.out.println(df.format(date));
+				//DateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
+				//Date date = new Date();
+				//System.out.println(df.format(date));
 				
 				// Set the properties
 				v.setProperty("ID", cNode.getNodeID());
-				v.setProperty("Date", date);
+				//v.setProperty("Date", date);
 				
 				// Cache management
 				currentNodes++;
@@ -156,6 +156,36 @@ public class DBInterfacer {
 	 */
 	public Iterable<Vertex> getConnectedNeighbors(Object id) {
 		return graph.getVertex(id).getVertices(Direction.BOTH);
+	}
+	
+	/**
+	 * @param nodes	List of nodes to connect
+	 * @return true if success otherwise false
+	 */
+	public boolean addConnections(ArrayList<Node> nodes) {
+		String id = null;
+		
+		if (nodes.get(0) instanceof AdjListNode) {
+			id = "class: AdjListNode";
+		} else if (nodes.get(0) instanceof LastfmNode) {
+			id = "class: LastfmNode";
+		}
+		
+		try {
+			for (int i = 0; i < nodes.size() - 1; i++) {
+				// Get the 2 consecutive vertexes to add
+				Vertex v1 = graph.getVertices("ID",
+						nodes.get(i).getNodeID()).iterator().next();
+				Vertex v2 = graph.getVertices("ID",
+						nodes.get(i + 1).getNodeID()).iterator().next();
+				
+				graph.addEdge(id, v1, v2, "Connection");
+			}
+		} catch (Exception e) {
+			return false;
+		}
+		
+		return true;
 	}
 	
 	/**
