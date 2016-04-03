@@ -4,13 +4,13 @@ import java.util.ArrayList;
 
 import com.google.gson.JsonObject;
 
-public class LastfmNode implements Node {
+public class ThesaurusNode implements Node {
 
 	private ArrayList<Node> connections;
 	private String nodeID;
 	private JsonObject jsonOb;
 
-	public LastfmNode(String nodeID) {
+	public ThesaurusNode(String nodeID) {
 		this.nodeID = nodeID;
 		this.jsonOb = null;
 	}

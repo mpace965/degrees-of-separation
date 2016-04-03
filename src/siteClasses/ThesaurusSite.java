@@ -11,15 +11,24 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-public class LastfmSite implements Site {
+/*
+ * 
+ * 
+ * 	CAN ONLY USE THIS 1000 TIMES A DAY
+ * 
+ * 
+ */
+
+
+
+public class ThesaurusSite implements Site {
 
 	private int fileAccesses = 0;
 	private HashMap<String, Node> allNodes;
 	private Node start;
 	private Node end;
-	final String apiKey = "c6c45e68f6b2a663da996fc504cf9f8b";
 
-	public LastfmSite() {
+	public ThesaurusSite() {
 		this.allNodes = new HashMap<String, Node>();
 	}
 
@@ -28,10 +37,10 @@ public class LastfmSite implements Site {
 	}
 
 	private JsonObject makeJson(String a) {
-		String urlStart = "http://ws.audioscrobbler.com/2.0/?method=artist.getSimilar&format=json";
-		String artist = "&artist=" + a;
-		String key = "&api_key=" + "c6c45e68f6b2a663da996fc504cf9f8b";
-		String url = urlStart + artist + key;
+		String urlStart = "http://words.bighugelabs.com/api/2/";
+		String word = a;
+		String key = "325e16c4f99ebdd3aa44546f3817b508/";
+		String url = urlStart + key + word + "/json";
 		JsonObject simArt = null;
 
 		// Builds a buffered reader to interpret input received from the API
@@ -78,9 +87,9 @@ public class LastfmSite implements Site {
 		String parts[] = new String[1024];
 		JsonObject z = temp.getJson();
 		int i = 0;
-		JsonObject similar = z.getAsJsonObject("similarartists");
-		for (JsonElement x : similar.getAsJsonArray("artist")) {
-			parts[i] = x.getAsJsonObject().get("name").toString();
+		JsonObject similar = z.getAsJsonObject("noun");
+		for (JsonElement x : similar.getAsJsonArray("syn")) {
+			parts[i] = x.toString();
 			parts[i] = parts[i].substring(1, parts[i].length() - 1);
 			i++;
 		}
@@ -134,5 +143,9 @@ public class LastfmSite implements Site {
 			this.end = allNodes.get(end);
 		}
 
+	}
+	public static void main(String[] args) {
+		ThesaurusSite ts = new ThesaurusSite();
+		ts.makeJson("party");
 	}
 }
