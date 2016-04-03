@@ -1,11 +1,19 @@
 package databaseInterfacing;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+
+import siteClasses.AdjListNode;
+import siteClasses.LastfmNode;
+import siteClasses.Node;
 
 /** Interfacer object used to interact with the database */
 
@@ -55,6 +63,51 @@ public class DBInterfacer {
 		catch (Exception e) {
 			return null;
 		}
+	}
+	
+	/**
+	 * Adds a vertex for each of the supplied nodes
+	 * @param nodes List of nodes to be added
+	 * @return List of RIDs that are associated with the new nodes
+	 */
+	public ArrayList<Object> addVertex(ArrayList<Node> nodes) {
+		ArrayList<Object> RIDs = new ArrayList<Object>();
+		String className = null;
+		
+		if (nodes.get(0) instanceof AdjListNode) {
+			className = "AdjListNode";
+		} else if (nodes.get(0) instanceof LastfmNode) {
+			className = "LastfmNode";
+		}
+		
+		try {
+			for (int i = 0; i < nodes.size(); i++) {
+				// Get current node and add to graph
+				Node cNode = nodes.get(i);
+				Vertex v = graph.addVertex(className, className);
+				
+				// Format the date and time
+				DateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
+				Date date = new Date();
+				System.out.println(df.format(date));
+				
+				// Set the properties
+				v.setProperty("ID", cNode.getNodeID());
+				v.setProperty("Date", date);
+				
+				// Cache management
+				currentNodes++;
+				if (currentNodes > maxNodes)
+					cachePurge();
+				
+				// Return the RID of the new node
+				RIDs.add(v.getId());
+			}
+		} catch (Exception e) {
+			return null;
+		}
+		
+		return RIDs;
 	}
 	
 	/**
