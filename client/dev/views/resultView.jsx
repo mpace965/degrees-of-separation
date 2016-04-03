@@ -1,4 +1,6 @@
 var React = require('react');
+var d3 = require('d3');
+import Paper from 'material-ui/lib/paper';
 
 var ResultView = React.createClass({
   getInitialState: function() {
@@ -35,7 +37,7 @@ var ResultView = React.createClass({
       .on("tick", tick)
       .start();
 
-    var svg = d3.select(".resultView").append("svg")
+    var svg = d3.select("#graph").append("svg")
       .attr("width", width)
       .attr("height", height);
 
@@ -83,8 +85,18 @@ var ResultView = React.createClass({
   },
 
   render: function() {
+    const style = {
+      height: '75%',
+      width: '75%',
+      padding: 10,
+      margin: 20
+    }
+
     return (
       <div className="resultView">
+        <Paper style={style} zDepth={1}>
+          <div id="graph" className="resultView"></div>
+        </Paper>
       </div>
     );
   }

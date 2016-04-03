@@ -1,20 +1,66 @@
 var React = require('react');
+import AppBar from 'material-ui/lib/app-bar';
+import LeftNav from 'material-ui/lib/left-nav';
+import List from 'material-ui/lib/lists/list';
+import ListItem from 'material-ui/lib/lists/list-item';
 
 var LandingPage = require('./landingPage');
 var AdjacencyListSiteSearchView = require('./adjacencyListSiteSearchView');
 
 var Header = React.createClass({
-  handleClick: function(param) {
-    this.props.setActiveView(param);
+  getInitialState: function() {
+    return {
+      open: false
+    };
   },
 
-  //Simple navigation. Null must be bound as the first parameter, something weird with React.
+  handleTitleTap: function() {
+    this.props.setActiveView(LandingPage);
+    this.setState({open: false});
+  },
+
+  handleLeftTap: function() {
+    this.setState({open: true});
+  },
+
+  handleAboutTap: function() {
+    //this.props.setActiveView(AboutPage);
+    this.setState({open: false});
+  },
+
+  handleAdjListTap: function() {
+    this.props.setActiveView(AdjacencyListSiteSearchView);
+    this.setState({open: false});
+  },
+
+  handleLastfmTap: function () {
+    //this.props.setActiveView(LastfmSiteSearchView);
+    this.setState({open: false});
+  },
+
   render: function() {
     return (
-      <div className="header">
-        <h2 className="text-button" onClick={this.handleClick.bind(null, LandingPage)}>Degrees of Separation</h2>
-        <h3 className="text-button">About</h3>
-        <h3 className="text-button" onClick={this.handleClick.bind(null, AdjacencyListSiteSearchView)}>Connect</h3>
+      <div>
+        <AppBar
+          title="Degrees of Separation"
+          titleStyle={{
+            cursor: 'pointer'
+          }}
+          onTitleTouchTap={this.handleTitleTap}
+          onLeftIconButtonTouchTap={this.handleLeftTap} />
+        <LeftNav open={this.state.open} docked={false} onRequestChange={open => this.setState({open})}>
+          <List>
+            <ListItem primaryText="About" onTouchTap={this.handleAboutTap}/>
+            <ListItem
+              primaryText="Connect"
+              initiallyOpen={false}
+              primaryTogglesNestedList={true}
+              nestedItems={[
+                <ListItem key={1} primaryText="Adjacency List" onTouchTap={this.handleAdjListTap} />,
+                <ListItem key={2} primaryText="Last.fm" onTouchTap={this.handleLastfmTap} />
+              ]} />
+          </List>
+        </LeftNav>
       </div>
     );
   }

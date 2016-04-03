@@ -5,11 +5,11 @@ import java.util.ArrayList;
 public class AdjacencyListConnectResponse {
 	private int nodeCount;
 	private ArrayList<AdjacencyListEdge> edgeList;
-	private ArrayList<Integer> nodeValues;
+	private ArrayList<String> nodeValues;
 	
 	public AdjacencyListConnectResponse(){
 		this.edgeList = new ArrayList<AdjacencyListEdge>();
-		this.nodeValues = new ArrayList<Integer>();
+		this.nodeValues = new ArrayList<String>();
 	}
 	
 	public int getNodeCount() {
@@ -28,11 +28,11 @@ public class AdjacencyListConnectResponse {
 		this.edgeList.add(edge);
 	}
 	
-	public ArrayList<Integer> getNodeValues() {
+	public ArrayList<String> getNodeValues() {
 		return nodeValues;
 	}
 	
-	public void addNodeValue(int value) {
+	public void addNodeValue(String value) {
 		this.nodeValues.add(value);
 	}
 }
