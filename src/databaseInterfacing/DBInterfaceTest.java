@@ -1,34 +1,32 @@
 package databaseInterfacing;
 
+import java.util.ArrayList;
+
+import siteClasses.AdjListNode;
+import siteClasses.Node;
+
 public class DBInterfaceTest {
 
 	public static void main(String[] args) {
-		DBInterfacer interfacer = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
-//		String[] props = {"name"};
-//		Object[] values1 = {"PUT NODE1 NAME HERE"};
-//		Object[] values2 = {"PUT NODE2 NAME HERE"};
-//		Object node1 = interfacer.addVertex("Node", props, values1);
-//		Object node2 = interfacer.addVertex("Node", props, values2);
-//		interfacer.addNewConnection("Connection", node1, node2);
+		DBInterfacer db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
 		
-		String[] props = {"name", "access_time"};
-		Object[] values1 = {"sam", "2016-03-03 08:50:31"};
-		Object[] values2 = {"Tom", "2016-03-03 08:50:32"};
+		ArrayList<Node> AdjListNodes = new ArrayList<Node>();
+		AdjListNodes.add(new AdjListNode("Tom"));
+		AdjListNodes.add(new AdjListNode("Steph"));
 		
-		Object node1 = interfacer.addVertex("Node", props, values1);
-		Object node2 = interfacer.addVertex("Node", props, values2);
-		Object node3 = interfacer.addVertex("Node", props, values1);
+		ArrayList<Object> RIDs = db.addVertices(AdjListNodes);
+				
+		for (int i = 0; i < RIDs.size() - 1; i++) {
+			db.connect("Connection", RIDs.get(i), RIDs.get(i + 1));
+		}
 		
-		interfacer.connect("Connection", node1, node2);
-		interfacer.connect("Connection", node2, node3);
+		//db.removeAllConnections();
+		//Object node = db.getVerticesByFields("Node", new String[]{"name"}, new Object[] {"Tom"});
 		
-		//interfacer.removeAllConnections();
-		//Object node = interfacer.getVerticesByFields("Node", new String[]{"name"}, new Object[] {"Tom"});
+		//db.getConnectedNeighbors(node);
 		
-		//interfacer.getConnectedNeighbors(node);
+		System.out.println(db);
 		
-		System.out.println(interfacer);
-		
-		interfacer.close();
+		db.close();
 	}
 }

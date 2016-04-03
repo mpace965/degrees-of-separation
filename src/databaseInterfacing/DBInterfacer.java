@@ -160,7 +160,7 @@ public class DBInterfacer {
 	
 	/**
 	 * Adds a connection between 2 Vertices to the graph
-	 * @return 1 if success, 0 if fail
+	 * @return ID of new connection
 	 */
 	public Object connect(String edgeName, Object id1, Object id2) {
 		try {
