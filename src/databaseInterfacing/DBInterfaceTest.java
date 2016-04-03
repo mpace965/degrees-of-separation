@@ -19,10 +19,11 @@ public class DBInterfaceTest {
 		
 		db.addVertices(AdjListNodes);
 		db.addConnections(AdjListNodes);
+		db.shortestPath(AdjListNodes.get(0), AdjListNodes.get(3), "AdjListNodes");
 		
-//		db.removeAllConnections();		
+//		db.removeAllConnections();
 		
-		System.out.println(db);
+//		System.out.println(db);
 		
 		db.close();
 	}

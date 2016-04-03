@@ -2,7 +2,7 @@ package databaseInterfacing;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-
+import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -39,26 +39,6 @@ public class DBInterfacer {
 			this.currentNodes = 0;
 			this.maxNodes = 0;
 			this.purgePercent = 0.0;
-		}
-	}
-	
-	/**
-	 * Adds a vertex with no fields
-	 * @param className	Name of class and cluster that the node will be added to
-	 * @return ID that is associated with that vertex or 0 if failed
-	 */
-	public Object addVertex(String className) {
-		try {
-			Vertex v = graph.addVertex(className, className);
-			
-			currentNodes++;
-			if (currentNodes >= maxNodes)
-				cachePurge();
-			
-			return v.getId();
-		}
-		catch (Exception e) {
-			return null;
 		}
 	}
 	
@@ -159,12 +139,33 @@ public class DBInterfacer {
 	}
 	
 	/**
-	 * Gets the neighbors that are connected to a given vertex
-	 * @param id	Id of the vertex
-	 * @return List of neighbors
+	 * @param v1	Starting vertex
+	 * @param v2	Ending vertex
+	 * @param type	"AdjListNode", "LastfmNode", etc.
+	 * @return List of nodes
 	 */
-	public Iterable<Vertex> getConnectedNeighbors(Object id) {
-		return graph.getVertex(id).getVertices(Direction.BOTH);
+	@SuppressWarnings("unchecked")
+	public ArrayList<Node> shortestPath(Node n1, Node n2) {
+		Vertex v1 = getVertexByID(n1.getNodeID());
+		Vertex v2 = getVertexByID(n2.getNodeID());
+		
+		String query = "select expand(shortestPath) from "
+				+ "(select shortestPath(" + v1.getId()
+				+ ", " + v2.getId() + ", 'BOTH'))";
+		
+		ArrayList<Node> nodes = new ArrayList<Node>();
+		Iterable<Vertex> result = (Iterable<Vertex>) graph.command(
+				  new OSQLSynchQuery<Vertex>(query)).execute();
+		
+		if (n1 instanceof AdjListNode) {
+			for (Vertex v : result)
+				nodes.add(new AdjListNode(v.getProperty("ID")));
+		} else if (n1 instanceof LastfmNode) {
+			for (Vertex v : result)
+				nodes.add(new LastfmNode(v.getProperty("ID")));
+		}
+		
+		return nodes;
 	}
 	
 	/**
