@@ -16,14 +16,19 @@ public class DBInterfaceTest {
 		AdjListNodes.add(new AdjListNode("Ryan"));
 		AdjListNodes.add(new AdjListNode("Evan"));
 		AdjListNodes.add(new AdjListNode("Hasini"));
+		AdjListNodes.add(new AdjListNode("John"));
 		
 		db.addVertices(AdjListNodes);
 		db.addConnections(AdjListNodes);
-		db.shortestPath(AdjListNodes.get(0), AdjListNodes.get(3));
+		db.close();
+		
+		db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
+		
+		db.shortestPath(AdjListNodes.get(0), AdjListNodes.get(5));
 		
 //		db.removeAllConnections();
 		
-//		System.out.println(db);
+		System.out.println(db);
 		
 		db.close();
 	}

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 
@@ -107,11 +106,14 @@ public class DBInterfacer {
 	 */
 	public boolean addConnections(ArrayList<Node> nodes) {
 		String id = null;
+		String connection = null;
 		
 		if (nodes.get(0) instanceof AdjListNode) {
 			id = "class: AdjListNode";
+			connection = "AdjListConnection";
 		} else if (nodes.get(0) instanceof LastfmNode) {
 			id = "class: LastfmNode";
+			connection = "LastfmConnection";
 		}
 		
 		try {
@@ -129,7 +131,7 @@ public class DBInterfacer {
 				}
 				
 				if (!found)
-					graph.addEdge(id, v1, v2, "Connection");
+					graph.addEdge(id, v1, v2, connection);
 			}
 		} catch (Exception e) {
 			return false;
@@ -166,23 +168,6 @@ public class DBInterfacer {
 		}
 		
 		return nodes;
-	}
-	
-	/**
-	 * Adds a connection between 2 Vertices to the graph
-	 * @return ID of new connection
-	 */
-	public Object connect(String edgeName, Object id1, Object id2) {
-		try {
-			Vertex v1 = graph.getVertex(id1);
-			Vertex v2 = graph.getVertex(id2);
-			
-			Edge connection = graph.addEdge(edgeName, v1, v2, "connection");
-			return connection.getId();
-		}
-		catch (Exception e){
-			return null;
-		}
 	}
 	
 	/**
