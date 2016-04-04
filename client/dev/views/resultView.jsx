@@ -78,13 +78,13 @@ var ResultView = React.createClass({
       nodes[i].name = this.state.graph.nodeValues[i];
     }
 
-    var width = 960, height = 500;
+    var width = 860, height = 500;
 
     var force = d3.layout.force()
       .nodes(d3.values(nodes))
       .links(links)
       .size([width, height])
-      .charge(-200)
+      .charge(-150)
       .on("tick", tick)
       .start();
 
@@ -122,7 +122,7 @@ var ResultView = React.createClass({
         .attr("y2", function(d) { return d.target.y; });
 
       node
-        .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+        .attr("transform", function(d) { return "translate(" + d.x  + "," + d.y + ")"; });
     }
 
   },
