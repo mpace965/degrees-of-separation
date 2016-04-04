@@ -33,6 +33,11 @@ var Header = React.createClass({
     this.props.setActiveView(AdjacencyListSiteSearchView);
     this.setState({open: false});
   },
+  
+    handleHomeTap: function() {
+    this.props.setActiveView(LandingPage);
+    this.setState({open: false});
+  },
 
   handleLastfmTap: function () {
     //this.props.setActiveView(LastfmSiteSearchView);
@@ -51,6 +56,7 @@ var Header = React.createClass({
           onLeftIconButtonTouchTap={this.handleLeftTap} />
         <LeftNav open={this.state.open} docked={false} onRequestChange={open => this.setState({open})}>
           <List>
+            <ListItem primaryText="Home" onTouchTap={this.handleHomeTap}/>
             <ListItem primaryText="About" onTouchTap={this.handleAboutTap}/>
             <ListItem
               primaryText="Connect"
