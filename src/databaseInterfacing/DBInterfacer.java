@@ -141,9 +141,8 @@ public class DBInterfacer {
 	}
 	
 	/**
-	 * @param v1	Starting vertex
-	 * @param v2	Ending vertex
-	 * @param type	"AdjListNode", "LastfmNode", etc.
+	 * @param n1	Starting vertex
+	 * @param n2	Ending vertex
 	 * @return List of nodes
 	 */
 	@SuppressWarnings("unchecked")
