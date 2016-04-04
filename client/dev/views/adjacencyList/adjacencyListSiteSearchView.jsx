@@ -103,7 +103,7 @@ var AdjacencyListSiteSearchView = React.createClass({
     }
 
     return (
-      <div className="adjacencyListSiteSearchView">
+      <div className="siteSearchView">
         <Paper style={style} zDepth={1}>
           <div className="flexRowItem">
             <img src="http://placehold.it/300?text=A"></img>
