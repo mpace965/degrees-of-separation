@@ -7,7 +7,11 @@ import ListItem from 'material-ui/lib/lists/list-item';
 
 var LandingPage = require('./landingPage');
 var AdjacencyListSiteSearchView = require('./adjacencyListSiteSearchView');
+<<<<<<< HEAD
 var StatsPageView = require('./statsPageView');
+=======
+var AboutPage = require('./aboutPage');
+>>>>>>> c7726225346861f4d938ba68c057a071f8c0a44c
 
 var Header = React.createClass({
   getInitialState: function() {
@@ -26,7 +30,7 @@ var Header = React.createClass({
   },
 
   handleAboutTap: function() {
-    //this.props.setActiveView(AboutPage);
+    this.props.setActiveView(AboutPage);
     this.setState({open: false});
   },
 
