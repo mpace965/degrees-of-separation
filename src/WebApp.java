@@ -6,6 +6,7 @@ import java.util.Map;
 
 import siteClasses.AdjListSite;
 import siteClasses.Node;
+import siteClasses.Site;
 import API.AdjacencyListConnectResponse;
 import API.AdjacencyListEdge;
 import algorithm.Algorithm;
@@ -62,11 +63,24 @@ public class WebApp extends SimpleWebServer {
 		return r;
 	}
 	
+	private ArrayList<Node> checkDB(Site site) {
+		ArrayList<Node> nodes;
+		Node n1 = site.getStartNode();
+		Node n2 = site.getEndNode();
+		
+		DBInterfacer db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
+		nodes = db.shortestPath(n1, n2);
+		db.close();
+		
+		return nodes;
+	}
+	
 	private Response connectAdjacency(IHTTPSession session, Gson gson, AdjListSite site) {
 		AdjacencyListConnectResponse c = new AdjacencyListConnectResponse();
 		Map<String, String> parms = session.getParms();
 		String beginString = parms.get("begin");
 		String endString = parms.get("end");
+		ArrayList<Node> nodes;
 		
 		try {
 			Integer.parseInt(beginString);
@@ -75,10 +89,15 @@ public class WebApp extends SimpleWebServer {
 			return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "One of your inputs was not a number.");
 		}
 		site.setStartAndEndNodes(beginString, endString);
-		ArrayList<Node> nodes = Algorithm.processConnection(site);
 		
-		InsertInDBThread thread = new InsertInDBThread(nodes);
-		thread.start();
+		// Check DB for connection before algorithm
+		nodes = checkDB(site);
+		
+		if (nodes == null) {
+			nodes = Algorithm.processConnection(site);
+			InsertInDBThread thread = new InsertInDBThread(nodes);
+			thread.start();
+		}
 		
 		c.setNodeCount(nodes.size());
 		
