@@ -148,26 +148,34 @@ public class DBInterfacer {
 	 */
 	@SuppressWarnings("unchecked")
 	public ArrayList<Node> shortestPath(Node n1, Node n2) {
-		Vertex v1 = getVertexByID(n1.getNodeID());
-		Vertex v2 = getVertexByID(n2.getNodeID());
-		
-		String query = "select expand(shortestPath) from "
-				+ "(select shortestPath(" + v1.getId()
-				+ ", " + v2.getId() + ", 'BOTH'))";
-		
-		ArrayList<Node> nodes = new ArrayList<Node>();
-		Iterable<Vertex> result = (Iterable<Vertex>) graph.command(
-				  new OSQLSynchQuery<Vertex>(query)).execute();
-		
-		if (n1 instanceof AdjListNode) {
-			for (Vertex v : result)
-				nodes.add(new AdjListNode(v.getProperty("ID")));
-		} else if (n1 instanceof LastfmNode) {
-			for (Vertex v : result)
-				nodes.add(new LastfmNode(v.getProperty("ID")));
+		try {
+			Vertex v1 = getVertexByID(n1.getNodeID());
+			Vertex v2 = getVertexByID(n2.getNodeID());
+			
+			String query = "select expand(shortestPath) from "
+					+ "(select shortestPath(" + v1.getId()
+					+ ", " + v2.getId() + ", 'BOTH'))";
+			
+			ArrayList<Node> nodes = new ArrayList<Node>();
+			Iterable<Vertex> result = (Iterable<Vertex>) graph.command(
+					  new OSQLSynchQuery<Vertex>(query)).execute();
+			
+			if (n1 instanceof AdjListNode) {
+				for (Vertex v : result)
+					nodes.add(new AdjListNode(v.getProperty("ID")));
+			} else if (n1 instanceof LastfmNode) {
+				for (Vertex v : result)
+					nodes.add(new LastfmNode(v.getProperty("ID")));
+			}
+			
+			if (nodes.size() == 0)
+				return null;
+			
+			return nodes;
+		} catch (Exception e) {
+			System.err.println("Path does not exist (yet)");
+			return null;
 		}
-		
-		return nodes;
 	}
 	
 	/**
