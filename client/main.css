@@ -44,6 +44,14 @@ html, body {
   justify-content: center;
 }
 
+/* statsPageView.jsx */
+.statsPageView {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 /* header.jsx */
 .header {
   border: 1px solid black;
