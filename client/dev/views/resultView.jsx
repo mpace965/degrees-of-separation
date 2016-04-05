@@ -166,13 +166,9 @@ var ResultView = React.createClass({
           <div id="graph" className="resultView"></div>
           <RaisedButton label="Save" onMouseUp={this.saveSvg} />
         </Paper>
-<<<<<<< HEAD
-        <div id="svgdataurl"></div>
-=======
         <Paper style={infoStyle} zDepth={1}>
           <div>Node info: {this.state.currentHover}</div>
         </Paper>
->>>>>>> origin/d3-hover
       </div>
     );
   }
