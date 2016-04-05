@@ -8,7 +8,10 @@ var AdjacencyListResultView = React.createClass({
     return {
       graph: {
         nodes: {},
-        links: []
+        links: [],
+        currentHover: '',
+        currentHoverStick: false,
+        currentHoverNode: null
       }
     };
   },
@@ -17,6 +20,53 @@ var AdjacencyListResultView = React.createClass({
   renderGraph: function() {
     var nodes = {};
     var links = this.state.graph.links;
+
+    function mouseover() {
+      d3.select(this).attr("cursor", "pointer");
+
+      if (!context.state.currentHoverStick) {
+        context.setState({currentHover: d3.select(this).select("text").text()});
+        context.setState({currentHoverNode: this});
+      }
+    }
+
+    function mouseout() {
+      if (!context.state.currentHoverStick) {
+        context.setState({currentHover: ''});
+        context.setState({currentHoverNode: null});
+      }
+    }
+
+    function click() {
+      //If you clicked on another node while one is already clicked
+      if (context.state.currentHoverNode != null && context.state.currentHoverNode != this) {
+        //deflate currently hovered node
+        d3.select(context.state.currentHoverNode).select("circle").transition()
+          .duration(750)
+          .attr("r", 15);
+
+        //inflate the clicked one
+        d3.select(this).select("circle").transition()
+          .duration(750)
+          .attr("r", 19);
+
+        //And update the node info
+        context.setState({currentHover: d3.select(this).select("text").text()});
+        context.setState({currentHoverNode: this});
+      } else if (context.state.currentHoverNode == this && !context.state.currentHoverStick) { //nothing clicked
+        context.setState({currentHoverStick: true});
+
+        d3.select(this).select("circle").transition()
+          .duration(750)
+          .attr("r", 19);
+      } else if (context.state.currentHoverNode != null && context.state.currentHoverNode == this && context.state.currentHoverStick) { //toggle
+        context.setState({currentHoverStick: false});
+
+        d3.select(this).select("circle").transition()
+          .duration(750)
+          .attr("r", 15);
+      }
+    }
 
     // Compute the distinct nodes from the links.
     links.forEach(function(link) {
@@ -53,6 +103,9 @@ var AdjacencyListResultView = React.createClass({
       .enter().append("g")
       .attr("fill", "#ccc")
       .attr("stroke", "#000")
+      .on("mouseover", mouseover)
+      .on("mouseout", mouseout)
+      .on("click", click)
       .call(force.drag);
 
     node.append("circle")
@@ -108,7 +161,9 @@ var AdjacencyListResultView = React.createClass({
           <div id="graph" className="resultView"></div>
           <RaisedButton label="Save" onMouseUp={this.saveSvg} />
         </Paper>
-        <div id="svgdataurl"></div>
+        <Paper style={infoStyle} zDepth={1}>
+          <div>Node info: {this.state.currentHover}</div>
+        </Paper>
       </div>
     );
   }

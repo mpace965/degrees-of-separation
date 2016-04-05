@@ -4,7 +4,13 @@ import CircularProgress from 'material-ui/lib/circular-progress';
 import TextField from 'material-ui/lib/text-field';
 import RaisedButton from 'material-ui/lib/raised-button';
 
+var LastfmResultView = require('./lastfmResultView');
+
 var LastfmSiteSearchView = React.createClass({
+
+  handleSubmit: function() {
+    this.props.setActiveView(LastfmResultView);
+  },
 
   render: function() {
     const style = {
@@ -23,7 +29,7 @@ var LastfmSiteSearchView = React.createClass({
               hintText="Connect one artist" />
             <TextField
               hintText="to another" />
-            <RaisedButton label="Submit" />
+            <RaisedButton label="Submit" onMouseUp={this.handleSubmit} />
           </div>
         </Paper>
       </div>
