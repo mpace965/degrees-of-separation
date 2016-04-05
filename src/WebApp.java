@@ -69,7 +69,12 @@ public class WebApp extends SimpleWebServer {
 		Node n2 = site.getEndNode();
 		
 		DBInterfacer db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
-		nodes = db.shortestPath(n1, n2);
+		nodes = db.shortestPath(n1, n2, true);
+		
+		if (nodes == null) {
+			nodes = db.shortestPath(n1, n2, false);
+		}
+		
 		db.close();
 		
 		return nodes;
@@ -80,7 +85,7 @@ public class WebApp extends SimpleWebServer {
 		Map<String, String> parms = session.getParms();
 		String beginString = parms.get("begin");
 		String endString = parms.get("end");
-		ArrayList<Node> nodes;
+		ArrayList<Node> nodes, allNodes;
 		
 		try {
 			Integer.parseInt(beginString);
@@ -95,8 +100,12 @@ public class WebApp extends SimpleWebServer {
 		
 		if (nodes == null) {
 			nodes = Algorithm.processConnection(site);
-			InsertInDBThread thread = new InsertInDBThread(nodes);
-			thread.start();
+			allNodes = new ArrayList<Node> (site.getAllNodes().values());
+			
+			InsertInDBThread t1 = new InsertInDBThread(nodes, true);
+			InsertInDBThread t2 = new InsertInDBThread(allNodes, false);
+			t1.start();
+			t2.start();
 		}
 		
 		c.setNodeCount(nodes.size());
@@ -116,18 +125,35 @@ public class WebApp extends SimpleWebServer {
 
 class InsertInDBThread extends Thread {
 	private ArrayList<Node> nodes;
+	private boolean recentConnections;
 	
-	InsertInDBThread(ArrayList<Node> nodes) {
+	InsertInDBThread(ArrayList<Node> nodes, boolean recentConnections) {
 		this.nodes = nodes;
+		this.recentConnections = recentConnections;
 	}
 	
 	public void run() {
-		DBInterfacer db;
 		try {
-			db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
+			DBInterfacer db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
 			
-			db.addVertices(nodes);
-			db.addConnections(nodes);
+			if (recentConnections) {
+				// Add the recently connected
+				db.addVertices(nodes, true);
+				for (int i = 0; i < nodes.size() - 1; i++) {
+					db.addConnection(nodes.get(i), nodes.get(i + 1), true);
+				}
+			} else {
+				// Add all nodes
+				ArrayList<Node> connections;
+				
+				db.addVertices(nodes, false);
+				for (Node n1 : nodes) {
+					connections = n1.getConnections();
+					for (Node n2 : connections) {
+						db.addConnection(n1, n2, false);
+					}
+				}
+			}
 			
 			db.close();
 		} catch (Exception e) {

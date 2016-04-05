@@ -118,6 +118,11 @@ public class AdjListSite implements Site {
 			this.end = allNodes.get(end);
 		}
 	}
+	
+	public HashMap<String, Node> getAllNodes() {
+		return allNodes;
+	}
+	
 	public Node getStartNode() {
 		return this.start;
 	}

@@ -45,8 +45,10 @@ public class DBInterfacer {
 	 * @param value	value used to look up vertex
 	 * @return Vertex with value attribute
 	 */
-	public Vertex getVertexByID(String value) {
-		Iterable<Vertex> vertices = graph.getVertices("ID", value);
+	public Vertex getVertexByID(String className, String value) {
+		String[] ids = new String[] {"ID"};
+		Object[] values = new Object[] {value};
+		Iterable<Vertex> vertices = graph.getVertices(className, ids, values);
 
 		if (!vertices.iterator().hasNext())
 			return null;
@@ -56,10 +58,11 @@ public class DBInterfacer {
 	
 	/**
 	 * Adds a vertex for each of the supplied nodes
-	 * @param nodes	List of nodes to be added
-	 * @return true if success otherwise false
+	 * @param nodes				List of nodes to be added
+	 * @param recentConnection	True if recent connection otherwise false
+	 * @return True if success otherwise false
 	 */
-	public boolean addVertices(ArrayList<Node> nodes) {
+	public boolean addVertices(ArrayList<Node> nodes, boolean recentConnection) {
 		String className = null;
 		
 		if (nodes.get(0) instanceof AdjListNode) {
@@ -73,20 +76,19 @@ public class DBInterfacer {
 				// Get current node and add to graph
 				Node cNode = nodes.get(i);
 				
-				if (getVertexByID(cNode.getNodeID()) != null) {
+				if (getVertexByID(className, cNode.getNodeID()) != null) {
 					continue;
 				}
 				
-				Vertex v = graph.addVertex(className, className);
-				
-				// Format the date and time
-				//DateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
-				//Date date = new Date();
-				//System.out.println(df.format(date));
-				
-				// Set the properties
-				v.setProperty("ID", cNode.getNodeID());
-				//v.setProperty("Date", date);
+				Vertex v;
+				if (recentConnection) {
+					v = graph.addVertex("RecentNode", "RecentNode");
+					v.setProperty("ID", cNode.getNodeID());
+					v.setProperty("NodeType", className);
+				} else {
+					v = graph.addVertex(className, className);
+					v.setProperty("ID", cNode.getNodeID());
+				}
 				
 				// Cache management
 				currentNodes++;
@@ -101,38 +103,44 @@ public class DBInterfacer {
 	}
 	
 	/**
-	 * @param nodes	List of nodes to connect
-	 * @return true if success otherwise false
+	 * Adds a Connection between the 2 nodes
+	 * @param n1				First node to connect
+	 * @param n2				Second node to connect
+	 * @param recentConnection	True if recent connection otherwise false
+	 * @return	True if success otherwise false
 	 */
-	public boolean addConnections(ArrayList<Node> nodes) {
+	public boolean addConnection(Node n1, Node n2, boolean recentConnection) {
 		String id = null;
 		String connection = null;
 		
-		if (nodes.get(0) instanceof AdjListNode) {
-			id = "class: AdjListNode";
+		
+		// Removed class!!!!! check if errors in adding
+		if (recentConnection) {
+			id = "RecentNode";
+			connection = "RecentConnection";
+		} else if (n1 instanceof AdjListNode) {
+			id = "AdjListNode";
 			connection = "AdjListConnection";
-		} else if (nodes.get(0) instanceof LastfmNode) {
-			id = "class: LastfmNode";
+		} else if (n1 instanceof LastfmNode) {
+			id = "LastfmNode";
 			connection = "LastfmConnection";
 		}
 		
 		try {
-			for (int i = 0; i < nodes.size() - 1; i++) {
-				// Get the 2 consecutive vertexes to add
-				Vertex v1 = getVertexByID(nodes.get(i).getNodeID());
-				Vertex v2 = getVertexByID(nodes.get(i + 1).getNodeID());
-				
-				boolean found = false;
-				Iterable<Vertex> v1Connections = v1.getVertices(Direction.BOTH);
-				for (Vertex vc : v1Connections) {
-					if (vc.getProperty("ID").equals(v2.getProperty("ID"))) {
-						found = true;
-					}
+			// Get the 2 vertexes to add
+			Vertex v1 = getVertexByID(id, n1.getNodeID());
+			Vertex v2 = getVertexByID(id, n2.getNodeID());
+			
+			boolean found = false;
+			Iterable<Vertex> v1Connections = v1.getVertices(Direction.BOTH);
+			for (Vertex vc : v1Connections) {
+				if (vc.getProperty("ID").equals(v2.getProperty("ID"))) {
+					found = true;
 				}
-				
-				if (!found)
-					graph.addEdge(id, v1, v2, connection);
 			}
+			
+			if (!found)
+				graph.addEdge(id, v1, v2, connection);
 		} catch (Exception e) {
 			return false;
 		}
@@ -141,19 +149,31 @@ public class DBInterfacer {
 	}
 	
 	/**
-	 * @param n1	Starting vertex
-	 * @param n2	Ending vertex
+	 * @param n1				Starting node
+	 * @param n2				Ending node
+	 * @param recentConnection	True if recent connection otherwise false
 	 * @return List of nodes
 	 */
 	@SuppressWarnings("unchecked")
-	public ArrayList<Node> shortestPath(Node n1, Node n2) {
+	public ArrayList<Node> shortestPath(Node n1, Node n2, boolean recentConnection) {
 		try {
-			Vertex v1 = getVertexByID(n1.getNodeID());
-			Vertex v2 = getVertexByID(n2.getNodeID());
+			String className = null;
+			
+			if (recentConnection) {
+				className = "RecentNode";
+			} else if (n1 instanceof AdjListNode) {
+				className = "AdjListNode";
+			} else if (n1 instanceof LastfmNode) {
+				className = "LastfmNode";
+			}
+			
+			Vertex v1 = getVertexByID(className, n1.getNodeID());
+			Vertex v2 = getVertexByID(className, n2.getNodeID());
 			
 			String query = "select expand(shortestPath) from "
 					+ "(select shortestPath(" + v1.getId()
-					+ ", " + v2.getId() + ", 'BOTH'))";
+					+ ", " + v2.getId() + ", 'BOTH', '" 
+					+ className + "'))";
 			
 			ArrayList<Node> nodes = new ArrayList<Node>();
 			Iterable<Vertex> result = (Iterable<Vertex>) graph.command(
