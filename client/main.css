@@ -29,6 +29,11 @@ html, body {
   justify-content: center;
 }
 
+.flexColItem {
+  display: flex;
+  flex-direction: column;
+}
+
 /* *SiteSearchView.jsx */
 .siteSearchView {
   display: flex;

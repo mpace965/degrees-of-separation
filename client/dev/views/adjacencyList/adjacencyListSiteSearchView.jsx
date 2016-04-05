@@ -49,7 +49,7 @@ var AdjacencyListSiteSearchView = React.createClass({
     var graph = {
       nodes: d3.range(this.state.apiResponse.nodeCount).map(Object),
       links: this.state.apiResponse.edgeList,
-      nodeValues: d3.values(this.state.apiResponse.nodeValues)
+      nodeValues: this.state.apiResponse.nodeValues
     };
 
     return graph;

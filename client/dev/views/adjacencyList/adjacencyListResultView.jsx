@@ -20,6 +20,7 @@ var AdjacencyListResultView = React.createClass({
   renderGraph: function() {
     var nodes = {};
     var links = this.state.graph.links;
+    var context = this;
 
     function mouseover() {
       d3.select(this).attr("cursor", "pointer");
@@ -154,6 +155,13 @@ var AdjacencyListResultView = React.createClass({
       padding: 10,
       margin: 20
     }
+
+    const infoStyle = {
+     height: '75%',
+     width: '25%',
+     padding: 10,
+     margin: 20
+   }
 
     return (
       <div className="resultView">

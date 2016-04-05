@@ -46,15 +46,19 @@ public class WebApp extends SimpleWebServer {
 
 	private Response handleAPIRequest(IHTTPSession session) {
 		String uri = session.getUri();
+		Gson gson = new Gson();
 		Response r = null;
 		
 		switch (uri) {
 			case "/api/connectAdjacency": {
-				r = connectAdjacency(session);
+				String fileSeparator = System.getProperty("file.separator");
+				AdjListSite adjListSite = new AdjListSite("docs" + fileSeparator + "facebook_combined.txt");
+				r = connectAdjacency(session, gson, adjListSite);
 				break;
 			}
 			case "/api/connectLastfm": {
-				r = connectLastfm(session);
+				LastfmSite lastfmSite = new LastfmSite();
+				r = connectLastfm(session, gson, lastfmSite);
 				break;
 			}
 			default: {
@@ -65,9 +69,7 @@ public class WebApp extends SimpleWebServer {
 		return r;
 	}
 	
-	private Response connectLastfm(IHTTPSession session) {
-		LastfmSite lastfmSite = new LastfmSite();
-		Gson gson = new Gson();
+	private Response connectLastfm(IHTTPSession session, Gson gson, LastfmSite lastfmSite) {
 		LastfmConnectResponse c = new LastfmConnectResponse();
 		Map<String, String> parms = session.getParms();
 		String beginString = parms.get("begin");
@@ -124,9 +126,7 @@ public class WebApp extends SimpleWebServer {
 		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(c));
 	}
 
-	private Response connectAdjacency(IHTTPSession session) {
-		AdjListSite adjListSite = new AdjListSite("docs" + System.getProperty("file.separator") + "facebook_combined.txt");
-		Gson gson = new Gson();
+	private Response connectAdjacency(IHTTPSession session, Gson gson, AdjListSite adjListSite) {
 		AdjacencyListConnectResponse c = new AdjacencyListConnectResponse();
 		Map<String, String> parms = session.getParms();
 		String beginString = parms.get("begin");
