@@ -53,6 +53,9 @@ public class WebApp extends SimpleWebServer {
 				r = connectAdjacency(session, gson, site);
 				break;
 			}
+			case "/api/getStats": {
+				
+			}
 			default: {
 				r = newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_JSON, "{}");
 			}
