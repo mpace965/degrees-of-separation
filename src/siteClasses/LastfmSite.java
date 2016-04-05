@@ -27,6 +27,8 @@ public class LastfmSite implements Site {
 		return 1d;
 	}
 
+	
+	//Will return a json object of the similar artists to the string passed in
 	private JsonObject makeJson(String a) {
 		String urlStart = "http://ws.audioscrobbler.com/2.0/?method=artist.getSimilar&format=json";
 		String artist = "&artist=" + a;
@@ -65,40 +67,59 @@ public class LastfmSite implements Site {
 		return simArt;
 	}
 
+	
+	
 	public void populateConnections(Node node) {
+		//If the node isnt already in the hasmap then it adds it
 		if (!allNodes.containsKey(node.getNodeID())) {
 			allNodes.put(node.getNodeID(), node);
 		}
 
+		//casts the node input to a lastfmNode and populates the json object
+		//if it isnt already there for some reason
 		fileAccesses++;
 		LastfmNode temp = (LastfmNode) node;
-		temp.setJson(makeJson(temp.getNodeID()));
+		if (temp.getJson() == null) { 
+			temp.setJson(makeJson(temp.getNodeID()));
+		}
 
 
+		
+		//creates a string to hold the similar artists and populates that with
+		//the following code below
 		String parts[] = new String[1024];
-		JsonObject z = temp.getJson();
+		JsonObject jobject = temp.getJson();
 		int i = 0;
-		JsonObject similar = z.getAsJsonObject("similarartists");
-		for (JsonElement x : similar.getAsJsonArray("artist")) {
-			parts[i] = x.getAsJsonObject().get("name").toString();
-			parts[i] = parts[i].substring(1, parts[i].length() - 1);
+		String connectedNames[] = new String [1024];
+		JsonObject similar = jobject.getAsJsonObject("similarartists");
+		for (JsonElement artist : similar.getAsJsonArray("artist")) {
+			connectedNames[i] = artist.getAsJsonObject().get("name").toString();
+			connectedNames[i] = connectedNames[i].substring(1, connectedNames[i].length()-1);
 			i++;
 		}
 
+		//goes through the stored names obtained from above and creates a new
+		//node for each connection
 		for (int a = 0; a < parts.length; a++) {
 
-			fileAccesses++;
-
+			//creating a new node
 			LastfmNode hold = new LastfmNode(parts[a]);
 			String id = hold.getNodeID();
-			hold.setJson(makeJson(id));
+			//if the new node is already in the hash table then a new connection is added
+			//to the node
 			if (allNodes.containsKey(id)) {
 				node.addConnection(hold);
-			} else {
+			}
+			//If the node is not in the hash map then the info of holding node is
+			//populated and added to the hashmap
+			else {
+				fileAccesses++;
+				hold.setJson(makeJson(id));
 				node.addConnection(hold);
 				allNodes.put(id, hold);
 			}
 		}
+	
 	}
 
 	public Node getStartNode() {

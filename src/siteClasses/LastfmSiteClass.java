@@ -92,12 +92,12 @@ public class LastfmSiteClass {
 		try {
 			JsonObject z = lf.getSimilar("cher");
 			int i = 0;
-			String parts[] = new String [1024];
+			String connectedNames[] = new String [1024];
 			JsonObject similar = z.getAsJsonObject("similarartists");
-			for (JsonElement x : similar.getAsJsonArray("artist")) {
-				parts[i] = x.getAsJsonObject().get("name").toString();
-				parts[i] = parts[i].substring(1, parts[i].length()-1);
-				System.out.println(parts[i]);
+			for (JsonElement artist : similar.getAsJsonArray("artist")) {
+				connectedNames[i] = artist.getAsJsonObject().get("name").toString();
+				connectedNames[i] = connectedNames[i].substring(1, connectedNames[i].length()-1);
+				System.out.println(connectedNames[i]);
 				i++;
 			}
 		} catch (IOException e) {
