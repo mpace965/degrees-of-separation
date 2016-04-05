@@ -44,12 +44,12 @@ var ResultView = React.createClass({
         //deflate currently hovered node
         d3.select(context.state.currentHoverNode).select("circle").transition()
           .duration(750)
-          .attr("r", 6);
+          .attr("r", 15);
 
         //inflate the clicked one
         d3.select(this).select("circle").transition()
           .duration(750)
-          .attr("r", 10);
+          .attr("r", 19);
 
         //And update the node info
         context.setState({currentHover: d3.select(this).select("text").text()});
@@ -59,13 +59,13 @@ var ResultView = React.createClass({
 
         d3.select(this).select("circle").transition()
           .duration(750)
-          .attr("r", 10);
+          .attr("r", 19);
       } else if (context.state.currentHoverNode != null && context.state.currentHoverNode == this && context.state.currentHoverStick) { //toggle
         context.setState({currentHoverStick: false});
 
         d3.select(this).select("circle").transition()
           .duration(750)
-          .attr("r", 6);
+          .attr("r", 15);
       }
     }
 
@@ -104,6 +104,9 @@ var ResultView = React.createClass({
       .enter().append("g")
       .attr("fill", "#ccc")
       .attr("stroke", "#000")
+      .on("mouseover", mouseover)
+      .on("mouseout", mouseout)
+      .on("click", click)
       .call(force.drag);
 
     node.append("circle")
