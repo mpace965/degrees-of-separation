@@ -92,8 +92,8 @@ public class LastfmSite implements Site {
 		int i = 0;
 		String connectedNames[] = new String [1024];
 		JsonObject similar = jobject.getAsJsonObject("similarartists");
-		for (JsonElement artist : similar.getAsJsonArray("artist")) {
-			connectedNames[i] = artist.getAsJsonObject().get("name").toString();
+		for (JsonElement artists : similar.getAsJsonArray("artist")) {
+			connectedNames[i] = artists.getAsJsonObject().get("name").toString();
 			connectedNames[i] = connectedNames[i].substring(1, connectedNames[i].length()-1);
 			i++;
 		}
