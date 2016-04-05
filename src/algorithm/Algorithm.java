@@ -15,6 +15,8 @@ import siteClasses.Node;
 import siteClasses.Site;
 import databaseInterfacing.DBInterfacer;
 
+
+
 public class Algorithm {
 	/**
 	 * @param site
@@ -150,6 +152,8 @@ public class Algorithm {
 	 * @param nodes
 	 */
 	private static void insertIntoDatabase(ArrayList<Node> nodes) {
+	
+		
 		DBInterfacer interfacer = null;
 		try {
 			interfacer = new DBInterfacer("remote:localhost/Connections", "root", "team4", 40, 0.2);
@@ -171,6 +175,7 @@ public class Algorithm {
 		}
 		
 		interfacer.close();
+	
 	}
 
 	/**

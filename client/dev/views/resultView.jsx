@@ -9,7 +9,10 @@ var ResultView = React.createClass({
       graph: {
         nodes: {},
         links: []
-      }
+      },
+      currentHover: '',
+      currentHoverStick: false,
+      currentHoverNode: null
     };
   },
 
@@ -17,6 +20,54 @@ var ResultView = React.createClass({
   renderGraph: function() {
     var nodes = {};
     var links = this.state.graph.links;
+    var context = this;
+
+    function mouseover() {
+      d3.select(this).attr("cursor", "pointer");
+
+      if (!context.state.currentHoverStick) {
+        context.setState({currentHover: d3.select(this).select("text").text()});
+        context.setState({currentHoverNode: this});
+      }
+    }
+
+    function mouseout() {
+      if (!context.state.currentHoverStick) {
+        context.setState({currentHover: ''});
+        context.setState({currentHoverNode: null});
+      }
+    }
+
+    function click() {
+      //If you clicked on another node while one is already clicked
+      if (context.state.currentHoverNode != null && context.state.currentHoverNode != this) {
+        //deflate currently hovered node
+        d3.select(context.state.currentHoverNode).select("circle").transition()
+          .duration(750)
+          .attr("r", 6);
+
+        //inflate the clicked one
+        d3.select(this).select("circle").transition()
+          .duration(750)
+          .attr("r", 10);
+
+        //And update the node info
+        context.setState({currentHover: d3.select(this).select("text").text()});
+        context.setState({currentHoverNode: this});
+      } else if (context.state.currentHoverNode == this && !context.state.currentHoverStick) { //nothing clicked
+        context.setState({currentHoverStick: true});
+
+        d3.select(this).select("circle").transition()
+          .duration(750)
+          .attr("r", 10);
+      } else if (context.state.currentHoverNode != null && context.state.currentHoverNode == this && context.state.currentHoverStick) { //toggle
+        context.setState({currentHoverStick: false});
+
+        d3.select(this).select("circle").transition()
+          .duration(750)
+          .attr("r", 6);
+      }
+    }
 
     // Compute the distinct nodes from the links.
     links.forEach(function(link) {
@@ -28,7 +79,7 @@ var ResultView = React.createClass({
       nodes[i].name = this.state.graph.nodeValues[i];
     }
 
-    var width = 960, height = 500;
+    var width = 860, height = 500;
 
     var force = d3.layout.force()
       .nodes(d3.values(nodes))
@@ -71,7 +122,7 @@ var ResultView = React.createClass({
         .attr("y2", function(d) { return d.target.y; });
 
       node
-        .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+        .attr("transform", function(d) { return "translate(" + d.x  + "," + d.y + ")"; });
     }
 
   },
@@ -95,20 +146,33 @@ var ResultView = React.createClass({
   },
 
   render: function() {
-    const style = {
+    const graphStyle = {
       height: '75%',
       width: '75%',
       padding: 10,
       margin: 20
     }
 
+    const infoStyle = {
+      height: '75%',
+      width: '25%',
+      padding: 10,
+      margin: 20
+    }
+
     return (
       <div className="resultView">
-        <Paper style={style} zDepth={1}>
+        <Paper style={graphStyle} zDepth={1}>
           <div id="graph" className="resultView"></div>
           <RaisedButton label="Save" onMouseUp={this.saveSvg} />
         </Paper>
+<<<<<<< HEAD
         <div id="svgdataurl"></div>
+=======
+        <Paper style={infoStyle} zDepth={1}>
+          <div>Node info: {this.state.currentHover}</div>
+        </Paper>
+>>>>>>> origin/d3-hover
       </div>
     );
   }
