@@ -6,9 +6,9 @@ import CircularProgress from 'material-ui/lib/circular-progress';
 import TextField from 'material-ui/lib/text-field';
 import RaisedButton from 'material-ui/lib/raised-button';
 
-var ResultView = require('./resultView');
+var LastfmResultView = require('./lastfmResultView');
 
-var AdjacencyListSiteSearchView = React.createClass({
+var LastfmSiteSearchView = React.createClass({
   getInitialState: function() {
     return {
       connectionBegin: '',
@@ -22,9 +22,9 @@ var AdjacencyListSiteSearchView = React.createClass({
   //Make the api request to the server
   loadChainFromServer: function() {
     this.setState({errorMessage: ''});
-    
+
     $.ajax({
-        url: '/api/connectAdjacency',
+        url: '/api/connectLastfm',
         dataType: 'json',
         cache: false,
         data: {begin: this.state.connectionBegin, end: this.state.connectionEnd},
@@ -32,7 +32,7 @@ var AdjacencyListSiteSearchView = React.createClass({
           this.setState({apiResponse: data}, function() {
             this.setState({loadingMessage: ''});
             var newGraph = this.processApiResponse();
-            this.props.setActiveView(ResultView, {graph: newGraph});
+            this.props.setActiveView(LastfmResultView, {graph: newGraph});
           });
         }.bind(this),
         error: function(xhr, status, err) {
@@ -41,15 +41,13 @@ var AdjacencyListSiteSearchView = React.createClass({
           console.error('/api/connectAdjacency', status, err.toString());
         }.bind(this)
     });
-
-    this.setState({loadingMessage: 'Loading...'});
   },
 
   processApiResponse: function() {
     var graph = {
       nodes: d3.range(this.state.apiResponse.nodeCount).map(Object),
       links: this.state.apiResponse.edgeList,
-      nodeValues: d3.values(this.state.apiResponse.nodeValues)
+      nodeValues: this.state.apiResponse.nodeValues
     };
 
     return graph;
@@ -103,20 +101,17 @@ var AdjacencyListSiteSearchView = React.createClass({
     }
 
     return (
-      <div className="adjacencyListSiteSearchView">
+      <div className="siteSearchView">
         <Paper style={style} zDepth={1}>
-          <div className="flexRowItem">
-            <img src="http://placehold.it/300?text=A"></img>
-            <img src="http://placehold.it/300?text=B"></img>
-          </div>
+          <h2 className="flexRowItem">Connect two artists on Last.fm</h2>
           <div className="flexRowItem">
             <TextField
-              hintText="Connect node A..."
+              hintText="Connect one artist"
               value={this.state.connectionBegin}
               onChange={this.handleConnectionBeginChange}
               onKeyDown={this.handleKeyDown} />
             <TextField
-              hintText="...to node B"
+              hintText="to another"
               value={this.state.connectionEnd}
               onChange={this.handleConnectionEndChange}
               onKeyDown={this.handleKeyDown} />
@@ -129,4 +124,4 @@ var AdjacencyListSiteSearchView = React.createClass({
   }
 });
 
-module.exports = AdjacencyListSiteSearchView;
+module.exports = LastfmSiteSearchView;

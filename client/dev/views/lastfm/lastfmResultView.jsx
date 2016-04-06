@@ -1,18 +1,56 @@
 var React = require('react');
 var d3 = require('d3');
+var Colors = require('material-ui/lib/styles/colors');
 import Paper from 'material-ui/lib/paper';
 import RaisedButton from 'material-ui/lib/raised-button';
+import Avatar from 'material-ui/lib/avatar';
+import Card from 'material-ui/lib/card/card';
+import CardHeader from 'material-ui/lib/card/card-header';
+import CardText from 'material-ui/lib/card/card-text';
 
-var ResultView = React.createClass({
+var Tag = React.createClass({
+  render: function() {
+    return (
+      <span><a href={this.props.url}>{this.props.name}</a> </span>
+    );
+  }
+});
+
+var TagList = React.createClass({
+  render: function() {
+    if (this.props.tags == null) {
+      return (<div><strong>Tags: </strong> </div>);
+    }
+
+    var tags = this.props.tags.map(function(t){
+      return (
+        <Tag key={t.name} url={t.url} name={t.name} />
+      );
+    });
+
+    return (
+      <div>
+        <strong>Tags: </strong> {tags}
+      </div>
+    );
+  }
+});
+
+var LastfmResultView = React.createClass({
   getInitialState: function() {
     return {
       graph: {
         nodes: {},
-        links: []
-      },
-      currentHover: '',
-      currentHoverStick: false,
-      currentHoverNode: null
+        links: [],
+        currentHoverName: '',
+        currentHoverImageUrl: '',
+        currentHoverListeners: '',
+        currentHoverPlaycount: '',
+        currentHoverTags: [],
+        currentHoverBio: '',
+        currentHoverStick: false,
+        currentHoverNode: null
+      }
     };
   },
 
@@ -26,19 +64,38 @@ var ResultView = React.createClass({
       d3.select(this).attr("cursor", "pointer");
 
       if (!context.state.currentHoverStick) {
-        context.setState({currentHover: d3.select(this).select("text").text()});
+        var index = parseInt(d3.select(this).select("index").text());
+        var currentNodeInfo = context.state.graph.nodeValues[index];
+
+        context.setState({currentHoverName: currentNodeInfo.name,
+                          currentHoverImageUrl: currentNodeInfo.image,
+                          currentHoverListeners: currentNodeInfo.listeners,
+                          currentHoverPlaycount: currentNodeInfo.playcount,
+                          currentHoverTags: currentNodeInfo.tags,
+                          currentHoverBio: currentNodeInfo.bio});
         context.setState({currentHoverNode: this});
       }
     }
 
     function mouseout() {
       if (!context.state.currentHoverStick) {
-        context.setState({currentHover: ''});
+        var index = parseInt(d3.select(this).select("index").text());
+        var currentNodeInfo = context.state.graph.nodeValues[index];
+
+        context.setState({currentHoverName: '',
+                          currentHoverImageUrl: '',
+                          currentHoverListeners: '',
+                          currentHoverPlaycount: '',
+                          currentHoverTags: [],
+                          currentHoverBio: ''});
         context.setState({currentHoverNode: null});
       }
     }
 
     function click() {
+      var index = parseInt(d3.select(this).select("index").text());
+      var currentNodeInfo = context.state.graph.nodeValues[index];
+
       //If you clicked on another node while one is already clicked
       if (context.state.currentHoverNode != null && context.state.currentHoverNode != this) {
         //deflate currently hovered node
@@ -52,7 +109,12 @@ var ResultView = React.createClass({
           .attr("r", 19);
 
         //And update the node info
-        context.setState({currentHover: d3.select(this).select("text").text()});
+        context.setState({currentHoverName: currentNodeInfo.name,
+                          currentHoverImageUrl: currentNodeInfo.image,
+                          currentHoverListeners: currentNodeInfo.listeners,
+                          currentHoverPlaycount: currentNodeInfo.playcount,
+                          currentHoverTags: currentNodeInfo.tags,
+                          currentHoverBio: currentNodeInfo.bio});
         context.setState({currentHoverNode: this});
       } else if (context.state.currentHoverNode == this && !context.state.currentHoverStick) { //nothing clicked
         context.setState({currentHoverStick: true});
@@ -76,10 +138,11 @@ var ResultView = React.createClass({
     });
 
     for (var i = 0; i < this.state.graph.nodeValues.length; i++) {
-      nodes[i].name = this.state.graph.nodeValues[i];
+      nodes[i].name = this.state.graph.nodeValues[i].name;
+      nodes[i].index = i;
     }
 
-    var width = 860, height = 500;
+    var width = 960, height = 500;
 
     var force = d3.layout.force()
       .nodes(d3.values(nodes))
@@ -102,7 +165,7 @@ var ResultView = React.createClass({
     var node = svg.selectAll(".node")
       .data(force.nodes())
       .enter().append("g")
-      .attr("fill", "#ccc")
+      .attr("fill", Colors.red500)
       .attr("stroke", "#000")
       .on("mouseover", mouseover)
       .on("mouseout", mouseout)
@@ -117,6 +180,9 @@ var ResultView = React.createClass({
       .attr("dy", ".35em")
       .text(function(d) { return d.name; });
 
+    node.append("index")
+      .text(function(d) { return d.index; });
+
     function tick() {
       link
         .attr("x1", function(d) { return d.source.x; })
@@ -125,7 +191,7 @@ var ResultView = React.createClass({
         .attr("y2", function(d) { return d.target.y; });
 
       node
-        .attr("transform", function(d) { return "translate(" + d.x  + "," + d.y + ")"; });
+        .attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
     }
 
   },
@@ -148,8 +214,14 @@ var ResultView = React.createClass({
     this.renderGraph();
   },
 
+  createBioMarkup: function() {
+    return {
+      __html: this.state.currentHoverBio
+    };
+  },
+
   render: function() {
-    const graphStyle = {
+    const style = {
       height: '75%',
       width: '75%',
       padding: 10,
@@ -157,24 +229,33 @@ var ResultView = React.createClass({
     }
 
     const infoStyle = {
-      height: '75%',
-      width: '25%',
-      padding: 10,
-      margin: 20
-    }
+     height: '75%',
+     width: '25%',
+     padding: 10,
+     margin: 20
+   }
+
+   var currentAvatar = <Avatar src={this.state.currentHoverImageUrl}
+                               size={60} />;
 
     return (
       <div className="resultView">
-        <Paper style={graphStyle} zDepth={1}>
+        <Paper style={style} zDepth={1}>
           <div id="graph" className="resultView"></div>
           <RaisedButton label="Save" onMouseUp={this.saveSvg} />
         </Paper>
-        <Paper style={infoStyle} zDepth={1}>
-          <div>Node info: {this.state.currentHover}</div>
-        </Paper>
+        <Card style={infoStyle}>
+          <CardHeader title={this.state.currentHoverName} avatar={currentAvatar} />
+          <CardText>
+            <p><strong>Listeners:</strong> {this.state.currentHoverListeners}</p>
+            <p><strong>Playcount:</strong> {this.state.currentHoverPlaycount}</p>
+            <TagList tags={this.state.currentHoverTags} />
+            <p><strong>Bio:</strong> <span dangerouslySetInnerHTML={this.createBioMarkup()}/></p>
+          </CardText>
+        </Card>
       </div>
     );
   }
 });
 
-module.exports = ResultView;
+module.exports = LastfmResultView;

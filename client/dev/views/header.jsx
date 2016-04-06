@@ -3,13 +3,16 @@ import AppBar from 'material-ui/lib/app-bar';
 import LeftNav from 'material-ui/lib/left-nav';
 import List from 'material-ui/lib/lists/list';
 import ListItem from 'material-ui/lib/lists/list-item';
+import getMuiTheme from 'material-ui/lib/styles/getMuiTheme';
+import LastfmTheme from './lastfm/lastfmTheme';
+import DefaultTheme from 'material-ui/lib/styles/baseThemes/lightBaseTheme'
 
 
 var LandingPage = require('./landingPage');
-var AdjacencyListSiteSearchView = require('./adjacencyListSiteSearchView');
+var AdjacencyListSiteSearchView = require('./adjacencyList/adjacencyListSiteSearchView');
+var LastfmSiteSearchView = require('./lastfm/lastfmSiteSearchView');
 var StatsPageView = require('./statsPageView');
 var AboutPage = require('./aboutPage');
-
 
 var Header = React.createClass({
   getInitialState: function() {
@@ -20,6 +23,7 @@ var Header = React.createClass({
 
   handleTitleTap: function() {
     this.props.setActiveView(LandingPage);
+    this.props.setActiveTheme(DefaultTheme);
     this.setState({open: false});
   },
 
@@ -34,9 +38,10 @@ var Header = React.createClass({
 
   handleAdjListTap: function() {
     this.props.setActiveView(AdjacencyListSiteSearchView);
+    this.props.setActiveTheme(DefaultTheme);
     this.setState({open: false});
   },
-  
+
   handleHomeTap: function() {
     this.props.setActiveView(LandingPage);
     this.setState({open: false});
@@ -48,7 +53,8 @@ var Header = React.createClass({
   },
 
   handleLastfmTap: function () {
-    //this.props.setActiveView(LastfmSiteSearchView);
+    this.props.setActiveView(LastfmSiteSearchView);
+    this.props.setActiveTheme(LastfmTheme);
     this.setState({open: false});
   },
 

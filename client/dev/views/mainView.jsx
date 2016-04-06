@@ -1,6 +1,8 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 import injectTapEventPlugin from 'react-tap-event-plugin';
+import getMuiTheme from 'material-ui/lib/styles/getMuiTheme';
+import DefaultTheme from 'material-ui/lib/styles/baseThemes/lightBaseTheme'
 
 var Header = require('./header');
 var LandingPage = require('./landingPage');
@@ -11,7 +13,18 @@ var Wrapper = React.createClass({
   getInitialState: function() {
     return {
       activeView: LandingPage,
-      activeViewState: {}
+      activeViewState: {},
+      activeTheme: DefaultTheme
+    };
+  },
+
+  childContextTypes: {
+   muiTheme: React.PropTypes.object,
+  },
+
+  getChildContext: function() {
+    return {
+      muiTheme: getMuiTheme(this.state.activeTheme)
     };
   },
 
@@ -27,12 +40,16 @@ var Wrapper = React.createClass({
     }
   },
 
+  setActiveTheme: function(activeTheme) {
+    this.setState({activeTheme: activeTheme});
+  },
+
   render: function() {
     var ActiveView = this.state.activeView;
 
     return (
       <div>
-        <Header setActiveView={this.setActiveView} />
+        <Header setActiveView={this.setActiveView} setActiveTheme={this.setActiveTheme} />
         <ActiveView setActiveView={this.setActiveView} activeViewState={this.state.activeViewState}/>
       </div>
     );
