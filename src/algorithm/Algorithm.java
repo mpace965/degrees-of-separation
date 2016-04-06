@@ -87,12 +87,10 @@ public class Algorithm {
 			// corner case of the nodes being the same
 			if (end.equals(node)) {
 				ArrayList<Node> nodes = flip(prev, end, flipped);
-				insertIntoDatabase(nodes);
 				return nodes;
 			} else if (endSet.contains(node)) {
 				prev.put(end, node);
 				ArrayList<Node> nodes = flip(prev, end, flipped);
-				insertIntoDatabase(nodes);
 				return nodes;
 			}
 
@@ -110,13 +108,11 @@ public class Algorithm {
 					prev.put(neighbor, node);
 					prev.put(end, neighbor);
 					ArrayList<Node> nodes = flip(prev, end, flipped);
-					insertIntoDatabase(nodes);
 					return nodes;
 				}
 				else if (end.equals(neighbor)) {
 					prev.put(end, neighbor);
 					ArrayList<Node> nodes = flip(prev, end, flipped);
-					insertIntoDatabase(nodes);
 					return nodes;
 				}
 
@@ -145,37 +141,6 @@ public class Algorithm {
 		// will return null if no connection is found 
 		// and all nodes are exhausted
 		return null;
-	}
-	
-	/**
-	 * Inserts a complete list of connected nodes into the database.
-	 * @param nodes
-	 */
-	private static void insertIntoDatabase(ArrayList<Node> nodes) {
-	
-		
-		DBInterfacer interfacer = null;
-		try {
-			interfacer = new DBInterfacer("remote:localhost/Connections", "root", "team4", 40, 0.2);
-		} catch (Exception e) {
-			return;
-		}
-		
-		String[] props = {"name"};
-		
-		for (int i = 0; i < nodes.size() - 1; i++) {
-			Node n1 = nodes.get(i);
-			Node n2 = nodes.get(i + 1);
-			
-			Object[] values1 = {n1.getNodeID().toString()};
-			Object[] values2 = {n2.getNodeID().toString()};
-			Object node1 = interfacer.addVertex("Node", props, values1);
-			Object node2 = interfacer.addVertex("Node", props, values2);
-			interfacer.addNewConnection("Connection", node1, node2);
-		}
-		
-		interfacer.close();
-	
 	}
 
 	/**
