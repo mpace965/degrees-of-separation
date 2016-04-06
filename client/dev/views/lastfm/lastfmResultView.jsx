@@ -1,12 +1,17 @@
 var React = require('react');
 var d3 = require('d3');
+var Colors = require('material-ui/lib/styles/colors');
 import Paper from 'material-ui/lib/paper';
 import RaisedButton from 'material-ui/lib/raised-button';
+import Avatar from 'material-ui/lib/avatar';
+import Card from 'material-ui/lib/card/card';
+import CardHeader from 'material-ui/lib/card/card-header';
+import CardText from 'material-ui/lib/card/card-text';
 
 var Tag = React.createClass({
   render: function() {
     return (
-      <p><a href={this.props.url}>{this.props.name}</a></p>
+      <span><a href={this.props.url}>{this.props.name}</a> </span>
     );
   }
 });
@@ -160,7 +165,7 @@ var LastfmResultView = React.createClass({
     var node = svg.selectAll(".node")
       .data(force.nodes())
       .enter().append("g")
-      .attr("fill", "#ccc")
+      .attr("fill", Colors.red500)
       .attr("stroke", "#000")
       .on("mouseover", mouseover)
       .on("mouseout", mouseout)
@@ -230,22 +235,24 @@ var LastfmResultView = React.createClass({
      margin: 20
    }
 
+   var currentAvatar = <Avatar src={this.state.currentHoverImageUrl}
+                               size={60} />;
+
     return (
       <div className="resultView">
         <Paper style={style} zDepth={1}>
           <div id="graph" className="resultView"></div>
           <RaisedButton label="Save" onMouseUp={this.saveSvg} />
         </Paper>
-        <Paper style={infoStyle} zDepth={1}>
-          <div className="flexColItem">
-            <img src={this.state.currentHoverImageUrl}></img>
-            <p><strong>Artist:</strong> {this.state.currentHoverName}</p>
+        <Card style={infoStyle}>
+          <CardHeader title={this.state.currentHoverName} avatar={currentAvatar} />
+          <CardText>
             <p><strong>Listeners:</strong> {this.state.currentHoverListeners}</p>
             <p><strong>Playcount:</strong> {this.state.currentHoverPlaycount}</p>
             <TagList tags={this.state.currentHoverTags} />
             <p><strong>Bio:</strong> <span dangerouslySetInnerHTML={this.createBioMarkup()}/></p>
-          </div>
-        </Paper>
+          </CardText>
+        </Card>
       </div>
     );
   }

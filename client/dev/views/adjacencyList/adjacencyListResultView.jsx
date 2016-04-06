@@ -1,5 +1,6 @@
 var React = require('react');
 var d3 = require('d3');
+var Colors = require('material-ui/lib/styles/colors');
 import Paper from 'material-ui/lib/paper';
 import RaisedButton from 'material-ui/lib/raised-button';
 
@@ -102,7 +103,7 @@ var AdjacencyListResultView = React.createClass({
     var node = svg.selectAll(".node")
       .data(force.nodes())
       .enter().append("g")
-      .attr("fill", "#ccc")
+      .attr("fill", Colors.cyan500)
       .attr("stroke", "#000")
       .on("mouseover", mouseover)
       .on("mouseout", mouseout)
