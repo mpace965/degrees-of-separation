@@ -18,13 +18,13 @@ public class DBInterfaceTest {
 		AdjListNodes.add(new AdjListNode("Hasini"));
 		AdjListNodes.add(new AdjListNode("John"));
 		
-		db.addVertices(AdjListNodes);
-		db.addConnections(AdjListNodes);
+		db.addVertices(AdjListNodes, true);
+		//db.addConnections(AdjListNodes);
 		db.close();
 		
 		db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
 		
-		db.shortestPath(AdjListNodes.get(0), AdjListNodes.get(5));
+		db.shortestPath(AdjListNodes.get(0), AdjListNodes.get(5), false);
 		
 //		db.removeAllConnections();
 		
