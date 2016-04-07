@@ -8,11 +8,11 @@ import LastfmTheme from './lastfm/lastfmTheme';
 import DefaultTheme from 'material-ui/lib/styles/baseThemes/lightBaseTheme'
 
 
-var LandingPage = require('./landingPage');
+var LandingView = require('./landingView');
 var AdjacencyListSiteSearchView = require('./adjacencyList/adjacencyListSiteSearchView');
 var LastfmSiteSearchView = require('./lastfm/lastfmSiteSearchView');
-var StatsPageView = require('./statsPageView');
-var AboutPage = require('./aboutPage');
+var StatsView = require('./statsView');
+var AboutView = require('./aboutView');
 
 var Header = React.createClass({
   getInitialState: function() {
@@ -22,7 +22,7 @@ var Header = React.createClass({
   },
 
   handleTitleTap: function() {
-    this.props.setActiveView(LandingPage);
+    this.props.setActiveView(LandingView);
     this.props.setActiveTheme(DefaultTheme);
     this.setState({open: false});
   },
@@ -32,7 +32,7 @@ var Header = React.createClass({
   },
 
   handleAboutTap: function() {
-    this.props.setActiveView(AboutPage);
+    this.props.setActiveView(AboutView);
     this.setState({open: false});
   },
 
@@ -43,12 +43,12 @@ var Header = React.createClass({
   },
 
   handleHomeTap: function() {
-    this.props.setActiveView(LandingPage);
+    this.props.setActiveView(LandingView);
     this.setState({open: false});
   },
 
     handleStatsTap: function() {
-    this.props.setActiveView(StatsPageView);
+    this.props.setActiveView(StatsView);
     this.setState({open: false});
   },
 

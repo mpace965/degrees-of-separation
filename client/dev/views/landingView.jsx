@@ -1,7 +1,7 @@
 var React = require('react');
 import Paper from 'material-ui/lib/paper';
 
-var LandingPage = React.createClass({
+var LandingView = React.createClass({
   render: function() {
     const style = {
       height: '75%',
@@ -11,7 +11,7 @@ var LandingPage = React.createClass({
     }
 
     return (
-      <div className="landingPage">
+      <div className="landingView">
         <Paper style={style} zDepth={1}>
           <center>
               <p>Welcome to the Degrees of Separation website</p>
@@ -24,4 +24,4 @@ var LandingPage = React.createClass({
   }
 });
 
-module.exports = LandingPage;
+module.exports = LandingView;

@@ -2,7 +2,7 @@ import { FacebookButton, FacebookCount } from "react-social";
 var React = require('react');
 import Paper from 'material-ui/lib/paper';
 
-var StatsPageView = React.createClass({
+var StatsView = React.createClass({
 
   render: function() {
     const style = {
@@ -13,7 +13,7 @@ var StatsPageView = React.createClass({
     }
 
     return (
-      <div className="aboutPage">
+      <div className="statsView">
         <Paper style={style} zDepth={1}>
           <div>
             <center><h2>Statistics</h2></center>
@@ -29,4 +29,4 @@ var StatsPageView = React.createClass({
 
 });
 
-module.exports = StatsPageView;
+module.exports = StatsView;

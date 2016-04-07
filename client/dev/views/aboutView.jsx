@@ -1,7 +1,7 @@
 var React = require('react');
 import Paper from 'material-ui/lib/paper';
 
-var AboutPage = React.createClass({
+var AboutView = React.createClass({
   render: function() {
     const style = {
       height: '75%',
@@ -11,7 +11,7 @@ var AboutPage = React.createClass({
     }
 
     return (
-      <div className="aboutPage">
+      <div className="aboutView">
         <Paper style={style} zDepth={1}>
           <div>
             <center><h2>About</h2></center>
@@ -37,4 +37,4 @@ var AboutPage = React.createClass({
 });
 
 
-module.exports = AboutPage;
+module.exports = AboutView;

@@ -5,14 +5,14 @@ import getMuiTheme from 'material-ui/lib/styles/getMuiTheme';
 import DefaultTheme from 'material-ui/lib/styles/baseThemes/lightBaseTheme'
 
 var Header = require('./header');
-var LandingPage = require('./landingPage');
+var LandingView = require('./landingView');
 
 injectTapEventPlugin();
 
 var Wrapper = React.createClass({
   getInitialState: function() {
     return {
-      activeView: LandingPage,
+      activeView: LandingView,
       activeViewState: {},
       activeTheme: DefaultTheme
     };
