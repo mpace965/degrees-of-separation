@@ -42,7 +42,8 @@ public class DBInterfacer {
 	}
 	
 	/**
-	 * @param value	value used to look up vertex
+	 * Gets the vertex by its RID
+	 * @param Value	value used to look up vertex
 	 * @return Vertex with value attribute
 	 */
 	public Vertex getVertexByID(String className, String value) {
@@ -57,38 +58,41 @@ public class DBInterfacer {
 	}
 	
 	/**
-	 * Adds a vertex for each of the supplied nodes
-	 * @param nodes				List of nodes to be added
-	 * @param recentConnection	True if recent connection otherwise false
-	 * @return True if success otherwise false
+	 * Gets the class name for a specific node
+	 * @param n	Node to check class name
+	 * @return	Class name
 	 */
-	public boolean addVertices(ArrayList<Node> nodes, boolean recentConnection) {
+	public String getClassName(Node n) {
 		String className = null;
-		
-		if (nodes.get(0) instanceof AdjListNode) {
+
+		if (n instanceof AdjListNode) {
 			className = "AdjListNode";
-		} else if (nodes.get(0) instanceof LastfmNode) {
+		} else if (n instanceof LastfmNode) {
 			className = "LastfmNode";
 		}
 		
+		return className;
+	}
+	
+	/**
+	 * Adds a vertex for each of the supplied nodes
+	 * @param nodes				List of nodes to be added
+	 * @return True if success otherwise false
+	 */
+	public boolean addVertices(ArrayList<Node> nodes) {
+		String className = getClassName(nodes.get(0));
+		
 		try {
+			// Get current node and add to graph
 			for (int i = 0; i < nodes.size(); i++) {
-				// Get current node and add to graph
 				Node cNode = nodes.get(i);
 				
 				if (getVertexByID(className, cNode.getNodeID()) != null) {
 					continue;
 				}
 				
-				Vertex v;
-				if (recentConnection) {
-					v = graph.addVertex("RecentNode", "RecentNode");
-					v.setProperty("ID", cNode.getNodeID());
-					v.setProperty("NodeType", className);
-				} else {
-					v = graph.addVertex(className, className);
-					v.setProperty("ID", cNode.getNodeID());
-				}
+				Vertex v = graph.addVertex(className, className);;
+				v.setProperty("ID", cNode.getNodeID());
 				
 				// Cache management
 				currentNodes++;
@@ -106,30 +110,15 @@ public class DBInterfacer {
 	 * Adds a Connection between the 2 nodes
 	 * @param n1				First node to connect
 	 * @param n2				Second node to connect
-	 * @param recentConnection	True if recent connection otherwise false
 	 * @return	True if success otherwise false
 	 */
-	public boolean addConnection(Node n1, Node n2, boolean recentConnection) {
-		String id = null;
-		String connection = null;
-		
-		
-		// Removed class!!!!! check if errors in adding
-		if (recentConnection) {
-			id = "RecentNode";
-			connection = "RecentConnection";
-		} else if (n1 instanceof AdjListNode) {
-			id = "AdjListNode";
-			connection = "AdjListConnection";
-		} else if (n1 instanceof LastfmNode) {
-			id = "LastfmNode";
-			connection = "LastfmConnection";
-		}
+	public boolean addConnection(Node n1, Node n2) {
+		String className = getClassName(n1);
 		
 		try {
 			// Get the 2 vertexes to add
-			Vertex v1 = getVertexByID(id, n1.getNodeID());
-			Vertex v2 = getVertexByID(id, n2.getNodeID());
+			Vertex v1 = getVertexByID(className, n1.getNodeID());
+			Vertex v2 = getVertexByID(className, n2.getNodeID());
 			
 			boolean found = false;
 			Iterable<Vertex> v1Connections = v1.getVertices(Direction.BOTH);
@@ -140,7 +129,7 @@ public class DBInterfacer {
 			}
 			
 			if (!found)
-				graph.addEdge(id, v1, v2, connection);
+				graph.addEdge(className, v1, v2, "Connection");
 		} catch (Exception e) {
 			return false;
 		}
@@ -149,23 +138,15 @@ public class DBInterfacer {
 	}
 	
 	/**
+	 * Finds the shortest path between 2 nodes
 	 * @param n1				Starting node
 	 * @param n2				Ending node
-	 * @param recentConnection	True if recent connection otherwise false
 	 * @return List of nodes
 	 */
 	@SuppressWarnings("unchecked")
-	public ArrayList<Node> shortestPath(Node n1, Node n2, boolean recentConnection) {
+	public ArrayList<Node> shortestPath(Node n1, Node n2) {
 		try {
-			String className = null;
-			
-			if (recentConnection) {
-				className = "RecentNode";
-			} else if (n1 instanceof AdjListNode) {
-				className = "AdjListNode";
-			} else if (n1 instanceof LastfmNode) {
-				className = "LastfmNode";
-			}
+			String className = getClassName(n1);
 			
 			Vertex v1 = getVertexByID(className, n1.getNodeID());
 			Vertex v2 = getVertexByID(className, n2.getNodeID());
