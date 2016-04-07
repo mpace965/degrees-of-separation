@@ -73,7 +73,7 @@ public class WebApp extends SimpleWebServer {
 				break;
 			}
 			
-			case "/api/getStats": {
+			case "/api/getStatistics": {
 				r = getStatistics(session, gson);
 				break;
 			}
@@ -291,6 +291,12 @@ public class WebApp extends SimpleWebServer {
 			
 			DBInterfacer db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 10000000, 0.2);
 			String connectionsMade = db.getStatistic("NumberOfConnections");
+			
+			if (connectionsMade == null) {
+				db.setStatistic("NumberOfConnections", "0");
+				connectionsMade = "0";
+			}
+			
 			stats.add("Number of Connections Made: " + connectionsMade);
 			db.close();
 			
@@ -319,7 +325,7 @@ class InsertInDBThread extends Thread {
 					int statInt = Integer.parseInt(statStr);
 					db.setStatistic("NumberOfConnections", Integer.toString(statInt + 1));
 				} else {
-					db.setStatistic("NumberOfConnections", "0");
+					db.setStatistic("NumberOfConnections", "1");
 				}
 			} else {
 			

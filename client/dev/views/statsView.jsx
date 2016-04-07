@@ -1,8 +1,41 @@
-import { FacebookButton, FacebookCount } from "react-social";
 var React = require('react');
+var $ = require('jquery');
 import Paper from 'material-ui/lib/paper';
+import Snackbar from 'material-ui/lib/snackbar';
+import { FacebookButton, FacebookCount } from 'react-social';
 
 var StatsView = React.createClass({
+  getInitialState: function() {
+    return {
+      stats: [],
+      snackbarOpen: false,
+      snackbarMessage: ''
+    };
+  },
+
+  getStatsFromServer: function() {
+    $.ajax({
+        url: '/api/getStatistics',
+        dataType: 'json',
+        cache: false,
+        success: function(data) {
+          this.setState({stats: data});
+        }.bind(this),
+        error: function(xhr, status, err) {
+          this.setState({snackbarOpen: true, snackbarMessage: xhr.responseText});
+          console.error('/api/getStatistics', status, err.toString());
+        }.bind(this),
+        timeout: 60000
+    });
+  },
+
+  handleRequestClose: function() {
+    this.setState({snackbarOpen: false, snackbarMessage: ''});
+  },
+
+  componentDidMount: function() {
+    this.getStatsFromServer();
+  },
 
   render: function() {
     const style = {
@@ -19,10 +52,15 @@ var StatsView = React.createClass({
             <center><h2>Statistics</h2></center>
           </div>
           <div>
-            <p>PLACE HOLDER TEXT</p>
+            <p>{this.state.stats[0]}</p>
           </div>
         </Paper>
         <FacebookButton url="https://degreeofconnection.com">Share us on Facebook</FacebookButton>
+        <Snackbar
+          open={this.state.snackbarOpen}
+          message={this.state.snackbarMessage}
+          autoHideDuration={7000}
+          onRequestClose={this.handleRequestClose} />
       </div>
     );
   }
