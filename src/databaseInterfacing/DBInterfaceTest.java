@@ -19,16 +19,24 @@ public class DBInterfaceTest {
 		AdjListNodes.add(new AdjListNode("John"));
 		
 		db.addVertices(AdjListNodes);
-		//db.addConnections(AdjListNodes);
+		
+		for (int i = 0; i < AdjListNodes.size() - 1; i++) {
+			db.addConnection(AdjListNodes.get(i), AdjListNodes.get(i + 1));
+		}
+		
 		db.close();
 		
 		db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
 		
-		db.shortestPath(AdjListNodes.get(0), AdjListNodes.get(5));
+		ArrayList<Node> shortestPath = db.shortestPath(AdjListNodes.get(0), AdjListNodes.get(5));
+		
+		for (Node n : shortestPath) {
+			System.out.println(n.getNodeID());
+		}
 		
 //		db.removeAllConnections();
 		
-		System.out.println(db);
+//		System.out.println(db);
 		
 		db.close();
 	}
