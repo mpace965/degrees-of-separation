@@ -1,12 +1,10 @@
 var React = require('react');
 var $ = require('jquery');
+var RecentlySearchedView = require('./recentlySearchedView');
 import Paper from 'material-ui/lib/paper';
 import Snackbar from 'material-ui/lib/snackbar';
 
-
 var StatsView = React.createClass({
-
-
   getInitialState: function() {
     return {
       stats: [],
@@ -47,8 +45,6 @@ var StatsView = React.createClass({
       margin: 20
     }
 
-    
-    
     return (
       <div className="statsView">
         <Paper style={style} zDepth={1}>
@@ -59,9 +55,7 @@ var StatsView = React.createClass({
             <p>{this.state.stats[0]}</p>
           </div>
         </Paper>
-   
-
-        
+        <RecentlySearchedView />
         <Snackbar
           open={this.state.snackbarOpen}
           message={this.state.snackbarMessage}

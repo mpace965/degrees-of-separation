@@ -43,6 +43,7 @@ var Header = React.createClass({
 
   handleHomeTap: function() {
     this.props.setActiveView(LandingView);
+    this.props.setActiveTheme(DefaultTheme);
     this.setState({open: false});
   },
 

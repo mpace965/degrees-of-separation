@@ -1,5 +1,6 @@
 var React = require('react');
 var RecentlySearchedView = require('./recentlySearchedView');
+var SocialButtons = require('./socialButtons');
 import Paper from 'material-ui/lib/paper';
 import Divider from 'material-ui/lib/divider';
 
@@ -10,7 +11,7 @@ var LandingView = React.createClass({
       width: '75%',
       padding: 10,
       margin: 20
-    }
+    };
 
     return (
       <div className="landingView">
@@ -34,6 +35,7 @@ var LandingView = React.createClass({
                  This website is a result of a team effort for our Software Engineering class, <a href="https://www.cs.purdue.edu/homes/bxd/307/">CS 307</a>.
                  You can view the full source of this website, and view a full history of our development on our <a href="https://github.com/mpace965/degrees-of-separation">GitHub repo.</a></p>
           </div>
+          <SocialButtons />
         </Paper>
         <RecentlySearchedView />
       </div>
