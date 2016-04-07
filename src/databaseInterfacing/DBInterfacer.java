@@ -20,7 +20,7 @@ public class DBInterfacer {
 	private double purgePercent;
 	
 	/**
-	 * Constructor for Interfacer
+	 * Constructor for Interfacer (Only use when adding & removing nodes)
 	 * @param database	The database that you want to connect to
 	 * @param username	The username you want to connect with
 	 * @param password	The password you want to connect with
@@ -33,6 +33,27 @@ public class DBInterfacer {
 			this.currentNodes = graph.countVertices();
 			this.maxNodes = maxNodes;
 			this.purgePercent = purgeP;
+		}
+		catch (Exception e) {
+			this.graph = null;
+			this.currentNodes = 0;
+			this.maxNodes = 0;
+			this.purgePercent = 0.0;
+		}
+	}
+	
+	/**
+	 * Constructor for Interfacer (Use for every case other than adding & removing nodes)
+	 * @param database	The database that you want to connect to
+	 * @param username	The username you want to connect with
+	 * @param password	The password you want to connect with
+	 */
+	public DBInterfacer(String database, String username, String password) {
+		try {
+			this.graph = new OrientGraph(database, username, password);
+			this.currentNodes = graph.countVertices();
+			this.maxNodes = -1;
+			this.purgePercent = 0.0;
 		}
 		catch (Exception e) {
 			this.graph = null;
@@ -79,7 +100,7 @@ public class DBInterfacer {
 	
 	/**
 	 * Adds a vertex for each of the supplied nodes
-	 * @param nodes				List of nodes to be added
+	 * @param nodes	List of nodes to be added
 	 * @return True if success otherwise false
 	 */
 	public boolean addVertices(ArrayList<Node> nodes) {
@@ -112,8 +133,8 @@ public class DBInterfacer {
 	
 	/**
 	 * Adds a Connection between the 2 nodes
-	 * @param n1				First node to connect
-	 * @param n2				Second node to connect
+	 * @param n1	First node to connect
+	 * @param n2	Second node to connect
 	 * @return	True if success otherwise false
 	 */
 	public boolean addConnection(Node n1, Node n2) {
@@ -144,8 +165,8 @@ public class DBInterfacer {
 	
 	/**
 	 * Finds the shortest path between 2 nodes
-	 * @param n1				Starting node
-	 * @param n2				Ending node
+	 * @param n1	Starting node
+	 * @param n2	Ending node
 	 * @return List of nodes
 	 */
 	@SuppressWarnings("unchecked")

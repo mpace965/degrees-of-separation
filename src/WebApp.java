@@ -27,14 +27,24 @@ import fi.iki.elonen.util.ServerRunner;
 public class WebApp extends SimpleWebServer {
 
 	public static final String MIME_JSON = "application/json";
+	
 	public static ArrayList<ArrayList<Node>> recentConnections;
 	public static int maxRecentConnections;
+	
+	public static String database, username, password;
+	public static int maxDBNodes;
+	public static double cachePurgePrecent;
 
 	public WebApp() throws IOException {
 		super("localhost", 8000, new File("client/"), false);
 
 		recentConnections = new ArrayList<ArrayList<Node>>();
 		maxRecentConnections = 50;
+		database = "remote:localhost/Connections";
+		username = "root";
+		password = "team4";
+		maxDBNodes = 10000000;
+		cachePurgePrecent = 0.2;
 	}
 
 	public static void main(String[] args) {
@@ -89,6 +99,55 @@ public class WebApp extends SimpleWebServer {
 		}
 
 		return r;
+	}
+	
+	private ArrayList<Node> checkRecentConnections(Site site) {
+		Node n1 = site.getStartNode();
+		Node n2 = site.getEndNode();
+
+		for (ArrayList<Node> subRecent : recentConnections) {
+			String headID = subRecent.get(0).getNodeID();
+			String tailID = subRecent.get(subRecent.size() - 1).getNodeID();
+			String n1ID = n1.getNodeID();
+			String n2ID = n2.getNodeID();
+
+			if (n1ID.equals(headID) && n2ID.equals(tailID)) {
+				return subRecent;
+			} else if (n1ID.equals(tailID) && n2ID.equals(headID)) {
+				ArrayList<Node> reversedList = new ArrayList<Node>(subRecent);
+				Collections.reverse(reversedList);
+				return reversedList;
+			}
+		}
+
+		return null;
+	}
+
+	private void addRecentConnection(ArrayList<Node> nodes) {
+		recentConnections.add(nodes);
+
+		if (recentConnections.size() > maxRecentConnections) {
+			int removeAmount = (int) (maxRecentConnections * .2);
+			for (int i = 0; i < removeAmount; i++) {
+				recentConnections.remove(i);
+			}
+		}
+	}
+
+	private ArrayList<Node> checkDB(Site site) {
+		try {
+			ArrayList<Node> nodes;
+			Node n1 = site.getStartNode();
+			Node n2 = site.getEndNode();
+	
+			DBInterfacer db = new DBInterfacer(database, username, password);
+			nodes = db.shortestPath(n1, n2);
+			db.close();
+	
+			return nodes;
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	private Response connectLastfm(IHTTPSession session, Gson gson, LastfmSite lastfmSite) {
@@ -149,55 +208,6 @@ public class WebApp extends SimpleWebServer {
 		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(c));
 	}
 
-	private ArrayList<Node> checkRecentConnections(Site site) {
-		Node n1 = site.getStartNode();
-		Node n2 = site.getEndNode();
-
-		for (ArrayList<Node> subRecent : recentConnections) {
-			String headID = subRecent.get(0).getNodeID();
-			String tailID = subRecent.get(subRecent.size() - 1).getNodeID();
-			String n1ID = n1.getNodeID();
-			String n2ID = n2.getNodeID();
-
-			if (n1ID.equals(headID) && n2ID.equals(tailID)) {
-				return subRecent;
-			} else if (n1ID.equals(tailID) && n2ID.equals(headID)) {
-				ArrayList<Node> reversedList = new ArrayList<Node>(subRecent);
-				Collections.reverse(reversedList);
-				return reversedList;
-			}
-		}
-
-		return null;
-	}
-
-	private void addRecentConnection(ArrayList<Node> nodes) {
-		recentConnections.add(nodes);
-
-		if (recentConnections.size() > maxRecentConnections) {
-			int removeAmount = (int) (maxRecentConnections * .2);
-			for (int i = 0; i < removeAmount; i++) {
-				recentConnections.remove(i);
-			}
-		}
-	}
-
-	private ArrayList<Node> checkDB(Site site) {
-		try {
-			ArrayList<Node> nodes;
-			Node n1 = site.getStartNode();
-			Node n2 = site.getEndNode();
-	
-			DBInterfacer db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 10000000, 0.2);
-			nodes = db.shortestPath(n1, n2);
-			db.close();
-	
-			return nodes;
-		} catch (Exception e) {
-			return null;
-		}
-	}
-
 	private Response connectAdjacency(IHTTPSession session, Gson gson, AdjListSite site) {
 		AdjacencyListConnectResponse c = new AdjacencyListConnectResponse();
 		Map<String, String> parms = session.getParms();
@@ -225,7 +235,7 @@ public class WebApp extends SimpleWebServer {
 		if (nodes == null) {
 			// Check DB for connection before algorithm
 			nodes = checkDB(site);
-
+			
 			if (nodes == null) {
 				nodes = Algorithm.processConnection(site);
 				
@@ -236,13 +246,14 @@ public class WebApp extends SimpleWebServer {
 				addRecentConnection(nodes);
 				
 				allNodes = new ArrayList<Node>(site.getAllNodes().values());
-
-				InsertInDBThread t1 = new InsertInDBThread(allNodes);
+				
+				InsertNodesInDBThread t1 = new InsertNodesInDBThread(allNodes, database, username, password,
+						maxDBNodes, cachePurgePrecent);
 				t1.start();
 			}
 		}
 		
-		InsertInDBThread t2 = new InsertInDBThread(null);
+		InsertStatisticsInDBThread t2 = new InsertStatisticsInDBThread(database, username, password);
 		t2.start();
 		
 		c.setNodeCount(nodes.size());
@@ -289,7 +300,7 @@ public class WebApp extends SimpleWebServer {
 		try {
 			ArrayList<String> stats = new ArrayList<String>();
 			
-			DBInterfacer db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 10000000, 0.2);
+			DBInterfacer db = new DBInterfacer(database, username, password);
 			String connectionsMade = db.getStatistic("NumberOfConnections");
 			
 			if (connectionsMade == null) {
@@ -307,42 +318,39 @@ public class WebApp extends SimpleWebServer {
 	}
 }
 
-class InsertInDBThread extends Thread {
+class InsertNodesInDBThread extends Thread {
 	private ArrayList<Node> nodes;
+	private String database, username, password;
+	private int maxDBNodes;
+	private double cachePurgePrecent;
 
-	InsertInDBThread(ArrayList<Node> nodes) {
+	InsertNodesInDBThread(ArrayList<Node> nodes, String database, String username, String password,
+			int maxDBNodes, double cachePurgePrecent) {
 		this.nodes = nodes;
+		this.database = database;
+		this.username = username;
+		this.password = password;
+		this.maxDBNodes = maxDBNodes;
+		this.cachePurgePrecent = cachePurgePrecent;
 	}
 
 	public void run() {
 		try {
-			DBInterfacer db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 10000000, 0.2);
-			
-			if (nodes == null) {
-				// Update number of connections made in db
-				String statStr = db.getStatistic("NumberOfConnections");
-				if (statStr != null) {
-					int statInt = Integer.parseInt(statStr);
-					db.setStatistic("NumberOfConnections", Integer.toString(statInt + 1));
-				} else {
-					db.setStatistic("NumberOfConnections", "1");
+			DBInterfacer db = new DBInterfacer(database, username, password, maxDBNodes, cachePurgePrecent);
+						
+			// Add all nodes to db
+			ArrayList<Node> connections;
+
+			db.addVertices(nodes);
+			for (Node n1 : nodes) {
+				connections = n1.getConnections();
+				
+				if (connections == null) {
+					continue;
 				}
-			} else {
-			
-				// Add all nodes to db
-				ArrayList<Node> connections;
-	
-				db.addVertices(nodes);
-				for (Node n1 : nodes) {
-					connections = n1.getConnections();
-					
-					if (connections == null) {
-						continue;
-					}
-					
-					for (Node n2 : connections) {
-						db.addConnection(n1, n2);
-					}
+				
+				for (Node n2 : connections) {
+					db.addConnection(n1, n2);
 				}
 			}
 
@@ -353,4 +361,34 @@ class InsertInDBThread extends Thread {
 		}
 	}
 
+}
+
+class InsertStatisticsInDBThread extends Thread {
+	private String database, username, password;
+	
+	public InsertStatisticsInDBThread(String database, String username, String password) {
+		this.database = database;
+		this.username = username;
+		this.password = password;
+	}
+	
+	public void run() {
+		try {
+			DBInterfacer db = new DBInterfacer(database, username, password);
+			
+			// Update number of connections made in db
+			String statStr = db.getStatistic("NumberOfConnections");
+			if (statStr != null) {
+				int statInt = Integer.parseInt(statStr);
+				db.setStatistic("NumberOfConnections", Integer.toString(statInt + 1));
+			} else {
+				db.setStatistic("NumberOfConnections", "1");
+			}
+			
+			db.close();
+		} catch (Exception e) {
+			System.err.println("Error: Could not add statistics to database");
+		}
+	}
+	
 }
