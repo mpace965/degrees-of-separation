@@ -241,7 +241,10 @@ public class WebApp extends SimpleWebServer {
 				t1.start();
 			}
 		}
-
+		
+		InsertInDBThread t2 = new InsertInDBThread(null);
+		t2.start();
+		
 		c.setNodeCount(nodes.size());
 
 		for (Node n : nodes) {
@@ -309,28 +312,31 @@ class InsertInDBThread extends Thread {
 		try {
 			DBInterfacer db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 10000000, 0.2);
 			
-			// Update number of connections made in db
-			String statStr = db.getStatistic("NumberOfConnections");
-			if (statStr != null) {
-				int statInt = Integer.parseInt(statStr);
-				db.setStatistic("NumberOfConnections", Integer.toString(statInt + 1));
-			} else {
-				db.setStatistic("NumberOfConnections", "0");
-			}
-			
-			// Add all nodes to db
-			ArrayList<Node> connections;
-
-			db.addVertices(nodes);
-			for (Node n1 : nodes) {
-				connections = n1.getConnections();
-				
-				if (connections == null) {
-					continue;
+			if (nodes == null) {
+				// Update number of connections made in db
+				String statStr = db.getStatistic("NumberOfConnections");
+				if (statStr != null) {
+					int statInt = Integer.parseInt(statStr);
+					db.setStatistic("NumberOfConnections", Integer.toString(statInt + 1));
+				} else {
+					db.setStatistic("NumberOfConnections", "0");
 				}
-				
-				for (Node n2 : connections) {
-					db.addConnection(n1, n2);
+			} else {
+			
+				// Add all nodes to db
+				ArrayList<Node> connections;
+	
+				db.addVertices(nodes);
+				for (Node n1 : nodes) {
+					connections = n1.getConnections();
+					
+					if (connections == null) {
+						continue;
+					}
+					
+					for (Node n2 : connections) {
+						db.addConnection(n1, n2);
+					}
 				}
 			}
 
