@@ -11,6 +11,7 @@ import siteClasses.LastfmSite;
 import siteClasses.LastfmNode;
 import siteClasses.Node;
 import siteClasses.Site;
+import siteClasses.ThesaurusNode;
 import API.AdjacencyListConnectResponse;
 import API.Edge;
 import API.LastfmArtist;
@@ -246,6 +247,8 @@ public class WebApp extends SimpleWebServer {
 				builder.append("Adjacency List: ");
 			} else if (subRecent.get(0) instanceof LastfmNode) {
 				builder.append("Last.fm: ");
+			} else if (subRecent.get(0) instanceof ThesaurusNode) {
+				builder.append("Thesaurus: ");
 			}
 			
 			for (int i = 0; i < subRecent.size(); i++) {

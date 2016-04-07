@@ -10,6 +10,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import siteClasses.AdjListNode;
 import siteClasses.LastfmNode;
 import siteClasses.Node;
+import siteClasses.ThesaurusNode;
 
 /** Interfacer object used to interact with the database */
 
@@ -69,6 +70,8 @@ public class DBInterfacer {
 			className = "AdjListNode";
 		} else if (n instanceof LastfmNode) {
 			className = "LastfmNode";
+		} else if (n instanceof ThesaurusNode) {
+			className = "ThesaurusNode";
 		}
 		
 		return className;
@@ -168,6 +171,9 @@ public class DBInterfacer {
 			} else if (n1 instanceof LastfmNode) {
 				for (Vertex v : result)
 					nodes.add(new LastfmNode(v.getProperty("ID").toString()));
+			} else if (n1 instanceof ThesaurusNode) {
+				for (Vertex v : result)
+					nodes.add(new ThesaurusNode(v.getProperty("ID").toString()));
 			}
 			
 			if (nodes.size() == 0)
