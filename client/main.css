@@ -78,6 +78,17 @@ html, body {
   font-size: large;
 }
 
+.socialButtons {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: center;
+}
+
+.socialButtons sp{
+	margin: 10px;
+}
+
 /* resultView.jsx */
 .resultView {
   display: flex;
