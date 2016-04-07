@@ -17,7 +17,6 @@ var LandingView = React.createClass({
           <center>
               <p>Welcome to the Degrees of Separation website</p>
               <p>Click connect to see how two objects are related!</p>
-              <img src="http://cdn.zmescience.com/wp-content/uploads/2016/02/Six_degrees_of_separation_01.png" height="75%" width="75%"></img>
           </center>
         </Paper>
         <RecentlySearchedView />
