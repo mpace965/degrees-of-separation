@@ -188,6 +188,57 @@ public class DBInterfacer {
 	}
 	
 	/**
+	 * Sets the given statistic to the value specified
+	 * @param key	Statistic type
+	 * @param value	Value of Statistic
+	 * @return	True if success otherwise false
+	 */
+	public boolean setStatistic(String key, String value) {
+		try {
+			Vertex v;
+			String[] statStr = { "Statistic" };
+			String[] keyStr = { key };
+			Iterator<Vertex> stat = graph.getVertices("Statistics", statStr, keyStr).iterator();
+			
+			if (stat.hasNext()) {
+				v = stat.next();
+				v.setProperty("Statistic", key);
+				v.setProperty("Value", value);
+			} else {
+				v = graph.addVertex("Statistics", "Statistics");
+				v.setProperty("Statistic", key);
+				v.setProperty("Value", value);
+			}
+			
+			return true;
+		} catch (Exception e) {
+			System.err.println("Error: Could not set statistic");
+			return false;
+		}
+	}
+	
+	/**
+	 * Gets the statistic by the specified key
+	 * @param key	Statistic type
+	 * @return	Value of the statistic
+	 */
+	public String getStatistic(String key) {
+		try {
+			String[] statStr = { "Statistic" };
+			String[] keyStr = { key };
+			Iterator<Vertex> stat = graph.getVertices("Statistics", statStr, keyStr).iterator();
+			
+			if (!stat.hasNext())
+				return null;
+			
+			return stat.next().getProperty("Value");
+		} catch (Exception e) {
+			System.err.println("Error: Could not get statistic");
+			return null;
+		}
+	}
+	
+	/**
 	 * Purges the oldest percent of the cache
 	 */
 	public void cachePurge() {
