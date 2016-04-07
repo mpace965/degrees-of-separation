@@ -58,39 +58,37 @@ public class WebApp extends SimpleWebServer {
 		Response r = null;
 
 		switch (uri) {
-		case "/api/connectAdjacency": {
-			String fileSeparator = System.getProperty("file.separator");
-			AdjListSite adjListSite = new AdjListSite("docs" + fileSeparator
-					+ "facebook_combined.txt");
-			r = connectAdjacency(session, gson, adjListSite);
-			break;
-		}
-		case "/api/connectLastfm": {
-			LastfmSite lastfmSite = new LastfmSite();
-			r = connectLastfm(session, gson, lastfmSite);
-			break;
-		}
-
-		case "/api/getStats": {
-			break;
-		}
-
-		case "/api/recentConnections": {
-			r = getRecentConnections(session, gson);
-			break;
-		}
-
-		default: {
-			r = newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_JSON,
-					"{}");
-		}
+			case "/api/connectAdjacency": {
+				String fileSeparator = System.getProperty("file.separator");
+				AdjListSite adjListSite = new AdjListSite("docs" + fileSeparator + "facebook_combined.txt");
+				r = connectAdjacency(session, gson, adjListSite);
+				break;
+			}
+			
+			case "/api/connectLastfm": {
+				LastfmSite lastfmSite = new LastfmSite();
+				r = connectLastfm(session, gson, lastfmSite);
+				break;
+			}
+			
+			case "/api/getStats": {
+				break;
+			}
+			
+			case "/api/recentConnections": {
+				r = getRecentConnections(session, gson);
+				break;
+			}
+			
+			default: {
+				r = newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_JSON, "{}");
+			}
 		}
 
 		return r;
 	}
 
-	private Response connectLastfm(IHTTPSession session, Gson gson,
-			LastfmSite lastfmSite) {
+	private Response connectLastfm(IHTTPSession session, Gson gson, LastfmSite lastfmSite) {
 		LastfmConnectResponse c = new LastfmConnectResponse();
 		Map<String, String> parms = session.getParms();
 		String beginString = parms.get("begin");
@@ -117,8 +115,7 @@ public class WebApp extends SimpleWebServer {
 		cher.setListeners(969040);
 		cher.setPlaycount(12774053);
 		cher.addTag(new LastfmTag("pop", "http://www.last.fm/tag/pop"));
-		cher.addTag(new LastfmTag("female vocalists",
-				"http://www.last.fm/tag/female+vocalists"));
+		cher.addTag(new LastfmTag("female vocalists", "http://www.last.fm/tag/female+vocalists"));
 		cher.addTag(new LastfmTag("80s", "http://www.last.fm/tag/80s"));
 		cher.addTag(new LastfmTag("dance", "http://www.last.fm/tag/dance"));
 		cher.addTag(new LastfmTag("rock", "http://www.last.fm/tag/rock"));
@@ -129,13 +126,10 @@ public class WebApp extends SimpleWebServer {
 		jason.setImage("http://img2-ak.lst.fm/i/u/174s/4e9c73020d1246588c9f0f0b83229ce1.png");
 		jason.setListeners(2092932);
 		jason.setPlaycount(57580483);
-		jason.addTag(new LastfmTag("singer-songwriter",
-				"http://www.last.fm/tag/singer-songwriter"));
-		jason.addTag(new LastfmTag("acoustic",
-				"http://www.last.fm/tag/acoustic"));
+		jason.addTag(new LastfmTag("singer-songwriter", "http://www.last.fm/tag/singer-songwriter"));
+		jason.addTag(new LastfmTag("acoustic", "http://www.last.fm/tag/acoustic"));
 		jason.addTag(new LastfmTag("pop", "http://www.last.fm/tag/pop"));
-		jason.addTag(new LastfmTag("alternative",
-				"http://www.last.fm/tag/alternative"));
+		jason.addTag(new LastfmTag("alternative", "http://www.last.fm/tag/alternative"));
 		jason.addTag(new LastfmTag("rock", "http://www.last.fm/tag/rock"));
 		jason.setBio("Jason Mraz (born June 23, 1977 in Mechanicsville, Virginia) is a Grammy-winning American singer-songwriter. Mraz’s stylistic influences include reggae, pop, rock, folk, jazz, and hip hop.\n\nMraz released his debut album, Waiting for My Rocket to Come in 2002 but it was not until the release of his second album, Mr. A-Z that Mraz achieved commercial success. The album peaked at number five on the Billboard Hot 200 and sold over one hundred thousand copies in the US. <a href=\"http://www.last.fm/music/Jason+Mraz\">Read more on Last.fm</a>");
 
@@ -149,8 +143,7 @@ public class WebApp extends SimpleWebServer {
 			c.addEdge(new Edge(i, i + 1));
 		}
 
-		return newFixedLengthResponse(Response.Status.OK, MIME_JSON,
-				gson.toJson(c));
+		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(c));
 	}
 
 	private ArrayList<Node> checkRecentConnections(Site site) {
@@ -197,8 +190,7 @@ public class WebApp extends SimpleWebServer {
 		return nodes;
 	}
 
-	private Response connectAdjacency(IHTTPSession session, Gson gson,
-			AdjListSite site) {
+	private Response connectAdjacency(IHTTPSession session, Gson gson, AdjListSite site) {
 		AdjacencyListConnectResponse c = new AdjacencyListConnectResponse();
 		Map<String, String> parms = session.getParms();
 		String beginString = parms.get("begin");
@@ -209,8 +201,7 @@ public class WebApp extends SimpleWebServer {
 			Integer.parseInt(beginString);
 			Integer.parseInt(endString);
 		} catch (NumberFormatException nfe) {
-			return newFixedLengthResponse(Response.Status.BAD_REQUEST,
-					MIME_PLAINTEXT, "One of your inputs was not a number.");
+			return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "One of your inputs was not a number.");
 		}
 
 		site.setStartAndEndNodes(beginString, endString);
@@ -243,8 +234,7 @@ public class WebApp extends SimpleWebServer {
 			c.addEdge(new Edge(i, i + 1));
 		}
 
-		return newFixedLengthResponse(Response.Status.OK, MIME_JSON,
-				gson.toJson(c));
+		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(c));
 	}
 
 	private Response getRecentConnections(IHTTPSession session, Gson gson) {
@@ -271,8 +261,7 @@ public class WebApp extends SimpleWebServer {
 			connections.add(builder.toString());
 		}
 
-		return newFixedLengthResponse(Response.Status.OK, MIME_JSON,
-				gson.toJson(connections));
+		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(connections));
 	}
 }
 
