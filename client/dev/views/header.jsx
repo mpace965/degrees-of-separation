@@ -7,7 +7,6 @@ import getMuiTheme from 'material-ui/lib/styles/getMuiTheme';
 import LastfmTheme from './lastfm/lastfmTheme';
 import DefaultTheme from 'material-ui/lib/styles/baseThemes/lightBaseTheme'
 
-
 var LandingView = require('./landingView');
 var AdjacencyListSiteSearchView = require('./adjacencyList/adjacencyListSiteSearchView');
 var LastfmSiteSearchView = require('./lastfm/lastfmSiteSearchView');
@@ -59,6 +58,7 @@ var Header = React.createClass({
   },
 
   render: function() {
+
     return (
       <div>
         <AppBar

@@ -13,7 +13,6 @@
     "jquery": "^2.2.0",
     "material-ui": "^0.15.0",
     "d3": "^3.5.15",
-    "react-social": "~1.0.6",
-    "react-share": "~1.4.1"
+    "react-share": "^1.4.1"
   }
 }

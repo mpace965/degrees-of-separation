@@ -1,6 +1,8 @@
 html, body {
   margin: 0;
   padding: 0;
+  background-image: url("res/background.jpg");
+  background-repeat: repeat;
 }
 
 /* site wide style */
@@ -72,10 +74,10 @@ html, body {
 /* landingView.jsx */
 .landingView {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-direction: row;
+  align-items: flex-start;
   justify-content: center;
-  font-size: large;
+  font-size: x-large;
 }
 
 .socialButtons {

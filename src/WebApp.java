@@ -243,8 +243,6 @@ public class WebApp extends SimpleWebServer {
 					return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "No match was found from these inputs.");
 				}
 				
-				addRecentConnection(nodes);
-				
 				allNodes = new ArrayList<Node>(site.getAllNodes().values());
 				
 				InsertNodesInDBThread t1 = new InsertNodesInDBThread(allNodes, database, username, password,
@@ -256,6 +254,8 @@ public class WebApp extends SimpleWebServer {
 		InsertStatisticsInDBThread t2 = new InsertStatisticsInDBThread(database, username, password);
 		t2.start();
 		
+		addRecentConnection(nodes);
+
 		c.setNodeCount(nodes.size());
 
 		for (Node n : nodes) {
