@@ -1,6 +1,6 @@
 var React = require('react');
-var RecentlySearchedView = require('./recentlySearchedView');
-var SocialButtons = require('./socialButtons');
+var RecentlySearchedView = require('./components/recentlySearchedView');
+var SocialButtons = require('./components/socialButtons');
 import Paper from 'material-ui/lib/paper';
 import Divider from 'material-ui/lib/divider';
 

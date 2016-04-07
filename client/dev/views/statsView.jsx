@@ -1,6 +1,6 @@
 var React = require('react');
 var $ = require('jquery');
-var RecentlySearchedView = require('./recentlySearchedView');
+var RecentlySearchedView = require('./components/recentlySearchedView');
 import Paper from 'material-ui/lib/paper';
 import Snackbar from 'material-ui/lib/snackbar';
 

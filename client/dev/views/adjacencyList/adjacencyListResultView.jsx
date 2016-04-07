@@ -1,7 +1,7 @@
 var React = require('react');
 var d3 = require('d3');
 var Colors = require('material-ui/lib/styles/colors');
-var ResultView = require('../resultView');
+var ResultView = require('../components/resultView');
 import Paper from 'material-ui/lib/paper';
 import RaisedButton from 'material-ui/lib/raised-button';
 
