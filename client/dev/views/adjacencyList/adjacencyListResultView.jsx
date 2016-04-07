@@ -62,7 +62,7 @@ var AdjacencyListResultView = React.createClass({
   render: function() {
     const infoStyle = {
       height: '75%',
-      width: '25%',
+      width: '75%',
       padding: 10,
       margin: 20
     }

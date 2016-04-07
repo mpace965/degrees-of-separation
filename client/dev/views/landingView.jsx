@@ -1,4 +1,5 @@
 var React = require('react');
+var RecentlySearchedView = require('./recentlySearchedView');
 import Paper from 'material-ui/lib/paper';
 
 var LandingView = React.createClass({
@@ -19,6 +20,7 @@ var LandingView = React.createClass({
               <img src="http://cdn.zmescience.com/wp-content/uploads/2016/02/Six_degrees_of_separation_01.png" height="75%" width="75%"></img>
           </center>
         </Paper>
+        <RecentlySearchedView />
       </div>
     );
   }
