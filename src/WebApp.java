@@ -74,6 +74,7 @@ public class WebApp extends SimpleWebServer {
 			}
 			
 			case "/api/getStats": {
+				r = getStatistics(session, gson);
 				break;
 			}
 			
@@ -182,15 +183,19 @@ public class WebApp extends SimpleWebServer {
 	}
 
 	private ArrayList<Node> checkDB(Site site) {
-		ArrayList<Node> nodes;
-		Node n1 = site.getStartNode();
-		Node n2 = site.getEndNode();
-
-		DBInterfacer db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 10000000, 0.2);
-		nodes = db.shortestPath(n1, n2);
-		db.close();
-
-		return nodes;
+		try {
+			ArrayList<Node> nodes;
+			Node n1 = site.getStartNode();
+			Node n2 = site.getEndNode();
+	
+			DBInterfacer db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 10000000, 0.2);
+			nodes = db.shortestPath(n1, n2);
+			db.close();
+	
+			return nodes;
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	private Response connectAdjacency(IHTTPSession session, Gson gson, AdjListSite site) {
@@ -266,6 +271,21 @@ public class WebApp extends SimpleWebServer {
 
 		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(connections));
 	}
+	
+	private Response getStatistics(IHTTPSession session, Gson gson) {
+		try {
+			ArrayList<String> stats = new ArrayList<String>();
+			
+			DBInterfacer db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 10000000, 0.2);
+			String connectionsMade = db.getStatistic("NumberOfConnections");
+			stats.add("Number of Connections Made: " + connectionsMade);
+			db.close();
+			
+			return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(stats));
+		} catch (Exception e) {
+			return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "Could not get Statistics");
+		}
+	}
 }
 
 class InsertInDBThread extends Thread {
@@ -278,7 +298,17 @@ class InsertInDBThread extends Thread {
 	public void run() {
 		try {
 			DBInterfacer db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 10000000, 0.2);
-			// Add all nodes
+			
+			// Update number of connections made in db
+			String statStr = db.getStatistic("NumberOfConnections");
+			if (statStr != null) {
+				int statInt = Integer.parseInt(statStr);
+				db.setStatistic("NumberOfConnections", Integer.toString(statInt + 1));
+			} else {
+				db.setStatistic("NumberOfConnections", "0");
+			}
+			
+			// Add all nodes to db
 			ArrayList<Node> connections;
 
 			db.addVertices(nodes);
