@@ -14,6 +14,8 @@ import siteClasses.LastfmSite;
 import siteClasses.Node;
 import siteClasses.Site;
 
+
+
 public class Algorithm {
 	/**
 	 * @param site

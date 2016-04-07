@@ -11,15 +11,24 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-public class LastfmSite implements Site {
+/*
+ * 
+ * 
+ * 	CAN ONLY USE THIS 1000 TIMES A DAY
+ * 
+ * 
+ */
+
+
+
+public class ThesaurusSite implements Site {
 
 	private int fileAccesses = 0;
 	private HashMap<String, Node> allNodes;
 	private Node start;
 	private Node end;
-	final String apiKey = "c6c45e68f6b2a663da996fc504cf9f8b";
 
-	public LastfmSite() {
+	public ThesaurusSite() {
 		this.allNodes = new HashMap<String, Node>();
 	}
 
@@ -27,13 +36,11 @@ public class LastfmSite implements Site {
 		return 1d;
 	}
 
-	
-	//Will return a json object of the similar artists to the string passed in
 	private JsonObject makeJson(String a) {
-		String urlStart = "http://ws.audioscrobbler.com/2.0/?method=artist.getSimilar&format=json";
-		String artist = "&artist=" + a;
-		String key = "&api_key=" + "c6c45e68f6b2a663da996fc504cf9f8b";
-		String url = urlStart + artist + key;
+		String urlStart = "http://words.bighugelabs.com/api/2/";
+		String word = a;
+		String key = "325e16c4f99ebdd3aa44546f3817b508/";
+		String url = urlStart + key + word + "/json";
 		JsonObject simArt = null;
 
 		// Builds a buffered reader to interpret input received from the API
@@ -67,59 +74,40 @@ public class LastfmSite implements Site {
 		return simArt;
 	}
 
-	
-	
 	public void populateConnections(Node node) {
-		//If the node isnt already in the hasmap then it adds it
 		if (!allNodes.containsKey(node.getNodeID())) {
 			allNodes.put(node.getNodeID(), node);
 		}
 
-		//casts the node input to a lastfmNode and populates the json object
-		//if it isnt already there for some reason
 		fileAccesses++;
 		LastfmNode temp = (LastfmNode) node;
-		if (temp.getJson() == null) { 
-			temp.setJson(makeJson(temp.getNodeID()));
-		}
+		temp.setJson(makeJson(temp.getNodeID()));
 
 
-		
-		//creates a string to hold the similar artists and populates that with
-		//the following code below
 		String parts[] = new String[1024];
-		JsonObject jobject = temp.getJson();
+		JsonObject z = temp.getJson();
 		int i = 0;
-		String connectedNames[] = new String [1024];
-		JsonObject similar = jobject.getAsJsonObject("similarartists");
-		for (JsonElement artists : similar.getAsJsonArray("artist")) {
-			connectedNames[i] = artists.getAsJsonObject().get("name").toString();
-			connectedNames[i] = connectedNames[i].substring(1, connectedNames[i].length()-1);
+		JsonObject similar = z.getAsJsonObject("noun");
+		for (JsonElement x : similar.getAsJsonArray("syn")) {
+			parts[i] = x.toString();
+			parts[i] = parts[i].substring(1, parts[i].length() - 1);
 			i++;
 		}
 
-		//goes through the stored names obtained from above and creates a new
-		//node for each connection
 		for (int a = 0; a < parts.length; a++) {
 
-			//creating a new node
+			fileAccesses++;
+
 			LastfmNode hold = new LastfmNode(parts[a]);
 			String id = hold.getNodeID();
-			//if the new node is already in the hash table then a new connection is added
-			//to the node
+			hold.setJson(makeJson(id));
 			if (allNodes.containsKey(id)) {
 				node.addConnection(hold);
-			}
-			//If the node is not in the hash map then the info of holding node is
-			//populated and added to the hashmap
-			else {
-				fileAccesses++;
-				hold.setJson(makeJson(id));
+			} else {
 				node.addConnection(hold);
 				allNodes.put(id, hold);
 			}
 		}
-	
 	}
 	
 	public HashMap<String, Node> getAllNodes() {
@@ -159,5 +147,9 @@ public class LastfmSite implements Site {
 			this.end = allNodes.get(end);
 		}
 
+	}
+	public static void main(String[] args) {
+		ThesaurusSite ts = new ThesaurusSite();
+		ts.makeJson("party");
 	}
 }

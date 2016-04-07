@@ -6,9 +6,10 @@ import java.io.*;
 import com.google.gson.*;
 
 
-// TODO: Where is this being used? 
-// Can we get rid of it? Or could we
-// use the "getInfo()" method in the LastfmSite
+// THIS CURRENTLY DOES NOTHING, HOLDS CODE WE MIGHT USE
+
+
+
 @Deprecated
 public class LastfmSiteClass {
 
@@ -83,5 +84,27 @@ public class LastfmSiteClass {
 		JsonObject simArt = parser.parse(builder.toString()).getAsJsonObject();
 
 		return simArt;
+	}
+	
+	
+	public static void main(String[] args) {
+		LastfmSiteClass lf = new LastfmSiteClass();
+		try {
+			JsonObject z = lf.getSimilar("cher");
+			int i = 0;
+			String connectedNames[] = new String [1024];
+			JsonObject similar = z.getAsJsonObject("similarartists");
+			for (JsonElement artist : similar.getAsJsonArray("artist")) {
+				connectedNames[i] = artist.getAsJsonObject().get("name").toString();
+				connectedNames[i] = connectedNames[i].substring(1, connectedNames[i].length()-1);
+				System.out.println(connectedNames[i]);
+				i++;
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
 	}
 }

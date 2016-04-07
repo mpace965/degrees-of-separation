@@ -10,6 +10,7 @@ import com.tinkerpop.blueprints.impls.orient.OrientGraph;
 import siteClasses.AdjListNode;
 import siteClasses.LastfmNode;
 import siteClasses.Node;
+import siteClasses.ThesaurusNode;
 
 /** Interfacer object used to interact with the database */
 
@@ -69,6 +70,8 @@ public class DBInterfacer {
 			className = "AdjListNode";
 		} else if (n instanceof LastfmNode) {
 			className = "LastfmNode";
+		} else if (n instanceof ThesaurusNode) {
+			className = "ThesaurusNode";
 		}
 		
 		return className;
@@ -91,7 +94,7 @@ public class DBInterfacer {
 					continue;
 				}
 				
-				Vertex v = graph.addVertex(className, className);;
+				Vertex v = graph.addVertex(className, className);
 				v.setProperty("ID", cNode.getNodeID());
 				
 				// Cache management
@@ -100,6 +103,7 @@ public class DBInterfacer {
 					cachePurge();
 			}
 		} catch (Exception e) {
+			//e.printStackTrace();
 			return false;
 		}
 		
@@ -131,6 +135,7 @@ public class DBInterfacer {
 			if (!found)
 				graph.addEdge(className, v1, v2, "Connection");
 		} catch (Exception e) {
+			//e.printStackTrace();
 			return false;
 		}
 		
@@ -151,10 +156,10 @@ public class DBInterfacer {
 			Vertex v1 = getVertexByID(className, n1.getNodeID());
 			Vertex v2 = getVertexByID(className, n2.getNodeID());
 			
+			// Possibly change to support only specific edge...
 			String query = "select expand(shortestPath) from "
-					+ "(select shortestPath(" + v1.getId()
-					+ ", " + v2.getId() + ", 'BOTH', '" 
-					+ className + "'))";
+					+ "(select shortestPath(" + v1.getId() + ", "
+					+ v2.getId() + ", 'BOTH'))";
 			
 			ArrayList<Node> nodes = new ArrayList<Node>();
 			Iterable<Vertex> result = (Iterable<Vertex>) graph.command(
@@ -162,10 +167,13 @@ public class DBInterfacer {
 			
 			if (n1 instanceof AdjListNode) {
 				for (Vertex v : result)
-					nodes.add(new AdjListNode(v.getProperty("ID")));
+					nodes.add(new AdjListNode(v.getProperty("ID").toString()));
 			} else if (n1 instanceof LastfmNode) {
 				for (Vertex v : result)
-					nodes.add(new LastfmNode(v.getProperty("ID")));
+					nodes.add(new LastfmNode(v.getProperty("ID").toString()));
+			} else if (n1 instanceof ThesaurusNode) {
+				for (Vertex v : result)
+					nodes.add(new ThesaurusNode(v.getProperty("ID").toString()));
 			}
 			
 			if (nodes.size() == 0)
@@ -173,6 +181,7 @@ public class DBInterfacer {
 			
 			return nodes;
 		} catch (Exception e) {
+			//e.printStackTrace();
 			System.err.println("Path does not exist (yet)");
 			return null;
 		}

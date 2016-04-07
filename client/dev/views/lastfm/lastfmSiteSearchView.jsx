@@ -1,8 +1,14 @@
 var React = require('react');
+var $ = require('jquery');
+var d3 = require('d3');
+import Paper from 'material-ui/lib/paper';
+import CircularProgress from 'material-ui/lib/circular-progress';
+import TextField from 'material-ui/lib/text-field';
+import RaisedButton from 'material-ui/lib/raised-button';
 
-var ResultView = require('./resultView');
+var LastfmResultView = require('./lastfmResultView');
 
-var AdjacencyListSiteSearchView = React.createClass({
+var LastfmSiteSearchView = React.createClass({
   getInitialState: function() {
     return {
       connectionBegin: '',
@@ -18,7 +24,7 @@ var AdjacencyListSiteSearchView = React.createClass({
     this.setState({errorMessage: ''});
 
     $.ajax({
-        url: '/api/connectAdjacency',
+        url: '/api/connectLastfm',
         dataType: 'json',
         cache: false,
         data: {begin: this.state.connectionBegin, end: this.state.connectionEnd},
@@ -26,7 +32,7 @@ var AdjacencyListSiteSearchView = React.createClass({
           this.setState({apiResponse: data}, function() {
             this.setState({loadingMessage: ''});
             var newGraph = this.processApiResponse();
-            this.props.setActiveView(ResultView, {graph: newGraph});
+            this.props.setActiveView(LastfmResultView, {graph: newGraph});
           });
         }.bind(this),
         error: function(xhr, status, err) {
@@ -35,15 +41,13 @@ var AdjacencyListSiteSearchView = React.createClass({
           console.error('/api/connectAdjacency', status, err.toString());
         }.bind(this)
     });
-
-    this.setState({loadingMessage: 'Loading...'});
   },
 
   processApiResponse: function() {
     var graph = {
       nodes: d3.range(this.state.apiResponse.nodeCount).map(Object),
       links: this.state.apiResponse.edgeList,
-      nodeValues: d3.values(this.state.apiResponse.nodeValues)
+      nodeValues: this.state.apiResponse.nodeValues
     };
 
     return graph;
@@ -58,10 +62,14 @@ var AdjacencyListSiteSearchView = React.createClass({
     this.setState({connectionEnd: e.target.value});
   },
 
-  handleSubmit: function(e) {
-    //don't do default form submit action
-    e.preventDefault();
+  handleKeyDown: function(e) {
+    //Submit on newline
+    if (e.keyCode == 13) {
+      this.handleSubmit();
+    }
+  },
 
+  handleSubmit: function() {
     //basic string sanitation
     var connectionBegin = this.state.connectionBegin.trim();
     var connectionEnd = this.state.connectionEnd.trim();
@@ -79,27 +87,41 @@ var AdjacencyListSiteSearchView = React.createClass({
     var messageString = '';
 
     if (this.state.loadingMessage) {
-      messageString = this.state.loadingMessage;
+      messageString = <CircularProgress />;
     }
     if (this.state.errorMessage) {
       messageString = this.state.errorMessage;
     }
 
+    const style = {
+      height: '75%',
+      width: '75%',
+      padding: 10,
+      margin: 20
+    }
+
     return (
-      <div className="adjacencyListSiteSearchView">
-        <div className="flexRowItem">
-          <img src="http://placehold.it/300?text=A"></img>
-          <img src="http://placehold.it/300?text=B"></img>
-        </div>
-        <form className="adjListForm flexRowItem" onSubmit={this.handleSubmit}>
-          <input type="text" placeholder="Connect node A..." value={this.state.connectionBegin} onChange={this.handleConnectionBeginChange} />
-          <input type="text" placeholder="...to node B" value={this.state.connectionEnd} onChange={this.handleConnectionEndChange} />
-          <input type="submit" value="Submit" />
-        </form>
-        <p>{messageString}</p>
+      <div className="siteSearchView">
+        <Paper style={style} zDepth={1}>
+          <h2 className="flexRowItem">Connect two artists on Last.fm</h2>
+          <div className="flexRowItem">
+            <TextField
+              hintText="Connect one artist"
+              value={this.state.connectionBegin}
+              onChange={this.handleConnectionBeginChange}
+              onKeyDown={this.handleKeyDown} />
+            <TextField
+              hintText="to another"
+              value={this.state.connectionEnd}
+              onChange={this.handleConnectionEndChange}
+              onKeyDown={this.handleKeyDown} />
+            <RaisedButton label="Submit" onMouseUp={this.handleSubmit} />
+          </div>
+          <div className="flexRowItem">{messageString}</div>
+        </Paper>
       </div>
     );
   }
 });
 
-module.exports = AdjacencyListSiteSearchView;
+module.exports = LastfmSiteSearchView;

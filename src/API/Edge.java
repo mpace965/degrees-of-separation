@@ -1,13 +1,13 @@
 package API;
 
-public class AdjacencyListEdge {
+public class Edge {
 	private int source;
 	private int target;
 	
-	public AdjacencyListEdge(){
+	public Edge(){
 	}
 	
-	public AdjacencyListEdge(int source, int target) {
+	public Edge(int source, int target) {
 		this.setSource(source);
 		this.setTarget(target);
 	}
