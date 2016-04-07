@@ -121,6 +121,10 @@ public class LastfmSite implements Site {
 		}
 	
 	}
+	
+	public HashMap<String, Node> getAllNodes() {
+		return allNodes;
+	}
 
 	public Node getStartNode() {
 		return this.start;

@@ -1,5 +1,7 @@
 package siteClasses;
 
+import java.util.HashMap;
+
 public interface Site {
 	
 	/**
@@ -23,4 +25,6 @@ public interface Site {
 	public abstract Node getStartNode();
 	public abstract Node getEndNode();
 	public abstract void setStartAndEndNodes(String start, String end);
+	
+	public abstract HashMap<String, Node> getAllNodes();
 }

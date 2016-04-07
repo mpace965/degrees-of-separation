@@ -1,11 +1,15 @@
 package databaseInterfacing;
 
+import java.util.ArrayList;
 import java.util.Iterator;
-
+import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+
+import siteClasses.AdjListNode;
+import siteClasses.LastfmNode;
+import siteClasses.Node;
 
 /** Interfacer object used to interact with the database */
 
@@ -38,86 +42,138 @@ public class DBInterfacer {
 	}
 	
 	/**
-	 * Adds a vertex with no fields
-	 * @param className	Name of class and cluster that the node will be added to
-	 * @return ID that is associated with that vertex or 0 if failed
+	 * Gets the vertex by its RID
+	 * @param Value	value used to look up vertex
+	 * @return Vertex with value attribute
 	 */
-	public Object addVertex(String className) {
-		try {
-			Vertex v = graph.addVertex(className, className);
-			
-			currentNodes++;
-			if (currentNodes >= maxNodes)
-				cachePurge();
-			
-			return v.getId();
-		}
-		catch (Exception e) {
+	public Vertex getVertexByID(String className, String value) {
+		String[] ids = new String[] {"ID"};
+		Object[] values = new Object[] {value};
+		Iterable<Vertex> vertices = graph.getVertices(className, ids, values);
+
+		if (!vertices.iterator().hasNext())
 			return null;
-		}
+		
+		return vertices.iterator().next();
 	}
 	
 	/**
-	 * Adds a vertex with the supplied fields
-	 * @param className	Name of class and cluster that the node will be added to
-	 * @param vertexid	ID used to look up the vertex
-	 * @param props		List of props that are to be set to the vertex
-	 * 					must be an even number of props
-	 * 					Ex: ["name", "John", "band", "Beatles"]
-	 * @return ID that is associated with that vertex or 0 if failed
+	 * Gets the class name for a specific node
+	 * @param n	Node to check class name
+	 * @return	Class name
 	 */
-	public Object addVertex(String className, String[] names, Object[] values) {
+	public String getClassName(Node n) {
+		String className = null;
+
+		if (n instanceof AdjListNode) {
+			className = "AdjListNode";
+		} else if (n instanceof LastfmNode) {
+			className = "LastfmNode";
+		}
+		
+		return className;
+	}
+	
+	/**
+	 * Adds a vertex for each of the supplied nodes
+	 * @param nodes				List of nodes to be added
+	 * @return True if success otherwise false
+	 */
+	public boolean addVertices(ArrayList<Node> nodes) {
+		String className = getClassName(nodes.get(0));
 		
 		try {
-			Vertex v = graph.addVertex(className, className);
-			
-			for (int i = 0; i < names.length; i++)
-				v.setProperty(names[i], values[i]);
-			
-			currentNodes++;
-			if (currentNodes >= maxNodes)
-				cachePurge();
-			
-			return v.getId();
+			// Get current node and add to graph
+			for (int i = 0; i < nodes.size(); i++) {
+				Node cNode = nodes.get(i);
+				
+				if (getVertexByID(className, cNode.getNodeID()) != null) {
+					continue;
+				}
+				
+				Vertex v = graph.addVertex(className, className);;
+				v.setProperty("ID", cNode.getNodeID());
+				
+				// Cache management
+				currentNodes++;
+				if (currentNodes >= maxNodes)
+					cachePurge();
+			}
+		} catch (Exception e) {
+			return false;
 		}
-		catch (Exception e) {
-			return null;
-		}
+		
+		return true;
 	}
 	
 	/**
-	 * Get a list of vertices by its field variables
-	 * @param label		USE "Node". Class to search through.
-	 * @param names		List of field names ex: {"name"}
-	 * @param values	List of field values ex: {"Tom"}
-	 * @return List of vertices
+	 * Adds a Connection between the 2 nodes
+	 * @param n1				First node to connect
+	 * @param n2				Second node to connect
+	 * @return	True if success otherwise false
 	 */
-	public Iterable<Vertex> getVerticesByFields(String label, String[] names, Object[] values) {
-		return graph.getVertices(label, names, values);
-	}
-	
-	/**
-	 * Gets the neighbors that are connected to a given vertex
-	 * @param id	Id of the vertex
-	 * @return List of neighbors
-	 */
-	public Iterable<Vertex> getConnectedNeighbors(Object id) {
-		return graph.getVertex(id).getVertices(Direction.BOTH);
-	}
-	
-	/**
-	 * Adds a connection between 2 Vertices to the graph
-	 * @return 1 if success, 0 if fail
-	 */
-	public Object addNewConnection(String edgeName, Object id1, Object id2) {
+	public boolean addConnection(Node n1, Node n2) {
+		String className = getClassName(n1);
+		
 		try {
-			Vertex v1 = graph.getVertex(id1);
-			Vertex v2 = graph.getVertex(id2);
+			// Get the 2 vertexes to add
+			Vertex v1 = getVertexByID(className, n1.getNodeID());
+			Vertex v2 = getVertexByID(className, n2.getNodeID());
 			
-			Edge connection = graph.addEdge(edgeName, v1, v2, "connection");
-			return connection.getId();
+			boolean found = false;
+			Iterable<Vertex> v1Connections = v1.getVertices(Direction.BOTH);
+			for (Vertex vc : v1Connections) {
+				if (vc.getProperty("ID").equals(v2.getProperty("ID"))) {
+					found = true;
+				}
+			}
+			
+			if (!found)
+				graph.addEdge(className, v1, v2, "Connection");
+		} catch (Exception e) {
+			return false;
 		}
-		catch (Exception e){
+		
+		return true;
+	}
+	
+	/**
+	 * Finds the shortest path between 2 nodes
+	 * @param n1				Starting node
+	 * @param n2				Ending node
+	 * @return List of nodes
+	 */
+	@SuppressWarnings("unchecked")
+	public ArrayList<Node> shortestPath(Node n1, Node n2) {
+		try {
+			String className = getClassName(n1);
+			
+			Vertex v1 = getVertexByID(className, n1.getNodeID());
+			Vertex v2 = getVertexByID(className, n2.getNodeID());
+			
+			String query = "select expand(shortestPath) from "
+					+ "(select shortestPath(" + v1.getId()
+					+ ", " + v2.getId() + ", 'BOTH', '" 
+					+ className + "'))";
+			
+			ArrayList<Node> nodes = new ArrayList<Node>();
+			Iterable<Vertex> result = (Iterable<Vertex>) graph.command(
+					  new OSQLSynchQuery<Vertex>(query)).execute();
+			
+			if (n1 instanceof AdjListNode) {
+				for (Vertex v : result)
+					nodes.add(new AdjListNode(v.getProperty("ID")));
+			} else if (n1 instanceof LastfmNode) {
+				for (Vertex v : result)
+					nodes.add(new LastfmNode(v.getProperty("ID")));
+			}
+			
+			if (nodes.size() == 0)
+				return null;
+			
+			return nodes;
+		} catch (Exception e) {
+			System.err.println("Path does not exist (yet)");
 			return null;
 		}
 	}

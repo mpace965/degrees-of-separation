@@ -1,34 +1,35 @@
 package databaseInterfacing;
 
+import java.util.ArrayList;
+
+import siteClasses.AdjListNode;
+import siteClasses.Node;
+
 public class DBInterfaceTest {
 
 	public static void main(String[] args) {
-		DBInterfacer interfacer = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
-//		String[] props = {"name"};
-//		Object[] values1 = {"PUT NODE1 NAME HERE"};
-//		Object[] values2 = {"PUT NODE2 NAME HERE"};
-//		Object node1 = interfacer.addVertex("Node", props, values1);
-//		Object node2 = interfacer.addVertex("Node", props, values2);
-//		interfacer.addNewConnection("Connection", node1, node2);
+		DBInterfacer db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
 		
-		String[] props = {"name", "access_time"};
-		Object[] values1 = {"sam", "2016-03-03 08:50:31"};
-		Object[] values2 = {"Tom", "2016-03-03 08:50:32"};
+		ArrayList<Node> AdjListNodes = new ArrayList<Node>();
+		AdjListNodes.add(new AdjListNode("Tom"));
+		AdjListNodes.add(new AdjListNode("Matt"));
+		AdjListNodes.add(new AdjListNode("Ryan"));
+		AdjListNodes.add(new AdjListNode("Evan"));
+		AdjListNodes.add(new AdjListNode("Hasini"));
+		AdjListNodes.add(new AdjListNode("John"));
 		
-		Object node1 = interfacer.addVertex("Node", props, values1);
-		Object node2 = interfacer.addVertex("Node", props, values2);
-		Object node3 = interfacer.addVertex("Node", props, values1);
+		db.addVertices(AdjListNodes);
+		//db.addConnections(AdjListNodes);
+		db.close();
 		
-		interfacer.addNewConnection("Connection", node1, node2);
-		interfacer.addNewConnection("Connection", node2, node3);
+		db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
 		
-		//interfacer.removeAllConnections();
-		//Object node = interfacer.getVerticesByFields("Node", new String[]{"name"}, new Object[] {"Tom"});
+		db.shortestPath(AdjListNodes.get(0), AdjListNodes.get(5));
 		
-		//interfacer.getConnectedNeighbors(node);
+//		db.removeAllConnections();
 		
-		System.out.println(interfacer);
+		System.out.println(db);
 		
-		interfacer.close();
+		db.close();
 	}
 }
