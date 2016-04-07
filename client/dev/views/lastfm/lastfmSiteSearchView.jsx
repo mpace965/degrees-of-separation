@@ -5,6 +5,7 @@ import Paper from 'material-ui/lib/paper';
 import CircularProgress from 'material-ui/lib/circular-progress';
 import TextField from 'material-ui/lib/text-field';
 import RaisedButton from 'material-ui/lib/raised-button';
+import Snackbar from 'material-ui/lib/snackbar';
 
 var LastfmResultView = require('./lastfmResultView');
 
@@ -14,15 +15,14 @@ var LastfmSiteSearchView = React.createClass({
       connectionBegin: '',
       connectionEnd: '',
       apiResponse: {},
-      loadingMessage: '',
-      errorMessage: ''
+      apiLoading: false,
+      snackbarOpen: false,
+      snackbarMessage: ''
     };
   },
 
   //Make the api request to the server
   loadChainFromServer: function() {
-    this.setState({errorMessage: ''});
-
     $.ajax({
         url: '/api/connectLastfm',
         dataType: 'json',
@@ -30,17 +30,20 @@ var LastfmSiteSearchView = React.createClass({
         data: {begin: this.state.connectionBegin, end: this.state.connectionEnd},
         success: function(data) {
           this.setState({apiResponse: data}, function() {
-            this.setState({loadingMessage: ''});
+            this.setState({apiLoading: false});
             var newGraph = this.processApiResponse();
             this.props.setActiveView(LastfmResultView, {graph: newGraph});
           });
         }.bind(this),
         error: function(xhr, status, err) {
-          this.setState({loadingMessage: ''});
-          this.setState({errorMessage: xhr.responseText});
+          this.setState({apiLoading: false});
+          this.setState({snackbarOpen: true, snackbarMessage: xhr.responseText});
           console.error('/api/connectAdjacency', status, err.toString());
-        }.bind(this)
+        }.bind(this),
+        timeout: 60000
     });
+
+    this.setState({apiLoading: true});
   },
 
   processApiResponse: function() {
@@ -83,14 +86,15 @@ var LastfmSiteSearchView = React.createClass({
     this.setState({connectionBegin: '', connectionEnd: ''});
   },
 
-  render: function() {
-    var messageString = '';
+  handleRequestClose: function() {
+    this.setState({snackbarOpen: false, snackbarMessage: ''});
+  },
 
-    if (this.state.loadingMessage) {
-      messageString = <CircularProgress />;
-    }
-    if (this.state.errorMessage) {
-      messageString = this.state.errorMessage;
+  render: function() {
+    var circularProgress;
+
+    if (this.state.apiLoading) {
+      circularProgress = <CircularProgress />;
     }
 
     const style = {
@@ -117,8 +121,13 @@ var LastfmSiteSearchView = React.createClass({
               onKeyDown={this.handleKeyDown} />
             <RaisedButton label="Submit" onMouseUp={this.handleSubmit} />
           </div>
-          <div className="flexRowItem">{messageString}</div>
+          <div className="flexRowItem">{circularProgress}</div>
         </Paper>
+        <Snackbar
+          open={this.state.snackbarOpen}
+          message={this.state.snackbarMessage}
+          autoHideDuration={7000}
+          onRequestClose={this.handleRequestClose} />
       </div>
     );
   }

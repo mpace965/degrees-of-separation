@@ -198,13 +198,18 @@ public class WebApp extends SimpleWebServer {
 		Map<String, String> parms = session.getParms();
 		String beginString = parms.get("begin");
 		String endString = parms.get("end");
+		int begin, end;
 		ArrayList<Node> nodes, allNodes;
 
 		try {
-			Integer.parseInt(beginString);
-			Integer.parseInt(endString);
+			begin = Integer.parseInt(beginString);
+			end = Integer.parseInt(endString);
 		} catch (NumberFormatException nfe) {
 			return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "One of your inputs was not a number.");
+		}
+		
+		if (begin > 4040 || end > 4040 || begin < 0 || end < 0) {
+			return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "Try a number in the range [0, 4040].");
 		}
 
 		site.setStartAndEndNodes(beginString, endString);
@@ -218,8 +223,13 @@ public class WebApp extends SimpleWebServer {
 
 			if (nodes == null) {
 				nodes = Algorithm.processConnection(site);
+				
+				if (nodes == null || nodes.size() == 0) {
+					return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "No match was found from these inputs.");
+				}
+				
 				addRecentConnection(nodes);
-
+				
 				allNodes = new ArrayList<Node>(site.getAllNodes().values());
 
 				InsertInDBThread t1 = new InsertInDBThread(allNodes);
