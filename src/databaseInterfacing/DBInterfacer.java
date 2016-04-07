@@ -120,7 +120,7 @@ public class DBInterfacer {
 				
 				// Cache management
 				currentNodes++;
-				if (currentNodes >= maxNodes)
+				if (currentNodes >= maxNodes && maxNodes != -1)
 					cachePurge();
 			}
 		} catch (Exception e) {
