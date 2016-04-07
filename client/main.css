@@ -75,9 +75,9 @@ html, body {
 .landingView {
   display: flex;
   flex-direction: row;
-  align-items: flex-start;;
+  align-items: flex-start;
   justify-content: center;
-  font-size: large;
+  font-size: x-large;
 }
 
 /* resultView.jsx */
