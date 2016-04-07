@@ -28,11 +28,13 @@ public class WebApp extends SimpleWebServer {
 
 	public static final String MIME_JSON = "application/json";
 	public static ArrayList<ArrayList<Node>> recentConnections;
+	public static int maxRecentConnections;
 
 	public WebApp() throws IOException {
 		super("localhost", 8000, new File("client/"), false);
 
 		recentConnections = new ArrayList<ArrayList<Node>>();
+		maxRecentConnections = 50;
 	}
 
 	public static void main(String[] args) {
@@ -171,8 +173,9 @@ public class WebApp extends SimpleWebServer {
 	private void addRecentConnection(ArrayList<Node> nodes) {
 		recentConnections.add(nodes);
 
-		if (recentConnections.size() > 50) {
-			for (int i = 0; i < 10; i++) {
+		if (recentConnections.size() > maxRecentConnections) {
+			int removeAmount = (int) (maxRecentConnections * .2);
+			for (int i = 0; i < removeAmount; i++) {
 				recentConnections.remove(i);
 			}
 		}
