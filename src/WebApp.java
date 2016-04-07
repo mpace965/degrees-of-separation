@@ -2,9 +2,12 @@
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 
+import siteClasses.AdjListNode;
 import siteClasses.AdjListSite;
+import siteClasses.LastfmNode;
 import siteClasses.Node;
 import siteClasses.Site;
 import API.AdjacencyListConnectResponse;
@@ -20,10 +23,12 @@ import fi.iki.elonen.util.ServerRunner;
 public class WebApp extends SimpleWebServer {
 	
 	public static final String MIME_JSON = "application/json";
-	
+	public static ArrayList<ArrayList <Node>> recentConnections;
 
 	public WebApp() throws IOException {
 		super("cs307team4.cs.purdue.edu", 80, new File("client/"), false);
+		
+		recentConnections = new ArrayList<ArrayList <Node>>();
 	}
 	
 	public static void main(String[] args) {
@@ -55,6 +60,12 @@ public class WebApp extends SimpleWebServer {
 				r = connectAdjacency(session, gson, site);
 				break;
 			}
+			
+			case "/api/recentConnections": {
+				r = getRecentConnections(session, gson);
+				break;
+			}
+			
 			default: {
 				r = newFixedLengthResponse(Response.Status.NOT_FOUND, MIME_JSON, "{}");
 			}
@@ -63,18 +74,45 @@ public class WebApp extends SimpleWebServer {
 		return r;
 	}
 	
+	private ArrayList<Node> checkRecentConnections(Site site) {
+		Node n1 = site.getStartNode();
+		Node n2 = site.getEndNode();
+		
+		for (ArrayList<Node> subRecent : recentConnections) {
+			String headID = subRecent.get(0).getNodeID();
+			String tailID = subRecent.get(subRecent.size() - 1).getNodeID();
+			String n1ID = n1.getNodeID();
+			String n2ID = n2.getNodeID();
+			
+			if (n1ID.equals(headID) && n2ID.equals(tailID)) {
+				return subRecent;
+			} else if (n1ID.equals(tailID) && n2ID.equals(headID)) {
+				ArrayList<Node> reversedList = new ArrayList<Node>(subRecent);
+				Collections.reverse(reversedList);
+				return reversedList;
+			}
+		}
+		
+		return null;
+	}
+	
+	private void addRecentConnection(ArrayList<Node> nodes) {
+		recentConnections.add(nodes);
+		
+		if (recentConnections.size() > 50) {
+			for (int i = 0; i < 10; i++) {
+				recentConnections.remove(i);
+			}
+		}
+	}
+	
 	private ArrayList<Node> checkDB(Site site) {
 		ArrayList<Node> nodes;
 		Node n1 = site.getStartNode();
 		Node n2 = site.getEndNode();
 		
 		DBInterfacer db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
-		nodes = db.shortestPath(n1, n2, true);
-		
-		if (nodes == null) {
-			nodes = db.shortestPath(n1, n2, false);
-		}
-		
+		nodes = db.shortestPath(n1, n2);
 		db.close();
 		
 		return nodes;
@@ -95,17 +133,22 @@ public class WebApp extends SimpleWebServer {
 		}
 		site.setStartAndEndNodes(beginString, endString);
 		
-		// Check DB for connection before algorithm
-		nodes = checkDB(site);
+		// Check recents
+		nodes = checkRecentConnections(site);
 		
 		if (nodes == null) {
-			nodes = Algorithm.processConnection(site);
-			allNodes = new ArrayList<Node> (site.getAllNodes().values());
+			// Check DB for connection before algorithm
+			nodes = checkDB(site);
 			
-			InsertInDBThread t1 = new InsertInDBThread(nodes, true);
-			InsertInDBThread t2 = new InsertInDBThread(allNodes, false);
-			t1.start();
-			t2.start();
+			if (nodes == null) {
+				nodes = Algorithm.processConnection(site);
+				addRecentConnection(nodes);
+				
+				allNodes = new ArrayList<Node> (site.getAllNodes().values());
+				
+				InsertInDBThread t1 = new InsertInDBThread(allNodes);
+				t1.start();
+			}
 		}
 		
 		c.setNodeCount(nodes.size());
@@ -121,37 +164,51 @@ public class WebApp extends SimpleWebServer {
 		
 		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(c));
 	}
+	
+	private Response getRecentConnections(IHTTPSession session, Gson gson) {
+		ArrayList<String> connections = new ArrayList<String>();
+		StringBuilder builder;
+		
+		for (ArrayList<Node> subRecent : recentConnections) {
+			builder = new StringBuilder();
+			
+			if (subRecent.get(0) instanceof AdjListNode) {
+				builder.append("Adjacency List: ");
+			} else if (subRecent.get(0) instanceof LastfmNode) {
+				builder.append("Last.fm: ");
+			}
+			
+			for (int i = 0; i < subRecent.size(); i++) {
+				builder.append(subRecent.get(i).getNodeID());
+				if (i != subRecent.size() - 1) {
+					builder.append("->");
+				}
+			}
+			connections.add(builder.toString());
+		}
+		
+		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(connections));
+	}
 }
 
 class InsertInDBThread extends Thread {
 	private ArrayList<Node> nodes;
-	private boolean recentConnections;
 	
-	InsertInDBThread(ArrayList<Node> nodes, boolean recentConnections) {
+	InsertInDBThread(ArrayList<Node> nodes) {
 		this.nodes = nodes;
-		this.recentConnections = recentConnections;
 	}
 	
 	public void run() {
 		try {
 			DBInterfacer db = new DBInterfacer("remote:localhost/Connections", "root", "team4", 100, 0.2);
+			// Add all nodes
+			ArrayList<Node> connections;
 			
-			if (recentConnections) {
-				// Add the recently connected
-				db.addVertices(nodes, true);
-				for (int i = 0; i < nodes.size() - 1; i++) {
-					db.addConnection(nodes.get(i), nodes.get(i + 1), true);
-				}
-			} else {
-				// Add all nodes
-				ArrayList<Node> connections;
-				
-				db.addVertices(nodes, false);
-				for (Node n1 : nodes) {
-					connections = n1.getConnections();
-					for (Node n2 : connections) {
-						db.addConnection(n1, n2, false);
-					}
+			db.addVertices(nodes);
+			for (Node n1 : nodes) {
+				connections = n1.getConnections();
+				for (Node n2 : connections) {
+					db.addConnection(n1, n2);
 				}
 			}
 			
