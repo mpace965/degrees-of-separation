@@ -1,5 +1,30 @@
 var React = require('react');
 import Paper from 'material-ui/lib/paper';
+import { FacebookButton, FacebookCount } from 'react-social';
+import {
+  ShareButtons,
+  ShareCounts,
+  generateShareIcon
+} from 'react-share';
+
+const {
+  FacebookShareButton,
+  GooglePlusShareButton,
+  LinkedinShareButton,
+  TwitterShareButton
+} = ShareButtons;
+
+const {
+  FacebookShareCount,
+  GooglePlusShareCount,
+  LinkedinShareCount
+} = ShareCounts;
+
+const FacebookIcon = generateShareIcon('facebook');
+const TwitterIcon = generateShareIcon('twitter');
+const GooglePlusIcon = generateShareIcon('google');
+const LinkedinIcon = generateShareIcon('linkedin');
+
 
 var AboutView = React.createClass({
   render: function() {
@@ -9,6 +34,9 @@ var AboutView = React.createClass({
       padding: 10,
       margin: 20
     }
+
+const shareUrl = 'http://degreeofconnection.com';
+    const title = 'View Your Connections At';
 
     return (
       <div className="aboutView">
@@ -31,6 +59,35 @@ var AboutView = React.createClass({
                  You can view the full source of this website, and view a full history of our development on our <a href="https://github.com/mpace965/degrees-of-separation">GitHub repo.</a></p>
           </div>
         </Paper>
+                <div className="socialButtons">
+        
+         <FacebookShareButton
+            url={shareUrl}
+            title={title}
+            className="Demo__some-network__share-button">
+            <FacebookIcon
+              size={32}
+              round={true} />
+          </FacebookShareButton>
+     <sp>     
+        <TwitterShareButton
+            url={shareUrl}
+            title={title}
+            className="Demo__some-network__share-button">
+            <TwitterIcon
+              size={32}
+              round={true} />
+          </TwitterShareButton>
+          </sp>
+          
+          <GooglePlusShareButton
+            url={shareUrl}
+            className="Demo__some-network__share-button">
+            <GooglePlusIcon
+              size={32}
+              round={true} />
+          </GooglePlusShareButton>
+        </div>
       </div>
     );
   }
