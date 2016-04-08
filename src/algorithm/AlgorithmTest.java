@@ -6,28 +6,27 @@ import java.util.Scanner;
 import siteClasses.*;
 
 public class AlgorithmTest {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		Scanner scan = new Scanner(System.in);
 
-		String fileSeparator = System.getProperty("file.separator");
-		AdjListSite site = new AdjListSite("docs" + fileSeparator + "facebook_combined.txt");
+//		String fileSeparator = System.getProperty("file.separator");
+//		AdjListSite site = new AdjListSite("docs" + fileSeparator + "facebook_combined.txt");
+		LastfmSite site = new LastfmSite();
 
 		System.out.println("enter start and end node");
 		while (scan.hasNextLine()) {
 			String start = scan.nextLine();
 			String end = scan.nextLine();
 			
-			site.setStartAndEndNodes(start, end);
-
 			long time1 = System.currentTimeMillis();
 			ArrayList<Node> connection = null;
 			try {
-				site.resetAccessCount();
+				site.setStartAndEndNodes(start, end);
 				// all processing of the algorithm
-				connection = Algorithm.processConnection(site);
+				connection = Algorithm.processConnectionLastfmSite(site);
 			}
 			catch (Exception e) {
-				System.err.println(e.getStackTrace().toString());
+				e.printStackTrace();
 				System.out.println("no connection");
 			}
 			
@@ -43,6 +42,7 @@ public class AlgorithmTest {
 			}
 			System.out.printf("Process took : %.3f seconds\n", (double) (time2 - time1) / 1000d);
 			System.out.printf("Process had %d file accesses\n", site.getAccessCount());
+			site.resetAccessCount();
 		}	
 		scan.close();
 	}

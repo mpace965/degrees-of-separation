@@ -1,129 +1,215 @@
 package siteClasses;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class LastfmSite implements Site {
 
-	private int fileAccesses = 0;
 	private HashMap<String, Node> allNodes;
-	private Node start;
-	private Node end;
-	final String apiKey = "c6c45e68f6b2a663da996fc504cf9f8b";
+	private final String apiKey = "c6c45e68f6b2a663da996fc504cf9f8b";
+	private Long apiTimer;
+	private int fileAccesses = 0;
+	private LastfmNode start;
+	private LastfmNode end;
+	private Double heuristicConstant;
 
 	public LastfmSite() {
 		this.allNodes = new HashMap<String, Node>();
+		this.apiTimer = null;
+		this.start = null;
+		this.end = null;
+		this.heuristicConstant = null;
 	}
 
-	public double heuristicCost(Node start, Node end) {
-		return 1d;
+	public double heuristicMultiplier(Node p, Node n) {
+		// returns the difference that the "match" variable will be adjusted by
+		if (n == null)
+			return 1d;
+		if (heuristicConstant == null) 
+			heuristicConstant = heuristicCost(this.start, this.end);
+
+		LastfmNode node = (LastfmNode) n;
+		LastfmNode prev = (LastfmNode) p;
+		if (node.getTags() == null) 
+			populateTags(node);
+		if (prev.getTags() == null)
+			populateTags(prev);
+
+		double nodeToEnd = heuristicCost(node, this.end);
+		double nodeToPrev = heuristicCost(node, prev);
+
+		double ret = Math.abs(nodeToEnd - this.heuristicConstant);
+
+		if (node.equals(this.start)) {
+			double prevToEnd = heuristicCost(prev, this.end);
+			return (Math.abs(prevToEnd - nodeToEnd) / nodeToPrev);
+		}
+		else {
+			return (ret / nodeToPrev);
+		}
 	}
 
-	
-	//Will return a json object of the similar artists to the string passed in
-	private JsonObject makeJson(String a) {
-		String urlStart = "http://ws.audioscrobbler.com/2.0/?method=artist.getSimilar&format=json";
-		String artist = "&artist=" + a;
-		String key = "&api_key=" + "c6c45e68f6b2a663da996fc504cf9f8b";
-		String url = urlStart + artist + key;
-		JsonObject simArt = null;
+	public double heuristicCost(Node n) {
+		// returns the difference that the "match" variable will be adjusted by
+		if (n == null)
+			return 1d;
+		if (heuristicConstant == null) 
+			heuristicConstant = heuristicCost(this.start, this.end);
 
-		// Builds a buffered reader to interpret input received from the API
-		// request
-		try {
-			URL lastfmGetSimilar = new URL(url);
-			URLConnection lfmSim = lastfmGetSimilar.openConnection();
-			BufferedReader in;
-			in = new BufferedReader(new InputStreamReader(
-					lfmSim.getInputStream()));
+		LastfmNode node = (LastfmNode) n;
+		if (node.getTags() == null) 
+			populateTags(node);
 
-			// Reads in a string received from the API requests
-			StringBuilder builder = new StringBuilder();
-			String inputLine = null;
-			while ((inputLine = in.readLine()) != null) {
-				builder.append(inputLine);
+		double nodeToEnd = heuristicCost(node, this.end);
+		//		double nodeToPrev = heuristicCost(node, this.start);
+
+		double ret = Math.abs(nodeToEnd - this.heuristicConstant);
+
+		if (nodeToEnd > this.heuristicConstant) {
+			// middles
+			ret = 0 - ret;
+			//			if (nodeToStart > this.heuristicConstant) 	// middle left
+			//			else 										// middle right
+		}
+		//		else {
+		//			if (nodeToEnd > nodeToStart) 	// far left side
+		//			else 							// far right side
+		//			
+		//		}
+
+		return ret;
+	}
+
+	public double heuristicCost(LastfmNode start, LastfmNode end) {
+		// estimates match value a artist.getSimilar call
+		// where artist = startNode and endNode is a similar artist
+		// i.e. how similar endnode is to startnode
+		double tag1tot = (double) start.getTagTotal();
+		double tag2tot = (double) end.getTagTotal();
+		if (tag1tot == 0 || tag2tot == 0)
+			return 1d;
+		HashMap<String, Integer> tag1 = start.getTags();
+		HashMap<String, Integer> tag2 = end.getTags();
+
+		double incommon = 0;
+		Integer temp, min;
+		String tag;
+		HashMap.Entry<String, Integer> entry;
+		Iterator<HashMap.Entry<String, Integer>> it = tag1.entrySet().iterator();
+		while (it.hasNext()) {
+			entry = it.next();
+			tag = entry.getKey();
+			min = entry.getValue();
+
+			temp = tag2.get(tag);
+			if (temp != null) {
+				if (temp < min)
+					min = temp;
+				incommon += min.intValue();
 			}
-
-			// Closes the buffered reader
-			in.close();
-
-			// Converts the string to a Json object
-			JsonParser parser = new JsonParser();
-			simArt = parser.parse(builder.toString()).getAsJsonObject();
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 
-		return simArt;
+		double ret = (2d * incommon) / (tag1tot + tag2tot); 
+		return ret;
 	}
 
-	
-	
-	public void populateConnections(Node node) {
-		//If the node isnt already in the hasmap then it adds it
+	public void populateConnections(Node n) {
+		LastfmNode node = (LastfmNode) n;
 		if (!allNodes.containsKey(node.getNodeID())) {
 			allNodes.put(node.getNodeID(), node);
 		}
 
-		//casts the node input to a lastfmNode and populates the json object
-		//if it isnt already there for some reason
-		fileAccesses++;
-		LastfmNode temp = (LastfmNode) node;
-		if (temp.getJson() == null) { 
-			temp.setJson(makeJson(temp.getNodeID()));
+		JsonObject json;
+		JsonArray similar;
+		try {
+			json = getSimilarArtistsJson(node);
+			similar = json.getAsJsonObject("similarartists").getAsJsonArray("artist");
+		}
+		catch (Exception e) {
+			System.err.println("Problem in populate info");
+			e.printStackTrace();
+			return;
 		}
 
+		JsonObject tempObj;
+		String name, mbid;
+		Double match;
+		for (JsonElement elem : similar) {
+			tempObj = elem.getAsJsonObject();
+			name = tempObj.has("name") ? tempObj.get("name").getAsString() : null;
+			mbid = tempObj.has("mbid") ? tempObj.get("mbid").getAsString() : null;
+			match = tempObj.has("match") ? tempObj.get("match").getAsDouble() : null;
 
-		
-		//creates a string to hold the similar artists and populates that with
-		//the following code below
-		String parts[] = new String[1024];
-		JsonObject jobject = temp.getJson();
-		int i = 0;
-		String connectedNames[] = new String [1024];
-		JsonObject similar = jobject.getAsJsonObject("similarartists");
-		for (JsonElement artists : similar.getAsJsonArray("artist")) {
-			connectedNames[i] = artists.getAsJsonObject().get("name").toString();
-			connectedNames[i] = connectedNames[i].substring(1, connectedNames[i].length()-1);
-			i++;
-		}
-
-		//goes through the stored names obtained from above and creates a new
-		//node for each connection
-		for (int a = 0; a < parts.length; a++) {
-
-			//creating a new node
-			LastfmNode hold = new LastfmNode(parts[a]);
-			String id = hold.getNodeID();
-			//if the new node is already in the hash table then a new connection is added
-			//to the node
-			if (allNodes.containsKey(id)) {
-				node.addConnection(hold);
-			}
-			//If the node is not in the hash map then the info of holding node is
-			//populated and added to the hashmap
+			LastfmNode tempNode = new LastfmNode(mbid, name, match);
+			if (allNodes.containsKey(tempNode.getNameUrl())) 
+				node.addConnection(allNodes.get(tempNode.getNameUrl()));
+			else if (allNodes.containsKey(tempNode.getMbid())) 
+				node.addConnection(allNodes.get(tempNode.getMbid()));
 			else {
-				fileAccesses++;
-				hold.setJson(makeJson(id));
-				node.addConnection(hold);
-				allNodes.put(id, hold);
+				allNodes.put(tempNode.getNodeID(), tempNode);
+				node.addConnection(tempNode);
 			}
 		}
-	
 	}
-	
-	public HashMap<String, Node> getAllNodes() {
-		return allNodes;
+
+	public void populateInfo(LastfmNode node) {
+		try {
+			if (node.getJson() != null) {
+				System.err.println("Populate info: node already has json");
+				return;
+			}
+			JsonObject json = getInfoJson(node);
+			String mbid = json.getAsJsonObject("artist").get("mbid").getAsString();
+			node.setMbid(mbid);
+			node.setJson(json);
+		}
+		catch (Exception e) {
+			System.err.println("Problem in populate info");
+			e.printStackTrace();
+			return;
+		}
+	}
+
+	public void populateInfo(ArrayList<LastfmNode> nodes) {
+		for (LastfmNode node : nodes) 
+			populateInfo(node);
+	}
+
+	public void populateTags(LastfmNode node) {
+		if (node.getTags() != null && node.getTags().size() > 0)
+			return;
+		JsonArray tags;
+		try {
+			JsonObject json = getTagsJson(node);
+			tags = json.getAsJsonObject("toptags").getAsJsonArray("tag");
+		}
+		catch (Exception e) {
+			System.err.println("Problem in populate tags");
+			e.printStackTrace();
+			return;
+		}
+
+		JsonObject tempObj;
+		String tag;
+		Integer count;
+		for (JsonElement elem : tags) {
+			tempObj = elem.getAsJsonObject();
+			tag = tempObj.has("name") ? tempObj.get("name").getAsString() : null;
+			count = tempObj.has("count") ? tempObj.get("count").getAsInt() : null;
+			if (tag != null && count != null) {
+				node.addTag(tag, count);
+			}
+		}
 	}
 
 	public Node getStartNode() {
@@ -137,27 +223,110 @@ public class LastfmSite implements Site {
 	public int getAccessCount() {
 		return this.fileAccesses;
 	}
-
+	
+	public HashMap<String, Node> getAllNodes() {
+		return this.allNodes;
+	}
+	
 	public void resetAccessCount() {
 		this.fileAccesses = 0;
 	}
 
-	public void setStartAndEndNodes(String start, String end) {
+	public String setStartAndEndNodes(String startName, String endName) {
+		this.start = null;
+		this.end = null;
+		LastfmNode start = new LastfmNode(null, startName);
+		LastfmNode end = new LastfmNode(null, endName);
 
-		if (allNodes.containsKey(start)) {
-			this.start = allNodes.get(start);
-		} else {
+		populateTags(start);
+		populateTags(end);
+		populateInfo(start);
+		populateInfo(end);
 
-			allNodes.put(start, new LastfmNode(start));
-			this.start = allNodes.get(start);
+		if (start.getTags() == null && end.getTags() == null) 
+			return startName + " and " + endName;
+		else if (start.getTags() == null) 
+			return startName;
+		else if (end.getTags() == null) 
+			return endName;
+
+		if (allNodes.containsKey(start.getNodeID())) 
+			this.start = (LastfmNode) allNodes.get(start.getNodeID());
+		else 
+			this.start = start;
+		if (allNodes.containsKey(end.getNodeID())) 
+			this.end = (LastfmNode) allNodes.get(end.getNodeID());
+		else 
+			this.end = end;
+		return null;
+	}
+
+	private JsonObject getInfoJson(LastfmNode node) throws Exception {
+		String url = "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&format=json";
+		if (node.getMbid() != null) 
+			url += "&mbid=";
+		else 
+			url += "&artist=";
+		url += node.getNodeID();
+		url += "&api_key=" + apiKey;
+		return getJson(url);
+	}
+
+	private JsonObject getSimilarArtistsJson(LastfmNode node) throws Exception {
+		String url = "http://ws.audioscrobbler.com/2.0/?method=artist.getSimilar&format=json";
+		if (node.getMbid() != null) 
+			url += "&mbid=";
+		else 
+			url += "&artist=";
+		url += node.getNodeID();
+		url += "&api_key=" + apiKey;
+		return getJson(url);
+	}
+
+	private JsonObject getTagsJson(LastfmNode node) throws Exception {
+		String url = "http://ws.audioscrobbler.com/2.0/?method=artist.getTopTags&format=json";
+		if (node.getMbid() != null) 
+			url += "&mbid=";
+		else 
+			url += "&artist=";
+		url += node.getNodeID();
+		url += "&api_key=" + apiKey;
+		return getJson(url);
+	}
+
+	private JsonObject getJson(String url) throws Exception {
+		JsonObject simArt = null;
+
+		long currentTime = System.currentTimeMillis();
+		if (apiTimer != null) {
+			while (currentTime - apiTimer < 500l) {
+				currentTime = System.currentTimeMillis();
+			}
 		}
+		apiTimer = currentTime;
 
-		if (allNodes.containsKey(end)) {
-			this.end = allNodes.get(end);
-		} else {
-			allNodes.put(end, new LastfmNode(end));
-			this.end = allNodes.get(end);
+		// Builds a buffered reader to interpret input received from the API
+		// request
+		URL lastfmGetSimilar = new URL(url);
+		URLConnection lfmSim = lastfmGetSimilar.openConnection();
+		BufferedReader in = new BufferedReader(new InputStreamReader(lfmSim.getInputStream()));
+
+		// Reads in a string received from the API requests
+		StringBuilder builder = new StringBuilder();
+		String inputLine = null;
+		while ((inputLine = in.readLine()) != null) {
+			builder.append(inputLine);
 		}
+		fileAccesses++;
+		System.err.println("api calls: " + fileAccesses);
 
+		// Closes the buffered reader
+		in.close();
+
+		// Converts the string to a Json object
+		JsonParser parser = new JsonParser();
+		simArt = parser.parse(builder.toString()).getAsJsonObject();
+
+		return simArt;
 	}
 }

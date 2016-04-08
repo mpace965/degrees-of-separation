@@ -8,7 +8,6 @@ public class AdjListSite implements Site {
 	private String filePath;
 	private int fileAccesses = 0;
 	private HashMap<String, Node> allNodes;
-	private Double heuristicConstant;
 	private Node start;
 	private Node end;
 
@@ -24,10 +23,10 @@ public class AdjListSite implements Site {
 		}
 		try {
 			FileReader fileReader = new FileReader(this.filePath);
-			
+
 			BufferedReader bufferedReader = new BufferedReader(fileReader);
 			fileAccesses++;
-			
+
 			String nodeStr = node.getNodeID();
 			String line;
 			boolean reachedEnd = false;
@@ -71,37 +70,69 @@ public class AdjListSite implements Site {
 			// file error
 		}
 	}
-	
-	public double heuristicCost(Node start, Node end){
-		if (heuristicConstant == null)
-			return 1d;
-		
+
+	public boolean findNode(String node) {
+		// parses the file and adds the connections
+		if (allNodes.containsKey(node)) {
+			return true;
+		}
+		try {
+			FileReader fileReader = new FileReader(this.filePath);
+			BufferedReader bufferedReader = new BufferedReader(fileReader);
+			fileAccesses++;
+			String line;
+			while ((line = bufferedReader.readLine()) != null) {
+				Position pos = getPosition(line, node);
+				if (pos == Position.FIRST || pos == Position.SECOND) {
+					bufferedReader.close(); 
+					return true;
+				}
+			}   
+			bufferedReader.close();         
+		}
+		catch(Exception e) {
+			return false;
+		}
+		return false;
+	}
+
+	public double heuristicCost(Node startNode){
+		Node endNode = this.end;
+		double heuristicConstant = 500d;
+
+		AdjListNode start = (AdjListNode) startNode;
+		AdjListNode end = (AdjListNode) endNode;
+
 		// heuristic based off an inverse normal curve 
 		// with the mean equal to the end point
 		// with SD given by the heuristicConsant
-		
+
 		// the denominator of the function
 		double den = heuristicConstant * Math.sqrt(2d * Math.PI);
-		
+
 		// building up the numerator
-		double num = 2d * Math.pow((double) heuristicConstant, 2d);
-		num = Math.pow((Integer) start.getNodeVal() - (Integer) end.getNodeVal(), 2d);
+		double num = 2d * Math.pow(heuristicConstant, 2d);
+		num = (Math.pow((Integer) start.getNodeVal() - (Integer) end.getNodeVal(), 2d)) / num;
 		num = 0 - num;
-		num = Math.pow(Math.E, num);
-		
+		num = Math.pow(Math.E, num) * 1000;
+
 		// return final product a number between 1 and 0
-		return num / den;
+		return 1d - (num / den);
 	}
 
-	/**
-	 * sets the standard deviation for the inverse normal distribution
-	 * @param stddev
-	 */
-	public void setHeuristicConstant(double stddev) {
-		this.heuristicConstant = stddev;
-	}
-	
-	public void setStartAndEndNodes(String start, String end) {
+	public String setStartAndEndNodes(String start, String end) {
+		this.start = null;
+		this.end = null;
+		
+		boolean foundStart = findNode(start);
+		boolean foundEnd = findNode(end);
+		if (!foundStart && !foundEnd) 
+			return start + " and " + end;
+		else if (!foundStart) 
+			return start;
+		else if (!foundEnd) 
+			return end;
+		
 		if (allNodes.containsKey(start)) {
 			this.start = allNodes.get(start);
 		}
@@ -109,7 +140,7 @@ public class AdjListSite implements Site {
 			allNodes.put(start, new AdjListNode(start));
 			this.start = allNodes.get(start);
 		}
-		
+
 		if (allNodes.containsKey(end)) {
 			this.end = allNodes.get(end);
 		}
@@ -117,28 +148,27 @@ public class AdjListSite implements Site {
 			allNodes.put(end, new AdjListNode(end));
 			this.end = allNodes.get(end);
 		}
+		return null;
 	}
-	
-	public HashMap<String, Node> getAllNodes() {
-		return allNodes;
-	}
-	
 	public Node getStartNode() {
 		return this.start;
 	}
 	public Node getEndNode() {
 		return this.end;
 	}
-	
+
 	public int getAccessCount() {
 		return this.fileAccesses;
+	}
+	public HashMap<String, Node> getAllNodes() {
+		return this.allNodes;
 	}
 	public void resetAccessCount() {
 		this.fileAccesses = 0;
 	}
-	
+
 	// helper methods to parse the file
-	
+
 	private String getFirstNode(String line) {
 		line = line.trim();
 		int indexOfSpace = line.indexOf(' ');

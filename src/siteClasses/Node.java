@@ -21,7 +21,7 @@ public interface Node {
 	public abstract String getNodeID();
 	
 	/**
-	 * @return Object to be used as value by the site class
+	 * @return String for debugging purposes
 	 */
-	public abstract Object getNodeVal();
+	public abstract String toString();
 }

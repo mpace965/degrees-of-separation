@@ -5,11 +5,10 @@ import java.util.HashMap;
 public interface Site {
 	
 	/**
-	 * @param start
-	 * @param end
-	 * @return heuristicCost from start node to end node
+	 * @param node
+	 * @return heuristicCost from node to end node in siteclass
 	 */
-	public abstract double heuristicCost(Node start, Node end);
+	public abstract double heuristicCost(Node node);
 	
 	/**
 	 * populates the connections list of this node
@@ -24,7 +23,7 @@ public interface Site {
 	
 	public abstract Node getStartNode();
 	public abstract Node getEndNode();
-	public abstract void setStartAndEndNodes(String start, String end);
+	public abstract String setStartAndEndNodes(String start, String end);
 	
 	public abstract HashMap<String, Node> getAllNodes();
 }

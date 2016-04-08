@@ -32,7 +32,7 @@ public class ThesaurusSite implements Site {
 		this.allNodes = new HashMap<String, Node>();
 	}
 
-	public double heuristicCost(Node start, Node end) {
+	public double heuristicCost(Node start) {
 		return 1d;
 	}
 
@@ -98,15 +98,15 @@ public class ThesaurusSite implements Site {
 
 			fileAccesses++;
 
-			LastfmNode hold = new LastfmNode(parts[a]);
-			String id = hold.getNodeID();
-			hold.setJson(makeJson(id));
-			if (allNodes.containsKey(id)) {
-				node.addConnection(hold);
-			} else {
-				node.addConnection(hold);
-				allNodes.put(id, hold);
-			}
+//			LastfmNode hold = new LastfmNode(parts[a]);
+//			String id = hold.getNodeID();
+//			hold.setJson(makeJson(id));
+//			if (allNodes.containsKey(id)) {
+//				node.addConnection(hold);
+//			} else {
+//				node.addConnection(hold);
+//				allNodes.put(id, hold);
+//			}
 		}
 	}
 	
@@ -130,22 +130,23 @@ public class ThesaurusSite implements Site {
 		this.fileAccesses = 0;
 	}
 
-	public void setStartAndEndNodes(String start, String end) {
+	public String setStartAndEndNodes(String start, String end) {
+		return null;
 
-		if (allNodes.containsKey(start)) {
-			this.start = allNodes.get(start);
-		} else {
-
-			allNodes.put(start, new LastfmNode(start));
-			this.start = allNodes.get(start);
-		}
-
-		if (allNodes.containsKey(end)) {
-			this.end = allNodes.get(end);
-		} else {
-			allNodes.put(end, new LastfmNode(end));
-			this.end = allNodes.get(end);
-		}
+//		if (allNodes.containsKey(start)) {
+//			this.start = allNodes.get(start);
+//		} else {
+//
+//			allNodes.put(start, new LastfmNode(start));
+//			this.start = allNodes.get(start);
+//		}
+//
+//		if (allNodes.containsKey(end)) {
+//			this.end = allNodes.get(end);
+//		} else {
+//			allNodes.put(end, new LastfmNode(end));
+//			this.end = allNodes.get(end);
+//		}
 
 	}
 	public static void main(String[] args) {
