@@ -77,7 +77,7 @@ var LastfmResultView = React.createClass({
 
   click: function(node, currentNodeInfo) {
     //If you clicked on another node while one is already clicked
-    if (this.state.currentHoverNode != null && this.state.currentHoverNode != null) {
+    if (this.state.currentHoverNode != null && this.state.currentHoverNode != node) {
       //deflate currently hovered node
       d3.select(this.state.currentHoverNode).select("circle").transition()
         .duration(750)
@@ -96,7 +96,7 @@ var LastfmResultView = React.createClass({
                         currentHoverTags: currentNodeInfo.tags,
                         currentHoverBio: currentNodeInfo.bio});
       this.setState({currentHoverNode: node});
-    } else if (this.state.currentHoverNode == this && !this.state.currentHoverStick) { //nothing clicked
+    } else if (this.state.currentHoverNode == node && !this.state.currentHoverStick) { //nothing clicked
       this.setState({currentHoverStick: true});
 
       d3.select(node).select("circle").transition()

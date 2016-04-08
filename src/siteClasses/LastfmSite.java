@@ -7,14 +7,15 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+
+import API.LastfmArtist;
+import API.LastfmTag;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
-import API.LastfmArtist;
-import API.LastfmTag;
 
 public class LastfmSite implements Site {
 
@@ -107,8 +108,8 @@ public class LastfmSite implements Site {
 		double incommon = 0;
 		Integer temp, min;
 		String tag;
-		HashMap.Entry<String, Integer> entry;
-		Iterator<HashMap.Entry<String, Integer>> it = tag1.entrySet().iterator();
+		Map.Entry<String, Integer> entry;
+		Iterator<Map.Entry<String, Integer>> it = tag1.entrySet().iterator();
 		while (it.hasNext()) {
 			entry = it.next();
 			tag = entry.getKey();
@@ -184,27 +185,32 @@ public class LastfmSite implements Site {
 	}
 
 	public ArrayList<LastfmArtist> toLastfmArtists(ArrayList<Node> nodes) {
-		// TODO cast to lastfmnode
 		ArrayList<LastfmArtist> artists = new ArrayList<LastfmArtist>();
-//		for (LastfmNode node : nodes) {
-//			populateInfo(node);
-////			String mbid = json.getAsJsonObject("artist").get("mbid").getAsString();
-//		}
-//		LastfmNode lfmN = (LastfmNode) n;
-//		lfmN.getJson();
-//		
-//		LastfmArtist artist = new LastfmArtist();
-//		ArrayList<LastfmTag> tags = artist.getTags();
-//		
-//		artist.setName(null);
-//		artist.setImage(null);
-//		artist.setListeners(0);
-//		artist.setPlaycount(0);
-//		artist.setBio(null);
-//		
-//		for (LastfmTag t : tags) {
-//			artist.addTag(t);
-//		}
+		
+		for (Node node : nodes) {
+			LastfmNode lastfmNode = (LastfmNode) node;
+			populateInfo(lastfmNode);
+			JsonObject json = lastfmNode.getJson().getAsJsonObject();
+			JsonObject jsonArtist = json.get("artist").getAsJsonObject();
+			
+			LastfmArtist artist = new LastfmArtist();
+			artist.setName(jsonArtist.get("name").getAsString());
+			artist.setImage(jsonArtist.get("image").getAsJsonArray().get(2).getAsJsonObject().get("#text").getAsString());
+			artist.setListeners(jsonArtist.get("stats").getAsJsonObject().get("listeners").getAsInt());
+			artist.setPlaycount(jsonArtist.get("stats").getAsJsonObject().get("playcount").getAsInt());
+			artist.setBio(jsonArtist.get("bio").getAsJsonObject().get("summary").getAsString());
+			
+			JsonArray tags = jsonArtist.get("tags").getAsJsonObject().get("tag").getAsJsonArray();
+			
+			for (int i = 0; i < tags.size(); i++) {
+				String name = tags.get(i).getAsJsonObject().get("name").getAsString();
+				String url = tags.get(i).getAsJsonObject().get("url").getAsString();
+				artist.addTag(new LastfmTag(name, url));
+			}
+			
+			artists.add(artist);
+		}
+		
 		return artists;
 	}
 

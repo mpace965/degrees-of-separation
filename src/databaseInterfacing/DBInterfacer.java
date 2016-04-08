@@ -191,7 +191,7 @@ public class DBInterfacer {
 					nodes.add(new AdjListNode(v.getProperty("ID").toString()));
 			} else if (n1 instanceof LastfmNode) {
 				for (Vertex v : result)
-					nodes.add(new LastfmNode(null, v.getProperty("ID").toString()));
+					nodes.add(new LastfmNode(v.getProperty("ID").toString(), null));
 			} else if (n1 instanceof ThesaurusNode) {
 				for (Vertex v : result)
 					nodes.add(new ThesaurusNode(v.getProperty("ID").toString()));

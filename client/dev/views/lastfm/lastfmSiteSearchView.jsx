@@ -38,7 +38,7 @@ var LastfmSiteSearchView = React.createClass({
         error: function(xhr, status, err) {
           this.setState({apiLoading: false});
           this.setState({snackbarOpen: true, snackbarMessage: xhr.responseText});
-          console.error('/api/connectAdjacency', status, err.toString());
+          console.error('/api/connectLastfm', status, err.toString());
         }.bind(this),
         timeout: 60000
     });
