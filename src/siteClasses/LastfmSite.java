@@ -13,6 +13,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import API.LastfmArtist;
+import API.LastfmTag;
+
 public class LastfmSite implements Site {
 
 	private HashMap<String, Node> allNodes;
@@ -180,9 +183,29 @@ public class LastfmSite implements Site {
 		}
 	}
 
-	public void populateInfo(ArrayList<LastfmNode> nodes) {
-		for (LastfmNode node : nodes) 
-			populateInfo(node);
+	public ArrayList<LastfmArtist> toLastfmArtists(ArrayList<Node> nodes) {
+		// TODO cast to lastfmnode
+		ArrayList<LastfmArtist> artists = new ArrayList<LastfmArtist>();
+//		for (LastfmNode node : nodes) {
+//			populateInfo(node);
+////			String mbid = json.getAsJsonObject("artist").get("mbid").getAsString();
+//		}
+//		LastfmNode lfmN = (LastfmNode) n;
+//		lfmN.getJson();
+//		
+//		LastfmArtist artist = new LastfmArtist();
+//		ArrayList<LastfmTag> tags = artist.getTags();
+//		
+//		artist.setName(null);
+//		artist.setImage(null);
+//		artist.setListeners(0);
+//		artist.setPlaycount(0);
+//		artist.setBio(null);
+//		
+//		for (LastfmTag t : tags) {
+//			artist.addTag(t);
+//		}
+		return artists;
 	}
 
 	public void populateTags(LastfmNode node) {

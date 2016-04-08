@@ -15,7 +15,6 @@ import API.AdjacencyListConnectResponse;
 import API.Edge;
 import API.LastfmArtist;
 import API.LastfmConnectResponse;
-import API.LastfmTag;
 import algorithm.Algorithm;
 import databaseInterfacing.DBInterfacer;
 
@@ -169,7 +168,7 @@ public class WebApp extends SimpleWebServer {
 			nodes = checkDB(lastfmSite);
 			
 			if (nodes == null) {
-				nodes = Algorithm.processConnection(lastfmSite);
+				nodes = Algorithm.processConnectionLastfmSite(lastfmSite);
 				
 				if (nodes == null || nodes.size() == 0) {
 					return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "No match was found from these inputs.");
@@ -190,28 +189,12 @@ public class WebApp extends SimpleWebServer {
 		
 		c.setNodeCount(nodes.size());
 		
-		for (Node n : nodes) {
-			// TODO: Create a LastfmArtist with json from n, supply c.addNodeValue with it
-			LastfmNode lfmN = (LastfmNode) n;
-			lfmN.getJson();
-			
-			LastfmArtist artist = new LastfmArtist();
-			ArrayList<LastfmTag> tags = artist.getTags();
-			
-			artist.setName(null);
-			artist.setImage(null);
-			artist.setListeners(0);
-			artist.setPlaycount(0);
-			artist.setBio(null);
-			
-			for (LastfmTag t : tags) {
-				artist.addTag(t);
-			}
-			
+		ArrayList<LastfmArtist> artists = lastfmSite.toLastfmArtists(nodes);
+		for (LastfmArtist artist : artists) {		
 			c.addNodeValue(artist);
 		}
 		
-		for (int i = 0; i < nodes.size() - 1; i++) {
+		for (int i = 0; i < artists.size() - 1; i++) {
 			c.addEdge(new Edge(i, i + 1));
 		}
 		
