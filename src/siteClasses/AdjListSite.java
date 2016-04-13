@@ -15,6 +15,10 @@ public class AdjListSite implements Site {
 		this.allNodes = new HashMap<String, Node>();
 		this.filePath = filePath;
 	}
+	
+	public void setFilePath (String path) {
+		this.filePath = path;
+	}
 
 	public void populateConnections(Node node) {
 		// parses the file and adds the connections
