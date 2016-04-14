@@ -33,17 +33,26 @@ public class WebApp extends SimpleWebServer {
 	public static String database, username, password;
 	public static int maxDBNodes;
 	public static double cachePurgePrecent;
+	
+	public static String[] statisticKeys = { "NumberOfConnections" };
 
 	public WebApp() throws IOException {
 		super("localhost", 8000, new File("client/"), false);
 
 		recentConnections = new ArrayList<ArrayList<Node>>();
 		maxRecentConnections = 50;
+		
 		database = "remote:localhost/Connections";
 		username = "root";
 		password = "team4";
 		maxDBNodes = 10000000;
 		cachePurgePrecent = 0.2;
+		
+		// Initialize statistics in db to ensure they are present and correct
+		String[] statisticInitialVals = { "0" };
+		DBInterfacer db = new DBInterfacer(database, username, password);
+		db.initializeStatistics(statisticKeys, statisticInitialVals);
+		db.close();
 	}
 
 	public static void main(String[] args) {
@@ -183,7 +192,7 @@ public class WebApp extends SimpleWebServer {
 			}
 		}
 		
-		InsertStatisticsInDBThread t2 = new InsertStatisticsInDBThread(database, username, password);
+		InsertStatisticsInDBThread t2 = new InsertStatisticsInDBThread(database, username, password, statisticKeys);
 		t2.start();
 		
 		addRecentConnection(nodes);
@@ -245,7 +254,7 @@ public class WebApp extends SimpleWebServer {
 			}
 		}
 		
-		InsertStatisticsInDBThread t2 = new InsertStatisticsInDBThread(database, username, password);
+		InsertStatisticsInDBThread t2 = new InsertStatisticsInDBThread(database, username, password, statisticKeys);
 		t2.start();
 		
 		addRecentConnection(nodes);
@@ -297,20 +306,15 @@ public class WebApp extends SimpleWebServer {
 	
 	private Response getStatistics(IHTTPSession session, Gson gson) {
 		try {
-			ArrayList<String> stats = new ArrayList<String>();
-			
 			DBInterfacer db = new DBInterfacer(database, username, password);
-			String connectionsMade = db.getStatistic("NumberOfConnections");
+			String[] rawStats = db.getStatistics(statisticKeys);
+			String[] finishedStats = new String[rawStats.length];
 			
-			if (connectionsMade == null) {
-				db.setStatistic("NumberOfConnections", "0");
-				connectionsMade = "0";
-			}
+			finishedStats[0] = "Number of Connections Chains Made: " + rawStats[0];
 			
-			stats.add("Number of Connections Made: " + connectionsMade);
 			db.close();
 			
-			return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(stats));
+			return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(finishedStats));
 		} catch (Exception e) {
 			return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "Could not get Statistics");
 		}
@@ -364,11 +368,13 @@ class InsertNodesInDBThread extends Thread {
 
 class InsertStatisticsInDBThread extends Thread {
 	private String database, username, password;
+	private String[] statisticKeys;
 	
-	public InsertStatisticsInDBThread(String database, String username, String password) {
+	public InsertStatisticsInDBThread(String database, String username, String password, String[] statisticKeys) {
 		this.database = database;
 		this.username = username;
 		this.password = password;
+		this.statisticKeys = statisticKeys;
 	}
 	
 	public void run() {
@@ -376,13 +382,11 @@ class InsertStatisticsInDBThread extends Thread {
 			DBInterfacer db = new DBInterfacer(database, username, password);
 			
 			// Update number of connections made in db
-			String statStr = db.getStatistic("NumberOfConnections");
-			if (statStr != null) {
-				int statInt = Integer.parseInt(statStr);
-				db.setStatistic("NumberOfConnections", Integer.toString(statInt + 1));
-			} else {
-				db.setStatistic("NumberOfConnections", "1");
-			}
+			String[] statStr = db.getStatistics(statisticKeys);
+			int connectionsMade = Integer.parseInt(statStr[0]);
+			
+			String[] statvals = { Integer.toString(connectionsMade + 1) };
+			db.setStatistics(statisticKeys, statvals);
 			
 			db.close();
 		} catch (Exception e) {

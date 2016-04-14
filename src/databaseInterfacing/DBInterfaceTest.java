@@ -39,7 +39,7 @@ public class DBInterfaceTest {
 		System.out.println(db);
 		
 //		db.setStatistic("NumberOfConnections", "20");
-		System.out.println(db.getStatistic("NumberOfConnections"));
+//		System.out.println(db.getStatistic("NumberOfConnections"));
 		
 		db.close();
 	}

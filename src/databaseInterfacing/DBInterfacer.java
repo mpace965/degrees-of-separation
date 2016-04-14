@@ -208,55 +208,76 @@ public class DBInterfacer {
 		}
 	}
 	
-	/**
-	 * Sets the given statistic to the value specified
-	 * @param key	Statistic type
-	 * @param value	Value of Statistic
-	 * @return	True if success otherwise false
-	 */
-	public boolean setStatistic(String key, String value) {
-		try {
-			Vertex v;
-			String[] statStr = { "Statistic" };
-			String[] keyStr = { key };
-			Iterator<Vertex> stat = graph.getVertices("Statistics", statStr, keyStr).iterator();
-			
-			if (stat.hasNext()) {
-				v = stat.next();
-				v.setProperty("Statistic", key);
-				v.setProperty("Value", value);
-			} else {
-				v = graph.addVertex("Statistics", "Statistics");
-				v.setProperty("Statistic", key);
-				v.setProperty("Value", value);
-			}
-			
-			return true;
-		} catch (Exception e) {
-			System.err.println("Error: Could not set statistic");
+	public boolean initializeStatistics(String[] keys, String[] values) {
+		Iterator<Vertex> stats = graph.getVerticesOfClass("Statistics").iterator();
+
+		// If there are any stats then they have already been initialized
+		if (stats.hasNext()) {
 			return false;
 		}
+		
+		setStatistics(keys, values);
+		
+		return true;
 	}
 	
 	/**
-	 * Gets the statistic by the specified key
-	 * @param key	Statistic type
-	 * @return	Value of the statistic
+	 * Sets the given statistics to the values specified
+	 * (Each key must be gotten individually to ensure correct order)
+	 * @param keys		Statistic types
+	 * @param values	Values of Statistic
+	 * @return	True if success otherwise false
 	 */
-	public String getStatistic(String key) {
-		try {
-			String[] statStr = { "Statistic" };
-			String[] keyStr = { key };
-			Iterator<Vertex> stat = graph.getVertices("Statistics", statStr, keyStr).iterator();
-			
-			if (!stat.hasNext())
-				return null;
-			
-			return stat.next().getProperty("Value");
-		} catch (Exception e) {
-			System.err.println("Error: Could not get statistic");
-			return null;
+	public boolean setStatistics(String[] keys, String[] values) {
+		for (int i = 0; i < keys.length; i++) {
+			try {
+				Vertex v;
+				String[] statStr = { "Statistic" };
+				String[] keyStr = { keys[i] };
+				Iterator<Vertex> stat = graph.getVertices("Statistics", statStr, keyStr).iterator();
+				
+				if (stat.hasNext()) {
+					v = stat.next();
+					v.setProperty("Statistic", keys[i]);
+					v.setProperty("Value", values[i]);
+				} else {
+					v = graph.addVertex("Statistics", "Statistics");
+					v.setProperty("Statistic", keys[i]);
+					v.setProperty("Value", values[i]);
+				}				
+			} catch (Exception e) {
+				System.err.println("Error: Could not set statistic");
+				return false;
+			}
 		}
+		return true;
+	}
+	
+	/**
+	 * Gets the statistics by the specified keys
+	 * (Each key must be gotten individually to ensure correct order)
+	 * @param keys	Statistic types
+	 * @return	Value of the statistics
+	 */
+	public String[] getStatistics(String[] keys) {
+		String[] values = new String[keys.length];
+		
+		for (int i = 0; i < keys.length; i++) {
+			try {
+				String[] statStr = { "Statistic" };
+				String[] keyStr = { keys[i] };
+				Iterator<Vertex> stat = graph.getVertices("Statistics", statStr, keyStr).iterator();
+				
+				if (!stat.hasNext())
+					return null;
+				
+				values[i] = stat.next().getProperty("Value");
+			} catch (Exception e) {
+				System.err.println("Error: Could not get statistic - " + keys[i]);
+				return null;
+			}
+		}
+		return values;
 	}
 	
 	/**
