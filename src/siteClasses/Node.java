@@ -3,11 +3,12 @@ package siteClasses;
 import java.util.ArrayList;
 
 public interface Node {
+	
 	/**
-	 * @param node
-	 * @return if connection is added
+	 * Set the connections for the Node
+	 * @param connections
 	 */
-	public abstract boolean addConnection(Node node);
+	public abstract void setConnections(ArrayList<Node> connections);
 	
 	/**
 	 * Always check if this value is null before operating on it
@@ -24,4 +25,5 @@ public interface Node {
 	 * @return String for debugging purposes
 	 */
 	public abstract String toString();
+	
 }

@@ -13,32 +13,35 @@ public class ThesaurusNode implements Node {
 	public ThesaurusNode(String nodeID) {
 		this.nodeID = nodeID;
 		this.jsonOb = null;
+		this.connections = null;
 	}
 
-	public JsonObject getJson() {
-		return this.jsonOb;
+	// Getters
+	
+	public ArrayList<Node> getConnections() {
+		return connections;
+	}
+	public String getNodeID() {
+		return nodeID;
+	}
+	public JsonObject getJsonOb() {
+		return jsonOb;
 	}
 	
-	public void setJson(JsonObject a) {
-		this.jsonOb = a;
+	// Setters
+	
+	public void setConnections(ArrayList<Node> connections) {
+		this.connections = connections;
 	}
-
-	public boolean addConnection(Node node) {
-		if (this.connections == null)
-			this.connections = new ArrayList<Node>();
-		return this.connections.add(node);
+	public void setNodeID(String nodeID) {
+		this.nodeID = nodeID;
 	}
-
-	public ArrayList<Node> getConnections() {
-		return this.connections;
+	public void setJsonOb(JsonObject jsonOb) {
+		this.jsonOb = jsonOb;
 	}
-
-	public String getNodeID() {
+	
+	public String toString() {
 		return this.nodeID;
-	}
-
-	public Object getNodeVal() {
-		return this.getJson();
 	}
 
 }

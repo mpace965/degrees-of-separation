@@ -190,8 +190,12 @@ public class DBInterfacer {
 				for (Vertex v : result)
 					nodes.add(new AdjListNode(v.getProperty("ID").toString()));
 			} else if (n1 instanceof LastfmNode) {
-				for (Vertex v : result)
-					nodes.add(new LastfmNode(v.getProperty("ID").toString(), null));
+				for (Vertex v : result) {
+					String id = v.getProperty("ID").toString();
+					String name = LastfmNode.getNamefromID(id);
+					String mbid = LastfmNode.getMbidfromID(id);
+					nodes.add(new LastfmNode(name, mbid));
+				}
 			} else if (n1 instanceof ThesaurusNode) {
 				for (Vertex v : result)
 					nodes.add(new ThesaurusNode(v.getProperty("ID").toString()));

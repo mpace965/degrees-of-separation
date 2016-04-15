@@ -2,6 +2,7 @@ package siteClasses;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class AdjListSite implements Site {
@@ -20,6 +21,51 @@ public class AdjListSite implements Site {
 		this.filePath = path;
 	}
 
+	public Node getStartNode() {
+		return this.start;
+	}
+	public Node getEndNode() {
+		return this.end;
+	}
+
+	public int getAccessCount() {
+		return this.fileAccesses;
+	}
+	public HashMap<String, Node> getAllNodes() {
+		return this.allNodes;
+	}
+	public void resetAccessCount() {
+		this.fileAccesses = 0;
+	}
+	
+	// heuristic
+	
+	public double heuristicCost(Node startNode){
+		Node endNode = this.end;
+		double heuristicConstant = 500d;
+
+		AdjListNode start = (AdjListNode) startNode;
+		AdjListNode end = (AdjListNode) endNode;
+
+		// heuristic based off an inverse normal curve 
+		// with the mean equal to the end point
+		// with SD given by the heuristicConsant
+
+		// the denominator of the function
+		double den = heuristicConstant * Math.sqrt(2d * Math.PI);
+
+		// building up the numerator
+		double num = 2d * Math.pow(heuristicConstant, 2d);
+		num = (Math.pow((Integer) start.getNodeVal() - (Integer) end.getNodeVal(), 2d)) / num;
+		num = 0 - num;
+		num = Math.pow(Math.E, num) * 1000;
+
+		// return final product a number between 1 and 0
+		return 1d - (num / den);
+	}
+
+	// file accessing methods
+	
 	public void populateConnections(Node node) {
 		// parses the file and adds the connections
 		if (!allNodes.containsKey(node.getNodeID())) {
@@ -36,6 +82,7 @@ public class AdjListSite implements Site {
 			boolean reachedEnd = false;
 			boolean hitSection = false;
 			AdjListNode temp;
+			ArrayList<Node> connections = new ArrayList<Node>();
 
 			while (!reachedEnd && (line = bufferedReader.readLine()) != null) {
 				Position pos = getPosition(line, nodeStr);
@@ -44,22 +91,22 @@ public class AdjListSite implements Site {
 						hitSection = true;
 						String idstr = getSecondNode(line);
 						if (allNodes.containsKey(idstr)) {
-							node.addConnection(allNodes.get(idstr));
+							connections.add(allNodes.get(idstr));
 						}
 						else {
 							temp = new AdjListNode(idstr);
-							node.addConnection(temp);
+							connections.add(temp);
 							allNodes.put(idstr, temp);
 						}
 					}
 					else if (pos == Position.SECOND) {
 						String idstr = getFirstNode(line);
 						if (allNodes.containsKey(idstr)) {
-							node.addConnection(allNodes.get(idstr));
+							connections.add(allNodes.get(idstr));
 						}
 						else {
 							temp = new AdjListNode(idstr);
-							node.addConnection(temp);
+							connections.add(temp);
 							allNodes.put(idstr, temp);
 						}
 					}
@@ -68,6 +115,7 @@ public class AdjListSite implements Site {
 					reachedEnd = true;
 				}
 			}   
+			node.setConnections(connections);
 			bufferedReader.close();         
 		}
 		catch(Exception e) {
@@ -100,77 +148,29 @@ public class AdjListSite implements Site {
 		return false;
 	}
 
-	public double heuristicCost(Node startNode){
-		Node endNode = this.end;
-		double heuristicConstant = 500d;
-
-		AdjListNode start = (AdjListNode) startNode;
-		AdjListNode end = (AdjListNode) endNode;
-
-		// heuristic based off an inverse normal curve 
-		// with the mean equal to the end point
-		// with SD given by the heuristicConsant
-
-		// the denominator of the function
-		double den = heuristicConstant * Math.sqrt(2d * Math.PI);
-
-		// building up the numerator
-		double num = 2d * Math.pow(heuristicConstant, 2d);
-		num = (Math.pow((Integer) start.getNodeVal() - (Integer) end.getNodeVal(), 2d)) / num;
-		num = 0 - num;
-		num = Math.pow(Math.E, num) * 1000;
-
-		// return final product a number between 1 and 0
-		return 1d - (num / den);
-	}
-
-	public String setStartAndEndNodes(String start, String end) {
-		this.start = null;
-		this.end = null;
+	public void setStartAndEndNodes(String start, String end) throws Exception {
+		// verify that the nodes exist in the file
+		if (!findNode(start))
+			throw new Exception("Start node DNE");
+		if (!findNode(end))
+			throw new Exception("End node DNE");
 		
-		boolean foundStart = findNode(start);
-		boolean foundEnd = findNode(end);
-		if (!foundStart && !foundEnd) 
-			return start + " and " + end;
-		else if (!foundStart) 
-			return start;
-		else if (!foundEnd) 
-			return end;
+		// next check if nodes are in hashmap
+		// map.get() returns null if key not found
+		this.start = allNodes.get(start);
+		this.end = allNodes.get(end);
 		
-		if (allNodes.containsKey(start)) {
-			this.start = allNodes.get(start);
+		// if still null, create new nodes
+		if (this.start == null) {
+			this.start = new AdjListNode(start);
+			this.allNodes.put(start, this.start);
 		}
-		else {
-			allNodes.put(start, new AdjListNode(start));
-			this.start = allNodes.get(start);
+		if (this.end == null) {
+			this.end = new AdjListNode(end);
+			this.allNodes.put(end, this.end);
 		}
-
-		if (allNodes.containsKey(end)) {
-			this.end = allNodes.get(end);
-		}
-		else {
-			allNodes.put(end, new AdjListNode(end));
-			this.end = allNodes.get(end);
-		}
-		return null;
 	}
-	public Node getStartNode() {
-		return this.start;
-	}
-	public Node getEndNode() {
-		return this.end;
-	}
-
-	public int getAccessCount() {
-		return this.fileAccesses;
-	}
-	public HashMap<String, Node> getAllNodes() {
-		return this.allNodes;
-	}
-	public void resetAccessCount() {
-		this.fileAccesses = 0;
-	}
-
+	
 	// helper methods to parse the file
 
 	private String getFirstNode(String line) {

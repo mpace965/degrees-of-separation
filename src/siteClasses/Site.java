@@ -23,7 +23,7 @@ public interface Site {
 	
 	public abstract Node getStartNode();
 	public abstract Node getEndNode();
-	public abstract String setStartAndEndNodes(String start, String end);
+	public abstract void setStartAndEndNodes(String start, String end) throws Exception;
 	
 	public abstract HashMap<String, Node> getAllNodes();
 }

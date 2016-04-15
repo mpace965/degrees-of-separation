@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -23,8 +24,8 @@ public class LastfmSite implements Site {
 	private final String apiKey = "c6c45e68f6b2a663da996fc504cf9f8b";
 	private Long apiTimer;
 	private int fileAccesses = 0;
-	private LastfmNode start;
-	private LastfmNode end;
+	private Node start;
+	private Node end;
 	private Double heuristicConstant;
 
 	public LastfmSite() {
@@ -34,6 +35,65 @@ public class LastfmSite implements Site {
 		this.end = null;
 		this.heuristicConstant = null;
 	}
+
+	public Node getStartNode() {
+		return this.start;
+	}
+
+	public Node getEndNode() {
+		return this.end;
+	}
+
+	public int getAccessCount() {
+		return this.fileAccesses;
+	}
+
+	public HashMap<String, Node> getAllNodes() {
+		return this.allNodes;
+	}
+
+	public void resetAccessCount() {
+		this.fileAccesses = 0;
+	}
+
+	public void setStartAndEndNodes(String startStr, String endStr) throws Exception {
+		if (startStr == null || endStr == null || startStr.length() < 1 || endStr.length() < 1)
+			throw new Exception("Invalid parameters");
+
+		// check if nodes exist
+		JsonObject startJson = getInfoJson(startStr, null);
+		JsonObject endJson = getInfoJson(endStr, null);
+		String startName = getNameFromJson(startJson);
+		String endName = getNameFromJson(endJson);
+
+		if (startName == null)
+			throw new Exception("Start node DNE");
+		if (endName == null)
+			throw new Exception("End node DNE");
+
+		// get mbid if it has it
+		String startMbid = getMbidFromJson(startJson);
+		String endMbid = getMbidFromJson(endJson);
+
+		// check if they exist in the hashmap
+		String startID = LastfmNode.getID(startName, startMbid);
+		String endID = LastfmNode.getID(endName, endMbid);
+
+		this.start = this.allNodes.get(startID);
+		this.end = this.allNodes.get(endID);
+
+		// if they're still null at this point, create new nodes
+		if (this.start == null) {
+			this.start = new LastfmNode(startName, startMbid);
+			this.allNodes.put(this.start.getNodeID(), this.start);
+		}
+		if (this.end == null) {
+			this.end = new LastfmNode(endName, startMbid);
+			this.allNodes.put(this.end.getNodeID(), this.end);
+		}
+	}
+
+	// Heuristics
 
 	public double heuristicMultiplier(Node p, Node n) {
 		// returns the difference that the "match" variable will be adjusted by
@@ -51,7 +111,6 @@ public class LastfmSite implements Site {
 
 		double nodeToEnd = heuristicCost(node, this.end);
 		double nodeToPrev = heuristicCost(node, prev);
-		// if zero relation, then set to 0.01?
 
 		double ret = Math.abs(nodeToEnd - this.heuristicConstant);
 
@@ -128,91 +187,63 @@ public class LastfmSite implements Site {
 		return ret;
 	}
 
+	// API calls
+
 	public void populateConnections(Node n) {
+		if (n == null) 
+			return;
+
 		LastfmNode node = (LastfmNode) n;
 		if (!allNodes.containsKey(node.getNodeID())) {
 			allNodes.put(node.getNodeID(), node);
 		}
 
-		JsonObject json;
-		JsonArray similar;
+		// get Json object
+		JsonObject json = null;
 		try {
-			json = getSimilarArtistsJson(node);
-			similar = json.getAsJsonObject("similarartists").getAsJsonArray("artist");
+			json = getConnectionsJson(node);
 		}
 		catch (Exception e) {
-			System.err.println("Problem in populate info");
-			e.printStackTrace();
+			System.err.printf("Could not get connections json for node: %s\n", node.toString());
+			System.err.printf("Error message: %s\n", e.getMessage());
+		}
+
+		ArrayList<Node> connections = new ArrayList<Node>();
+		node.setConnections(connections);
+
+		// null checks all along the way
+		if (json == null || !json.has("similarartists")) 
 			return;
-		}
+		JsonObject similarartists = json.getAsJsonObject("similarartists");
 
-		JsonObject tempObj;
-		String name, mbid;
-		Double match;
-		for (JsonElement elem : similar) {
-			tempObj = elem.getAsJsonObject();
-			name = tempObj.has("name") ? tempObj.get("name").getAsString() : null;
-			mbid = tempObj.has("mbid") ? tempObj.get("mbid").getAsString() : null;
-			match = tempObj.has("match") ? tempObj.get("match").getAsDouble() : null;
-
-			LastfmNode tempNode = new LastfmNode(mbid, name, match);
-			if (allNodes.containsKey(tempNode.getNameUrl())) 
-				node.addConnection(allNodes.get(tempNode.getNameUrl()));
-			else if (allNodes.containsKey(tempNode.getMbid())) 
-				node.addConnection(allNodes.get(tempNode.getMbid()));
-			else {
-				allNodes.put(tempNode.getNodeID(), tempNode);
-				node.addConnection(tempNode);
-			}
-		}
-	}
-
-	public void populateInfo(LastfmNode node) {
-		try {
-			if (node.getJson() != null) {
-				System.err.println("Populate info: node already has json");
-				return;
-			}
-			JsonObject json = getInfoJson(node);
-			String mbid = json.getAsJsonObject("artist").get("mbid").getAsString();
-			node.setMbid(mbid);
-			node.setJson(json);
-		}
-		catch (Exception e) {
-			System.err.println("Problem in populate info");
-			e.printStackTrace();
+		if (!similarartists.has("artist")) 
 			return;
-		}
-	}
+		JsonArray artists = similarartists.getAsJsonArray("artist");
 
-	public ArrayList<LastfmArtist> toLastfmArtists(ArrayList<Node> nodes) {
-		ArrayList<LastfmArtist> artists = new ArrayList<LastfmArtist>();
-		
-		for (Node node : nodes) {
-			LastfmNode lastfmNode = (LastfmNode) node;
-			populateInfo(lastfmNode);
-			JsonObject json = lastfmNode.getJson().getAsJsonObject();
-			JsonObject jsonArtist = json.get("artist").getAsJsonObject();
-			
-			LastfmArtist artist = new LastfmArtist();
-			artist.setName(jsonArtist.get("name").getAsString());
-			artist.setImage(jsonArtist.get("image").getAsJsonArray().get(2).getAsJsonObject().get("#text").getAsString());
-			artist.setListeners(jsonArtist.get("stats").getAsJsonObject().get("listeners").getAsInt());
-			artist.setPlaycount(jsonArtist.get("stats").getAsJsonObject().get("playcount").getAsInt());
-			artist.setBio(jsonArtist.get("bio").getAsJsonObject().get("summary").getAsString());
-			
-			JsonArray tags = jsonArtist.get("tags").getAsJsonObject().get("tag").getAsJsonArray();
-			
-			for (int i = 0; i < tags.size(); i++) {
-				String name = tags.get(i).getAsJsonObject().get("name").getAsString();
-				String url = tags.get(i).getAsJsonObject().get("url").getAsString();
-				artist.addTag(new LastfmTag(name, url));
-			}
-			
-			artists.add(artist);
+		for (JsonElement elem : artists) {
+			JsonObject artist = elem.getAsJsonObject();
+
+			// invalid if node doesn't have a name or match%
+			if (!artist.has("name") || !artist.has("match"))
+				continue;
+
+			String name = artist.get("name").getAsString();
+			Double match = artist.get("match").getAsDouble();
+			String mbid = artist.has("mbid") ? artist.get("mbid").getAsString() : null;
+			if (name == null || name.length() < 1 || match == null)
+				continue;
+			if (mbid.length() < 1)
+				mbid = null;
+
+			// check if node already exists
+			String id = LastfmNode.getID(name, mbid);
+			Node neighbor = allNodes.get(id);
+
+			if (neighbor == null) 
+				neighbor = new LastfmNode(name, mbid, match);
+
+			connections.add(neighbor);
 		}
-		
-		return artists;
 	}
 
 	public void populateTags(LastfmNode node) {
@@ -232,107 +263,127 @@ public class LastfmSite implements Site {
 		JsonObject tempObj;
 		String tag;
 		Integer count;
+		HashMap<String, Integer> tagMap = new HashMap<String, Integer>();
 		for (JsonElement elem : tags) {
 			tempObj = elem.getAsJsonObject();
 			tag = tempObj.has("name") ? tempObj.get("name").getAsString() : null;
 			count = tempObj.has("count") ? tempObj.get("count").getAsInt() : null;
 			if (tag != null && count != null) {
-				node.addTag(tag, count);
+				tagMap.put(tag, count);
 			}
 		}
+		node.setTags(tagMap);
 	}
 
-	public Node getStartNode() {
-		return this.start;
+	private String getNameFromJson(JsonObject json) {
+		if (json == null || !json.has("artist"))	
+			return null;
+		JsonObject artist = json.get("artist").getAsJsonObject();
+
+		if (!artist.has("name"))	
+			return null;
+		String name = artist.get("name").getAsString();
+
+		if (name == null || name.length() < 1)
+			return null;
+
+		return name;
 	}
+	private String getMbidFromJson(JsonObject json) {
+		if (json == null || !json.has("artist"))	
+			return null;
+		JsonObject artist = json.get("artist").getAsJsonObject();
 
-	public Node getEndNode() {
-		return this.end;
+		if (!artist.has("mbid"))	
+			return null;
+		String mbid = artist.get("mbid").getAsString();
+
+		if (mbid == null || mbid.length() < 1)
+			return null;
+
+		return mbid;
 	}
-
-	public int getAccessCount() {
-		return this.fileAccesses;
-	}
-	
-	public HashMap<String, Node> getAllNodes() {
-		return this.allNodes;
-	}
-	
-	public void resetAccessCount() {
-		this.fileAccesses = 0;
-	}
-
-	public String setStartAndEndNodes(String startName, String endName) {
-		this.start = null;
-		this.end = null;
-		LastfmNode start = new LastfmNode(null, startName);
-		LastfmNode end = new LastfmNode(null, endName);
-
-		populateTags(start);
-		populateTags(end);
-		populateInfo(start);
-		populateInfo(end);
-
-		if (start.getTags() == null && end.getTags() == null) 
-			return startName + " and " + endName;
-		else if (start.getTags() == null) 
-			return startName;
-		else if (end.getTags() == null) 
-			return endName;
-
-		if (allNodes.containsKey(start.getNodeID())) 
-			this.start = (LastfmNode) allNodes.get(start.getNodeID());
-		else 
-			this.start = start;
-		if (allNodes.containsKey(end.getNodeID())) 
-			this.end = (LastfmNode) allNodes.get(end.getNodeID());
-		else 
-			this.end = end;
-		return null;
-	}
-
 	private JsonObject getInfoJson(LastfmNode node) throws Exception {
-		String url = "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&format=json";
-		if (node.getMbid() != null) 
-			url += "&mbid=";
-		else 
-			url += "&artist=";
-		url += node.getNodeID();
-		url += "&api_key=" + apiKey;
-		return getJson(url);
+		if (node == null) 	
+			return null;
+		return getInfoJson(node.getName(), node.getMbid());
 	}
-
-	private JsonObject getSimilarArtistsJson(LastfmNode node) throws Exception {
-		String url = "http://ws.audioscrobbler.com/2.0/?method=artist.getSimilar&format=json";
-		if (node.getMbid() != null) 
-			url += "&mbid=";
-		else 
-			url += "&artist=";
-		url += node.getNodeID();
-		url += "&api_key=" + apiKey;
-		return getJson(url);
+	private JsonObject getConnectionsJson(LastfmNode node) throws Exception {
+		if (node == null)
+			return null;
+		return getInfoJson(node.getName(), node.getMbid());
 	}
-
 	private JsonObject getTagsJson(LastfmNode node) throws Exception {
-		String url = "http://ws.audioscrobbler.com/2.0/?method=artist.getTopTags&format=json";
-		if (node.getMbid() != null) 
-			url += "&mbid=";
-		else 
-			url += "&artist=";
-		url += node.getNodeID();
-		url += "&api_key=" + apiKey;
-		return getJson(url);
+		if (node == null)
+			return null;
+		return getTagsJson(node.getName(), node.getMbid());
 	}
 
+	private JsonObject getInfoJson(String name, String mbid) throws Exception {
+		String url = "http://ws.audioscrobbler.com/2.0/?method=artist.getinfo&format=json&api_key=" + apiKey;
+		return getJsonObject(url, name, mbid);
+	}
+	private JsonObject getConnectionsJson(String name, String mbid) throws Exception {
+		String url = "http://ws.audioscrobbler.com/2.0/?method=artist.getSimilar&format=json&api_key=" + apiKey;
+		return getJsonObject(url, name, mbid);
+	}
+	private JsonObject getTagsJson(String name, String mbid) throws Exception {
+		String url = "http://ws.audioscrobbler.com/2.0/?method=artist.getTopTags&format=json&api_key=" + apiKey;
+		return getJsonObject(url, name, mbid);
+	}
+	private JsonObject getJsonObject(String url, String name, String mbid) throws Exception {
+		if (url == null || (name == null && mbid == null))
+			throw new Exception("url or name and mbid are null");
+
+		if (name != null && mbid != null) {
+			JsonObject json = null;
+			Exception except = new Exception();
+			// try both
+			try {
+				json = getJson(url + "&artist=" + URLEncoder.encode(name, "UTF-8") + "&mbid=" + mbid);
+			}
+			catch (Exception e) {
+				except = e;
+			}
+			if (json != null)
+				return json;
+
+			// try just mbid
+			try {
+				json = getJson(url + "&mbid=" + mbid);
+			}
+			catch (Exception e) {
+				except = e;
+			}
+			if (json != null)
+				return json;
+
+			// try just name
+			try {
+				json = getJson(url + "&artist=" + URLEncoder.encode(name, "UTF-8"));
+			}
+			catch (Exception e) {
+				except = e;
+			}
+			if (json != null)
+				return json;
+			else 
+				throw except;
+		}
+
+		if (name != null) 
+			return getJson(url + "&artist=" + URLEncoder.encode(name, "UTF-8"));
+		if (mbid != null) 
+			return getJson(url + "&mbid=" + mbid);
+	}
 	private JsonObject getJson(String url) throws Exception {
 		JsonObject simArt = null;
 
 		long currentTime = System.currentTimeMillis();
-		if (apiTimer != null) {
-			while (currentTime - apiTimer < 500l) {
-				currentTime = System.currentTimeMillis();
-			}
-		}
+		if (apiTimer == null)
+			apiTimer = currentTime;
+		while (currentTime - apiTimer < 200l) 
+			currentTime = System.currentTimeMillis();
 		apiTimer = currentTime;
 
 		// Builds a buffered reader to interpret input received from the API
@@ -341,22 +392,84 @@ public class LastfmSite implements Site {
 		URLConnection lfmSim = lastfmGetSimilar.openConnection();
 		BufferedReader in = new BufferedReader(new InputStreamReader(lfmSim.getInputStream()));
 
-		// Reads in a string received from the API requests
 		StringBuilder builder = new StringBuilder();
 		String inputLine = null;
-		while ((inputLine = in.readLine()) != null) {
-			builder.append(inputLine);
+		try {
+			// Reads in a string received from the API requests
+			while ((inputLine = in.readLine()) != null) {
+				builder.append(inputLine);
+			}
+			fileAccesses++;
+			System.err.println("api calls: " + fileAccesses);
 		}
-		fileAccesses++;
-		System.err.println("api calls: " + fileAccesses);
-
-		// Closes the buffered reader
-		in.close();
+		finally {
+			// Closes the buffered reader
+			in.close();
+		}
 
 		// Converts the string to a Json object
 		JsonParser parser = new JsonParser();
 		simArt = parser.parse(builder.toString()).getAsJsonObject();
 
+		if (simArt.has("error")) {
+			throw new Exception(simArt.get("message").getAsString());
+		}
+
 		return simArt;
+	}
+
+	// For front-end
+
+	public ArrayList<LastfmArtist> toLastfmArtists(ArrayList<Node> nodes) {
+		ArrayList<LastfmArtist> artists = new ArrayList<LastfmArtist>();
+
+		for (Node node : nodes) {
+			LastfmNode lastfmNode = (LastfmNode) node;
+			if (lastfmNode == null)
+				return null;
+
+			JsonObject json = null;
+			try {
+				json = getInfoJson(lastfmNode);
+			}
+			catch (Exception e) {
+				System.err.printf("Could not get info json for node: %s\n", lastfmNode.toString());
+				System.err.printf("Error message: %s\n", e.getMessage());
+			}
+			if (json == null)
+				return null;
+			lastfmNode.setJson(json);
+
+			if (!json.has("artist"))
+				return null;
+			JsonObject jsonArtist = json.get("artist").getAsJsonObject();
+
+			if (!jsonArtist.has("name"))
+				return null;
+
+			LastfmArtist artist = new LastfmArtist();
+			artist.setName(jsonArtist.get("name").getAsString());
+
+			try {
+				artist.setListeners(jsonArtist.get("stats").getAsJsonObject().get("listeners").getAsInt());
+				artist.setPlaycount(jsonArtist.get("stats").getAsJsonObject().get("playcount").getAsInt());
+				artist.setBio(jsonArtist.get("bio").getAsJsonObject().get("summary").getAsString());
+				artist.setImage(jsonArtist.get("image").getAsJsonArray().get(2).getAsJsonObject().get("#text").getAsString());
+
+				JsonArray tags = jsonArtist.get("tags").getAsJsonObject().get("tag").getAsJsonArray();
+				for (int i = 0; i < tags.size(); i++) {
+					String name = tags.get(i).getAsJsonObject().get("name").getAsString();
+					String url = tags.get(i).getAsJsonObject().get("url").getAsString();
+					artist.addTag(new LastfmTag(name, url));
+				}
+			}
+			catch (Exception e) {
+				// Do nothing, errors in here are OK
+			}
+
+			artists.add(artist);
+		}
+
+		return artists;
 	}
 }

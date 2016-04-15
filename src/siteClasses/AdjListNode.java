@@ -7,25 +7,29 @@ public class AdjListNode implements Node {
 	private String nodeID;
 
 	public AdjListNode(String nodeID) {
+		this.connections = null;
 		this.nodeID = nodeID;
 	}
-	
-	public boolean addConnection(Node node) {
-		if (this.connections == null)
-			this.connections = new ArrayList<Node>();
-		return this.connections.add(node);
-	}
 
+	// Getters
+	
 	public ArrayList<Node> getConnections() {
-		return this.connections;
+		return connections;
 	}
 	public String getNodeID() {
-		return this.nodeID;
+		return nodeID;
 	}
 	public Integer getNodeVal() {
-		return Integer.parseInt(this.nodeID);
+		return Integer.parseInt(nodeID);
 	}
-	public String toString() {
-		return this.nodeID.toString();
+
+	// Setters
+	
+	public void setConnections(ArrayList<Node> connections) {
+		this.connections = connections;
 	}
+	public void setNodeID(String nodeID) {
+		this.nodeID = nodeID;
+	}
+
 }

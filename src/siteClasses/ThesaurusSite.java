@@ -130,8 +130,7 @@ public class ThesaurusSite implements Site {
 		this.fileAccesses = 0;
 	}
 
-	public String setStartAndEndNodes(String start, String end) {
-		return null;
+	public void setStartAndEndNodes(String start, String end) {
 
 //		if (allNodes.containsKey(start)) {
 //			this.start = allNodes.get(start);

@@ -30,18 +30,18 @@ public class Algorithm {
 
 		Node start = site.getStartNode();
 		Node end = site.getEndNode();
-		
+
 		// TODO: Check to make sure the SiteClass matches the proper Node class
 		if (site instanceof AdjListSite) 
 			if (!(start instanceof AdjListNode) || !(end instanceof AdjListNode)) 
 				return null;
-		else if (site instanceof LastfmSite) 
-			if (!(start instanceof LastfmNode) || !(end instanceof LastfmNode)) 
-				return null;
-		else 
-			return null;
-		
-//		boolean flipped = false;
+			else if (site instanceof LastfmSite) 
+				if (!(start instanceof LastfmNode) || !(end instanceof LastfmNode)) 
+					return null;
+				else 
+					return null;
+
+		//		boolean flipped = false;
 
 		if (start.getConnections() == null)
 			site.populateConnections(start);
@@ -49,7 +49,7 @@ public class Algorithm {
 			site.populateConnections(end);
 
 		if (end.getConnections().size() < start.getConnections().size()) {
-//			flipped = true;
+			//			flipped = true;
 			start = site.getEndNode();
 			end = site.getStartNode();
 		}
@@ -141,39 +141,25 @@ public class Algorithm {
 		// and all nodes are exhausted
 		return null;
 	}
-	
+
 	/**
 	 * @param site
 	 * @return short path connection between the two nodes
 	 */
-	public static LastfmNode start;
 	public static ArrayList<Node> processConnectionLastfmSite(LastfmSite site) {
 		// keeps a reference of every nodes' fibonacciheapnode
 		HashMap<Node, FibonacciHeapNode<Node>> fibNodes = 
 				new HashMap<Node, FibonacciHeapNode<Node>>();
 
-		start = (LastfmNode) site.getStartNode();
+		LastfmNode start = (LastfmNode) site.getStartNode();
 		LastfmNode end = (LastfmNode) site.getEndNode();
 
 		// TODO: Check to make sure the SiteClass matches the proper Node class
-		if (start == null || end == null) {
+		if (start == null || end == null || !(start instanceof LastfmNode) || !(end instanceof LastfmNode)) 
 			return null;
-		}
-		//		else if (site instanceof AdjListSite) { 
-		//			if (!(start instanceof AdjListNode) || !(end instanceof AdjListNode)) 
-		//				return null;
-		//		}
-		//		else if (site instanceof LastfmSite) {
-		//			if (!(start instanceof LastfmNode) || !(end instanceof LastfmNode)) 
-		//				return null;
-		//		}
-		//		else 
-		//			return null;
-
-		if (start.getConnections() == null)
-			site.populateConnections(start);
-		if (end.getConnections() == null)
-			site.populateConnections(end);
+		
+		if (start.getConnections() == null)		site.populateConnections(start);
+		if (end.getConnections() == null)		site.populateConnections(end);
 
 		// adds more optimization by checking node against
 		// a set in O(1) rather than checking against a single node
@@ -199,12 +185,12 @@ public class Algorithm {
 		openSet.put(start, 1d);
 		prev.put(start, start.getConnections().get(start.getConnections().size() - 1));
 
-		LastfmNode node; 
+		Node node; 
 		double heuristicAdjustment, heuristicMultiplier, heur;
 		while (!fscore.isEmpty()) {
 			// remove min and add to closed set
 			FibonacciHeapNode<Node> f = fscore.removeMin();
-			node = (LastfmNode) f.getData();
+			node = f.getData();
 			closedSet.add(node);
 			System.err.println(node + " : " + f.getKey());
 
@@ -247,18 +233,15 @@ public class Algorithm {
 					return flip(prev, end);
 				}
 
-				// calculate new distance
+				// calculate new distance TODO
 				LastfmNode temp = (LastfmNode) neighbor;
 				heur = (1 - ((1 - temp.getMatch()) * heuristicMultiplier)) + heuristicAdjustment;
-				if (heur < 0) {
-					System.out.println("negative");
-				}
 
 				// if new distance is greater than old distance, no need to check it
 				if (openSet.containsKey(neighbor) && heur >= openSet.get(neighbor)) 
 					continue;
 
-//				System.err.println(neighbor + " : " + heur);
+				//				System.err.println(neighbor + " : " + heur);
 				// give this node a fibonacciheap node if it doesn't have one
 				if (!fibNodes.containsKey(neighbor)) 
 					fibNodes.put(neighbor, new FibonacciHeapNode<Node>(neighbor));
@@ -293,17 +276,13 @@ public class Algorithm {
 		while (curr != null) {
 			list.add(curr);
 			curr = prev.get(curr);
-			if (curr.equals(start)) {
-				list.add(start);
-				break;
-			}
 		}
 
-			for (int i = 0; i < list.size() / 2; i++) {
-				Node temp = list.get(i);
-				list.set(i, list.get(list.size() - 1 - i));
-				list.set(list.size() - 1 - i, temp);
-			}
+		for (int i = 0; i < list.size() / 2; i++) {
+			Node temp = list.get(i);
+			list.set(i, list.get(list.size() - 1 - i));
+			list.set(list.size() - 1 - i, temp);
+		}
 
 		return list;
 	}
