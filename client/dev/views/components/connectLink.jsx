@@ -1,6 +1,5 @@
 var React = require('react');
 var $ = require('jquery');
-import CircularProgress from 'material-ui/lib/circular-progress';
 
 var ConnectLink = React.createClass({
   getInitialState: function() {
