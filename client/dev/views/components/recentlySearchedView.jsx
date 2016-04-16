@@ -7,7 +7,13 @@ var RecentlySearchedView = React.createClass({
     return {
       timeout: {},
       recentChain: [],
-      recentConnection: ''
+      startIndex: 0
+    };
+  },
+
+  getDefaultProps: function() {
+    return {
+      length: 5
     };
   },
 
@@ -18,7 +24,11 @@ var RecentlySearchedView = React.createClass({
         cache: false,
         success: function(data) {
           this.setState({recentChain: data});
-          this.setRandomRecent();
+
+          if (this.state.recentChain.length > this.props.length) {
+            this.incrementStart();
+            this.setState({timeout: setInterval(this.incrementStart, 4000)});
+          }
         }.bind(this),
         error: function(xhr, status, err) {
           console.error('/api/recentConnections', status, err.toString());
@@ -28,16 +38,18 @@ var RecentlySearchedView = React.createClass({
 
   componentDidMount: function() {
     this.getRecentsFromServer();
-    this.setState({timeout: setInterval(this.setRandomRecent, 4000)});
   },
 
   componentWillUnmount: function() {
     clearInterval(this.state.timeout);
   },
 
-  setRandomRecent: function() {
-    var randomIndex = Math.floor(Math.random() * this.state.recentChain.length);
-    this.setState({recentConnection: this.state.recentChain[randomIndex]});
+  incrementStart: function() {
+    if (this.state.startIndex < this.state.recentChain.length - 1) {
+      this.setState({startIndex: this.state.startIndex + 1});
+    } else {
+      this.setState({startIndex: 0});
+    }
   },
 
   render: function() {
@@ -49,10 +61,30 @@ var RecentlySearchedView = React.createClass({
       margin: 20,
     };
 
+    var recents = [];
+    var end = 0;
+
+    if (this.state.recentChain.length < this.props.length) {
+      end = this.state.recentChain.length;
+    } else {
+      end = this.props.length;
+    }
+
+    //Appends the first n elements to the end of the array, to make it easy to get the elements before the index resets to 0.
+    var wrapArray = this.state.recentChain.concat(this.state.recentChain.slice(0, this.props.length - 1));
+
+    for (var i = 0; i < end; i++) {
+      var index = this.state.startIndex + i;
+
+      recents.push(
+        <div key={index}>{wrapArray[index]}</div>
+      );
+    }
+
     return (
       <Paper style={style} zDepth={1}>
         <p><strong>Recently Connected:</strong></p>
-        <p>{this.state.recentConnection}</p>
+        <div>{recents}</div>
       </Paper>
     );
   }
