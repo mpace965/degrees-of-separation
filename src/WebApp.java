@@ -35,11 +35,11 @@ public class WebApp extends SimpleWebServer {
 	public static int maxDBNodes;
 	public static double cachePurgePrecent;
 	
+	// Note: if statisticKeys is modified, be sure to modify initalizeStatistics and updateStatistics
 	public static HashMap<String, Object> statisticMap;
-	public static Object[] statisticInitialVals = { 0, 0, 0, 0.00, 0, 0, 0, 0.00, 0.00, 0.00, 0.00 };
 	public static String[] statisticKeys = { "TotalConnectionChains", "TotalConnections", "TotalDBNodes", 
-			"AverageChainLength", "ShortestChainLength", "LongestChainLength", "TotalChainLength", 
-			"AverageComputationTime", "ShortestComputationTime", "LongestComputationTime", "TotalComputationTime" };
+			"AverageChainLength", "LongestChainLength", "ShortestChainLength", "TotalChainLength", 
+			"AverageComputationTime", "LongestComputationTime", "ShortestComputationTime", "TotalComputationTime" };
 
 	public WebApp() throws IOException {
 		super("localhost", 8000, new File("client/"), false);
@@ -112,6 +112,7 @@ public class WebApp extends SimpleWebServer {
 	
 	private void initalizeStatistics() {
 		// Initialize statistics in db to ensure they are present and correct
+		Object[] statisticInitialVals = { 0, 0, 0, 0.00, 0, 0, 0, 0.00, 0.00, 0.00, 0.00 };
 		Object[] statVals = null;
 		try {
 			DBInterfacer db = new DBInterfacer(database, username, password);
@@ -125,6 +126,36 @@ public class WebApp extends SimpleWebServer {
 		} catch (Exception e) {
 			System.err.println("Error: Could not initialize statistics in db");
 		}
+	}
+	
+	private void updateStatistics(ArrayList<Node> nodes, ArrayList<Node> allNodes) {
+		// Get all current statistics		
+		Integer totalConnectionChains = (Integer)statisticMap.get("TotalConnectionChains");
+		//Integer totalConnections = (Integer)statisticMap.get("TotalConnections");
+		Integer totalDBNodes = (Integer)statisticMap.get("TotalDBNodes");
+		Integer longestChainLength = (Integer)statisticMap.get("LongestChainLength");
+		Integer shortestChainLength = (Integer)statisticMap.get("ShortestChainLength");
+		Integer totalChainLength = (Integer)statisticMap.get("TotalChainLength");
+		//Integer longestComputationTime = (Integer)statisticMap.get("LongestComputationTime");
+		//Integer shortestComputationTime = (Integer)statisticMap.get("ShortestComputationTime");
+		//Integer TotalComputationTime = (Integer)statisticMap.get("TotalComputationTime");
+		
+		// Update all statistics
+		totalConnectionChains++;
+		totalDBNodes += allNodes.size();
+		if (nodes.size() < shortestChainLength || shortestChainLength == 0)
+			shortestChainLength = nodes.size();
+		if (nodes.size() > longestChainLength || longestChainLength == 0)
+			longestChainLength = nodes.size();
+		totalChainLength += nodes.size();
+		
+		// Set all new statistics
+		statisticMap.put("TotalConnectionChains", totalConnectionChains);
+		statisticMap.put("TotalDBNodes", totalDBNodes);
+		statisticMap.put("AverageChainLength", (double)totalChainLength / (double)totalConnectionChains);
+		statisticMap.put("LongestChainLength", longestChainLength);
+		statisticMap.put("ShortestChainLength", shortestChainLength);
+		statisticMap.put("TotalChainLength", totalChainLength);
 	}
 	
 	private ArrayList<Node> checkRecentConnections(Site site) {
@@ -184,7 +215,8 @@ public class WebApp extends SimpleWebServer {
 		Map<String, String> parms = session.getParms();
 		String beginString = parms.get("begin");
 		String endString = parms.get("end");
-		ArrayList<Node> nodes, allNodes;
+		ArrayList<Node> nodes = null;
+		ArrayList<Node> allNodes = null;
 
 		lastfmSite.setStartAndEndNodes(beginString, endString);
 		
@@ -209,6 +241,8 @@ public class WebApp extends SimpleWebServer {
 				t1.start();
 			}
 		}
+		
+		updateStatistics(nodes, allNodes);		
 		
 		InsertStatisticsInDBThread t2 = new InsertStatisticsInDBThread(database, username, password, statisticKeys, statisticMap);
 		t2.start();
@@ -325,7 +359,17 @@ public class WebApp extends SimpleWebServer {
 	private Response getStatistics(IHTTPSession session, Gson gson) {
 		String[] ReadableStats = new String[statisticKeys.length];
 		
-		ReadableStats[0] = "Number of Connections Chains Made: " + statisticMap.get(statisticKeys[0]);
+		ReadableStats[0] = "Total Connections Chains Made: " + statisticMap.get(statisticKeys[0]).toString();
+		ReadableStats[1] = "Total Connections Made: " + statisticMap.get(statisticKeys[1]).toString();
+		ReadableStats[2] = "Total Nodes in our Database: " + statisticMap.get(statisticKeys[2]).toString();
+		ReadableStats[3] = "Average Connection Chain Length: " + statisticMap.get(statisticKeys[3]).toString();
+		ReadableStats[4] = "Longest Connection Chain Length: " + statisticMap.get(statisticKeys[4]).toString();
+		ReadableStats[5] = "Shortest Connection Chain Length: " + statisticMap.get(statisticKeys[5]).toString();
+		ReadableStats[6] = "Total Connection Chain Length: " + statisticMap.get(statisticKeys[6]).toString();
+		ReadableStats[7] = "Average Compuation Time: " + statisticMap.get(statisticKeys[7]).toString();
+		ReadableStats[8] = "Longest Computation Time: " + statisticMap.get(statisticKeys[8]).toString();
+		ReadableStats[9] = "Shortest Computation Time: " + statisticMap.get(statisticKeys[9]).toString();
+		ReadableStats[10] = "Total Compuation Time: " + statisticMap.get(statisticKeys[10]).toString();
 				
 		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(ReadableStats));
 	}
