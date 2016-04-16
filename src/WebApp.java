@@ -245,18 +245,18 @@ public class WebApp extends SimpleWebServer {
 				
 				allNodes = new ArrayList<Node>(lastfmSite.getAllNodes().values());
 				
+				updateStatistics(nodes, allNodes, algTimeDiff);
+				
 				InsertNodesInDBThread t1 = new InsertNodesInDBThread(allNodes, database, username, password,
 						maxDBNodes, cachePurgePrecent);
+				InsertStatisticsInDBThread t2 = new InsertStatisticsInDBThread(database, username, password,
+						statisticKeys, statisticMap);
+
 				t1.start();
+				t2.start();
 			}
+			addRecentConnection(nodes);
 		}
-		
-		updateStatistics(nodes, allNodes, algTimeDiff);		
-		
-		InsertStatisticsInDBThread t2 = new InsertStatisticsInDBThread(database, username, password, statisticKeys, statisticMap);
-		t2.start();
-		
-		addRecentConnection(nodes);
 		
 		c.setNodeCount(nodes.size());
 		
