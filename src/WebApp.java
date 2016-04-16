@@ -128,7 +128,7 @@ public class WebApp extends SimpleWebServer {
 		}
 	}
 	
-	private void updateStatistics(ArrayList<Node> nodes, ArrayList<Node> allNodes) {
+	private void updateStatistics(ArrayList<Node> nodes, ArrayList<Node> allNodes, Long algTime) {
 		// Get all current statistics		
 		Integer totalConnectionChains = (Integer)statisticMap.get("TotalConnectionChains");
 		//Integer totalConnections = (Integer)statisticMap.get("TotalConnections");
@@ -136,9 +136,9 @@ public class WebApp extends SimpleWebServer {
 		Integer longestChainLength = (Integer)statisticMap.get("LongestChainLength");
 		Integer shortestChainLength = (Integer)statisticMap.get("ShortestChainLength");
 		Integer totalChainLength = (Integer)statisticMap.get("TotalChainLength");
-		//Integer longestComputationTime = (Integer)statisticMap.get("LongestComputationTime");
-		//Integer shortestComputationTime = (Integer)statisticMap.get("ShortestComputationTime");
-		//Integer TotalComputationTime = (Integer)statisticMap.get("TotalComputationTime");
+		Long longestComputationTime = (Long)statisticMap.get("LongestComputationTime");
+		Long shortestComputationTime = (Long)statisticMap.get("ShortestComputationTime");
+		Long totalComputationTime = (Long)statisticMap.get("TotalComputationTime");
 		
 		// Update all statistics
 		totalConnectionChains++;
@@ -148,6 +148,11 @@ public class WebApp extends SimpleWebServer {
 		if (nodes.size() > longestChainLength || longestChainLength == 0)
 			longestChainLength = nodes.size();
 		totalChainLength += nodes.size();
+		if (algTime < shortestComputationTime || shortestComputationTime == 0)
+			shortestComputationTime = algTime;
+		if (algTime > longestComputationTime || longestComputationTime == 0)
+			longestComputationTime = algTime;
+		totalComputationTime += algTime;
 		
 		// Set all new statistics
 		statisticMap.put("TotalConnectionChains", totalConnectionChains);
@@ -217,6 +222,7 @@ public class WebApp extends SimpleWebServer {
 		String endString = parms.get("end");
 		ArrayList<Node> nodes = null;
 		ArrayList<Node> allNodes = null;
+		Long algTime1, algTime2, algTimeDiff = null;
 
 		lastfmSite.setStartAndEndNodes(beginString, endString);
 		
@@ -228,7 +234,10 @@ public class WebApp extends SimpleWebServer {
 			nodes = checkDB(lastfmSite);
 			
 			if (nodes == null) {
+				algTime1 = System.currentTimeMillis();
 				nodes = Algorithm.processConnectionLastfmSite(lastfmSite);
+				algTime2 = System.currentTimeMillis();
+				algTimeDiff = algTime2 - algTime1;
 				
 				if (nodes == null || nodes.size() == 0) {
 					return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "No match was found from these inputs.");
@@ -242,7 +251,7 @@ public class WebApp extends SimpleWebServer {
 			}
 		}
 		
-		updateStatistics(nodes, allNodes);		
+		updateStatistics(nodes, allNodes, algTimeDiff);		
 		
 		InsertStatisticsInDBThread t2 = new InsertStatisticsInDBThread(database, username, password, statisticKeys, statisticMap);
 		t2.start();
