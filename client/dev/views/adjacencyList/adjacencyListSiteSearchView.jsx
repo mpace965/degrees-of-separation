@@ -8,13 +8,13 @@ import RaisedButton from 'material-ui/lib/raised-button';
 import Snackbar from 'material-ui/lib/snackbar';
 
 var AdjacencyListResultView = require('./adjacencyListResultView');
-var cancelClicked;
 
 var AdjacencyListSiteSearchView = React.createClass({
   getInitialState: function() {
     return {
       connectionBegin: '',
       connectionEnd: '',
+      apiRequest: {},
       apiResponse: {},
       apiLoading: false,
       snackbarOpen: false,
@@ -24,7 +24,7 @@ var AdjacencyListSiteSearchView = React.createClass({
 
   //Make the api request to the server
   loadChainFromServer: function() {
-    $.ajax({
+    var request = $.ajax({
         url: '/api/connectAdjacency',
         dataType: 'json',
         cache: false,
@@ -33,20 +33,17 @@ var AdjacencyListSiteSearchView = React.createClass({
           this.setState({apiResponse: data}, function() {
             this.setState({apiLoading: false});
             var newGraph = this.processApiResponse();
-           	if (cancelClicked == 0) {
-            	this.props.setActiveView(AdjacencyListResultView, {graph: newGraph});
-            }
+            this.props.setActiveView(AdjacencyListResultView, {graph: newGraph});
           });
         }.bind(this),
         error: function(xhr, status, err) {
           this.setState({apiLoading: false});
           this.setState({snackbarOpen: true, snackbarMessage: xhr.responseText});
           console.error('/api/connectAdjacency', status, err.toString());
-        }.bind(this),
-        timeout: 60000
+        }.bind(this)
     });
 
-    this.setState({apiLoading: true});
+    this.setState({apiLoading: true, apiRequest: request});
   },
 
   processApiResponse: function() {
@@ -79,7 +76,6 @@ var AdjacencyListSiteSearchView = React.createClass({
     //basic string sanitation
     var connectionBegin = this.state.connectionBegin.trim();
     var connectionEnd = this.state.connectionEnd.trim();
-	cancelClicked = 0;
 
     if (!connectionBegin || !connectionEnd) {
       //add error message
@@ -89,11 +85,11 @@ var AdjacencyListSiteSearchView = React.createClass({
     this.loadChainFromServer();
     this.setState({connectionBegin: '', connectionEnd: ''});
   },
-  
-    handleCancel: function() {
-  	this.replaceState(this.getInitialState());
-  },
 
+  handleCancel: function() {
+    this.state.apiRequest.abort();
+    this.replaceState(this.getInitialState());
+  },
 
   handleRequestClose: function() {
     this.setState({snackbarOpen: false, snackbarMessage: ''});
@@ -106,7 +102,6 @@ var AdjacencyListSiteSearchView = React.createClass({
     if (this.state.apiLoading) {
       circularProgress = <CircularProgress />;
       cancelButton = <RaisedButton label="Cancel" onMouseUp={this.handleCancel} />;
-      cancelClicked = 1;
     }
 
     const style = {

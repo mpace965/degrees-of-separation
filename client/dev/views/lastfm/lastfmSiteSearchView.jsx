@@ -8,7 +8,6 @@ import RaisedButton from 'material-ui/lib/raised-button';
 import Snackbar from 'material-ui/lib/snackbar';
 
 var LastfmResultView = require('./lastfmResultView');
-var cancelClicked;
 
 var LastfmSiteSearchView = React.createClass({
   getInitialState: function() {
@@ -16,6 +15,7 @@ var LastfmSiteSearchView = React.createClass({
       connectionBegin: '',
       connectionEnd: '',
       apiResponse: {},
+      apiRequest: {},
       apiLoading: false,
       snackbarOpen: false,
       snackbarMessage: ''
@@ -24,7 +24,7 @@ var LastfmSiteSearchView = React.createClass({
 
   //Make the api request to the server
   loadChainFromServer: function() {
-    $.ajax({
+    var request = $.ajax({
         url: '/api/connectLastfm',
         dataType: 'json',
         cache: false,
@@ -33,20 +33,17 @@ var LastfmSiteSearchView = React.createClass({
           this.setState({apiResponse: data}, function() {
             this.setState({apiLoading: false});
             var newGraph = this.processApiResponse();
-            if (cancelClicked == 0) {
-            	this.props.setActiveView(LastfmResultView, {graph: newGraph});
-            }
+            this.props.setActiveView(LastfmResultView, {graph: newGraph});
           });
         }.bind(this),
         error: function(xhr, status, err) {
           this.setState({apiLoading: false});
           this.setState({snackbarOpen: true, snackbarMessage: xhr.responseText});
           console.error('/api/connectLastfm', status, err.toString());
-        }.bind(this),
-        timeout: 60000
+        }.bind(this)
     });
 
-    this.setState({apiLoading: true});
+    this.setState({apiLoading: true, apiRequest: request});
   },
 
   processApiResponse: function() {
@@ -79,7 +76,6 @@ var LastfmSiteSearchView = React.createClass({
     //basic string sanitation
     var connectionBegin = this.state.connectionBegin.trim();
     var connectionEnd = this.state.connectionEnd.trim();
-    cancelClicked = 0;
 
     if (!connectionBegin || !connectionEnd) {
       //add error message
@@ -89,10 +85,10 @@ var LastfmSiteSearchView = React.createClass({
     this.loadChainFromServer();
     this.setState({connectionBegin: '', connectionEnd: ''});
   },
-  
+
   handleCancel: function() {
+    this.state.apiRequest.abort();
   	this.replaceState(this.getInitialState());
-  	cancelClicked = 1;
   },
 
   handleRequestClose: function() {
@@ -101,7 +97,7 @@ var LastfmSiteSearchView = React.createClass({
 
   render: function() {
     var circularProgress;
-	var cancelButton;
+	  var cancelButton;
 
     if (this.state.apiLoading) {
       cancelButton = <RaisedButton label="Cancel" onMouseUp={this.handleCancel} />;
