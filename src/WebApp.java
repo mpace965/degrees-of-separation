@@ -223,7 +223,7 @@ public class WebApp extends SimpleWebServer {
 		String endString = parms.get("end");
 		ArrayList<Node> nodes = null;
 		ArrayList<Node> allNodes = null;
-		Long algTime1, algTime2, algTimeDiff = null;
+		Long algTime1, algTime2, algTimeDiff;
 
 		lastfmSite.setStartAndEndNodes(beginString, endString);
 		
