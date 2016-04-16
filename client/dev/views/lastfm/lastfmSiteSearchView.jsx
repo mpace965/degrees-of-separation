@@ -8,6 +8,7 @@ import RaisedButton from 'material-ui/lib/raised-button';
 import Snackbar from 'material-ui/lib/snackbar';
 
 var LastfmResultView = require('./lastfmResultView');
+var cancelClicked;
 
 var LastfmSiteSearchView = React.createClass({
   getInitialState: function() {
@@ -32,7 +33,9 @@ var LastfmSiteSearchView = React.createClass({
           this.setState({apiResponse: data}, function() {
             this.setState({apiLoading: false});
             var newGraph = this.processApiResponse();
-            this.props.setActiveView(LastfmResultView, {graph: newGraph});
+            if (cancelClicked == 0) {
+            	this.props.setActiveView(LastfmResultView, {graph: newGraph});
+            }
           });
         }.bind(this),
         error: function(xhr, status, err) {
@@ -76,6 +79,7 @@ var LastfmSiteSearchView = React.createClass({
     //basic string sanitation
     var connectionBegin = this.state.connectionBegin.trim();
     var connectionEnd = this.state.connectionEnd.trim();
+    cancelClicked = 0;
 
     if (!connectionBegin || !connectionEnd) {
       //add error message
@@ -85,6 +89,11 @@ var LastfmSiteSearchView = React.createClass({
     this.loadChainFromServer();
     this.setState({connectionBegin: '', connectionEnd: ''});
   },
+  
+  handleCancel: function() {
+  	this.replaceState(this.getInitialState());
+  	cancelClicked = 1;
+  },
 
   handleRequestClose: function() {
     this.setState({snackbarOpen: false, snackbarMessage: ''});
@@ -92,8 +101,10 @@ var LastfmSiteSearchView = React.createClass({
 
   render: function() {
     var circularProgress;
+	var cancelButton;
 
     if (this.state.apiLoading) {
+      cancelButton = <RaisedButton label="Cancel" onMouseUp={this.handleCancel} />;
       circularProgress = <CircularProgress />;
     }
 
@@ -122,6 +133,7 @@ var LastfmSiteSearchView = React.createClass({
             <RaisedButton label="Submit" onMouseUp={this.handleSubmit} />
           </div>
           <div className="flexRowItem">{circularProgress}</div>
+          <div className="flexRowItem">{cancelButton}</div>
         </Paper>
         <Snackbar
           open={this.state.snackbarOpen}

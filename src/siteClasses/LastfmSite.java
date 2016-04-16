@@ -51,6 +51,7 @@ public class LastfmSite implements Site {
 
 		double nodeToEnd = heuristicCost(node, this.end);
 		double nodeToPrev = heuristicCost(node, prev);
+		// if zero relation, then set to 0.01?
 
 		double ret = Math.abs(nodeToEnd - this.heuristicConstant);
 

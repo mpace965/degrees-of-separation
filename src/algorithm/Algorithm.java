@@ -250,6 +250,9 @@ public class Algorithm {
 				// calculate new distance
 				LastfmNode temp = (LastfmNode) neighbor;
 				heur = (1 - ((1 - temp.getMatch()) * heuristicMultiplier)) + heuristicAdjustment;
+				if (heur < 0) {
+					System.out.println("negative");
+				}
 
 				// if new distance is greater than old distance, no need to check it
 				if (openSet.containsKey(neighbor) && heur >= openSet.get(neighbor)) 
@@ -290,6 +293,10 @@ public class Algorithm {
 		while (curr != null) {
 			list.add(curr);
 			curr = prev.get(curr);
+			if (curr.equals(start)) {
+				list.add(start);
+				break;
+			}
 		}
 
 			for (int i = 0; i < list.size() / 2; i++) {
