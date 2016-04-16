@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import siteClasses.AdjListNode;
@@ -34,7 +35,11 @@ public class WebApp extends SimpleWebServer {
 	public static int maxDBNodes;
 	public static double cachePurgePrecent;
 	
-	public static String[] statisticKeys = { "NumberOfConnections" };
+	public static HashMap<String, Object> statisticMap;
+	public static Object[] statisticInitialVals = { 0, 0, 0, 0.00, 0, 0, 0, 0.00, 0.00, 0.00, 0.00 };
+	public static String[] statisticKeys = { "TotalConnectionChains", "TotalConnections", "TotalDBNodes", 
+			"AverageChainLength", "ShortestChainLength", "LongestChainLength", "TotalChainLength", 
+			"AverageComputationTime", "ShortestComputationTime", "LongestComputationTime", "TotalComputationTime" };
 
 	public WebApp() throws IOException {
 		super("localhost", 8000, new File("client/"), false);
@@ -48,11 +53,7 @@ public class WebApp extends SimpleWebServer {
 		maxDBNodes = 10000000;
 		cachePurgePrecent = 0.2;
 		
-		// Initialize statistics in db to ensure they are present and correct
-		String[] statisticInitialVals = { "0" };
-		DBInterfacer db = new DBInterfacer(database, username, password);
-		db.initializeStatistics(statisticKeys, statisticInitialVals);
-		db.close();
+		initalizeStatistics();
 	}
 
 	public static void main(String[] args) {
@@ -107,6 +108,23 @@ public class WebApp extends SimpleWebServer {
 		}
 
 		return r;
+	}
+	
+	private void initalizeStatistics() {
+		// Initialize statistics in db to ensure they are present and correct
+		Object[] statVals = null;
+		try {
+			DBInterfacer db = new DBInterfacer(database, username, password);
+			statVals = db.initializeStatistics(statisticKeys, statisticInitialVals);
+			db.close();
+			
+			for (int i = 0; i < statisticKeys.length; i++) {
+				statisticMap.put(statisticKeys[i], statVals[i]);
+			}
+			
+		} catch (Exception e) {
+			System.err.println("Error: Could not initialize statistics in db");
+		}
 	}
 	
 	private ArrayList<Node> checkRecentConnections(Site site) {
@@ -192,7 +210,7 @@ public class WebApp extends SimpleWebServer {
 			}
 		}
 		
-		InsertStatisticsInDBThread t2 = new InsertStatisticsInDBThread(database, username, password, statisticKeys);
+		InsertStatisticsInDBThread t2 = new InsertStatisticsInDBThread(database, username, password, statisticKeys, statisticMap);
 		t2.start();
 		
 		addRecentConnection(nodes);
@@ -254,7 +272,7 @@ public class WebApp extends SimpleWebServer {
 			}
 		}
 		
-		InsertStatisticsInDBThread t2 = new InsertStatisticsInDBThread(database, username, password, statisticKeys);
+		InsertStatisticsInDBThread t2 = new InsertStatisticsInDBThread(database, username, password, statisticKeys, statisticMap);
 		t2.start();
 		
 		addRecentConnection(nodes);
@@ -305,19 +323,11 @@ public class WebApp extends SimpleWebServer {
 	}
 	
 	private Response getStatistics(IHTTPSession session, Gson gson) {
-		try {
-			DBInterfacer db = new DBInterfacer(database, username, password);
-			String[] rawStats = db.getStatistics(statisticKeys);
-			String[] finishedStats = new String[rawStats.length];
-			
-			finishedStats[0] = "Number of Connections Chains Made: " + rawStats[0];
-			
-			db.close();
-			
-			return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(finishedStats));
-		} catch (Exception e) {
-			return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "Could not get Statistics");
-		}
+		String[] ReadableStats = new String[statisticKeys.length];
+		
+		ReadableStats[0] = "Number of Connections Chains Made: " + statisticMap.get(statisticKeys[0]);
+				
+		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(ReadableStats));
 	}
 }
 
@@ -369,12 +379,15 @@ class InsertNodesInDBThread extends Thread {
 class InsertStatisticsInDBThread extends Thread {
 	private String database, username, password;
 	private String[] statisticKeys;
+	private HashMap<String, Object> statisticMap;
 	
-	public InsertStatisticsInDBThread(String database, String username, String password, String[] statisticKeys) {
+	public InsertStatisticsInDBThread(String database, String username, String password,
+			String[] statisticKeys, HashMap<String, Object> statisticMap) {
 		this.database = database;
 		this.username = username;
 		this.password = password;
 		this.statisticKeys = statisticKeys;
+		this.statisticMap = statisticMap;
 	}
 	
 	public void run() {
@@ -382,11 +395,9 @@ class InsertStatisticsInDBThread extends Thread {
 			DBInterfacer db = new DBInterfacer(database, username, password);
 			
 			// Update number of connections made in db
-			String[] statStr = db.getStatistics(statisticKeys);
-			int connectionsMade = Integer.parseInt(statStr[0]);
-			
-			String[] statvals = { Integer.toString(connectionsMade + 1) };
-			db.setStatistics(statisticKeys, statvals);
+			for (String statisticKey : statisticKeys) {
+				db.setStatistic(statisticKey, statisticMap.get(statisticKey));
+			}
 			
 			db.close();
 		} catch (Exception e) {

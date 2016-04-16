@@ -208,17 +208,77 @@ public class DBInterfacer {
 		}
 	}
 	
-	public boolean initializeStatistics(String[] keys, String[] values) {
+	public Object[] initializeStatistics(String[] keys, Object[] values) {
 		Iterator<Vertex> stats = graph.getVerticesOfClass("Statistics").iterator();
 
-		// If there are any stats then they have already been initialized
-		if (stats.hasNext()) {
-			return false;
+		// If there aren't any statistics then the default values should be set
+		if (!stats.hasNext()) {
+			setStatistics(keys, values);
 		}
 		
-		setStatistics(keys, values);
+		return this.getStatistics(keys);
+	}
+	
+	/**
+	 * Sets the given statistic to the values specified
+	 * (Each key must be gotten individually to ensure correct order)
+	 * @param key	Statistic type
+	 * @param value	Values of Statistic
+	 * @return	True if success otherwise false
+	 */
+	public void setStatistic(String key, Object value) {
+		String valuestr = value.toString();
 		
-		return true;
+		try {
+			Vertex v;
+			String[] statStr = { "Statistic" };
+			String[] keyStr = { key };
+			Iterator<Vertex> stat = graph.getVertices("Statistics", statStr, keyStr).iterator();
+			
+			if (stat.hasNext()) {
+				v = stat.next();
+				v.setProperty("Value", valuestr);
+			} else {
+				v = graph.addVertex("Statistics", "Statistics");
+				v.setProperty("Statistic", key);
+				v.setProperty("Value", valuestr);
+			}				
+		} catch (Exception e) {
+			System.err.println("Error: Could not set statistic");
+		}
+	}
+	
+	/**
+	 * Gets the statistic by the specified key
+	 * (Each key must be gotten individually to ensure correct order)
+	 * @param key	Statistic type
+	 * @return	Value of the statistics
+	 */
+	public Object getStatistic(String key) {
+		String value;
+		try {
+			String[] statStr = { "Statistic" };
+			String[] keyStr = { key };
+			Iterator<Vertex> stat = graph.getVertices("Statistics", statStr, keyStr).iterator();
+			
+			if (!stat.hasNext())
+				return null;
+			
+			value = stat.next().getProperty("Value");
+		} catch (Exception e) {
+			System.err.println("Error: Could not get statistic - " + key);
+			return null;
+		}
+		
+		try {
+			return Integer.parseInt(value);
+		} catch (Exception e) {}
+		
+		try {
+			return Double.parseDouble(value);
+		} catch (Exception e) {}
+		
+		return value;
 	}
 	
 	/**
@@ -228,29 +288,10 @@ public class DBInterfacer {
 	 * @param values	Values of Statistic
 	 * @return	True if success otherwise false
 	 */
-	public boolean setStatistics(String[] keys, String[] values) {
+	public void setStatistics(String[] keys, Object[] values) {
 		for (int i = 0; i < keys.length; i++) {
-			try {
-				Vertex v;
-				String[] statStr = { "Statistic" };
-				String[] keyStr = { keys[i] };
-				Iterator<Vertex> stat = graph.getVertices("Statistics", statStr, keyStr).iterator();
-				
-				if (stat.hasNext()) {
-					v = stat.next();
-					v.setProperty("Statistic", keys[i]);
-					v.setProperty("Value", values[i]);
-				} else {
-					v = graph.addVertex("Statistics", "Statistics");
-					v.setProperty("Statistic", keys[i]);
-					v.setProperty("Value", values[i]);
-				}				
-			} catch (Exception e) {
-				System.err.println("Error: Could not set statistic");
-				return false;
-			}
+			setStatistic(keys[i], values[i]);
 		}
-		return true;
 	}
 	
 	/**
@@ -259,23 +300,11 @@ public class DBInterfacer {
 	 * @param keys	Statistic types
 	 * @return	Value of the statistics
 	 */
-	public String[] getStatistics(String[] keys) {
-		String[] values = new String[keys.length];
+	public Object[] getStatistics(String[] keys) {
+		Object[] values = new Object[keys.length];
 		
 		for (int i = 0; i < keys.length; i++) {
-			try {
-				String[] statStr = { "Statistic" };
-				String[] keyStr = { keys[i] };
-				Iterator<Vertex> stat = graph.getVertices("Statistics", statStr, keyStr).iterator();
-				
-				if (!stat.hasNext())
-					return null;
-				
-				values[i] = stat.next().getProperty("Value");
-			} catch (Exception e) {
-				System.err.println("Error: Could not get statistic - " + keys[i]);
-				return null;
-			}
+			values[i] = getStatistic(keys[i]);
 		}
 		return values;
 	}
