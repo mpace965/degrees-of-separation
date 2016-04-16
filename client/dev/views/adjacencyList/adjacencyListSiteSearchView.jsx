@@ -28,7 +28,7 @@ var AdjacencyListSiteSearchView = React.createClass({
         url: '/api/connectAdjacency',
         dataType: 'json',
         cache: false,
-        timeout: 60000,
+        timeout: 300000,
         data: {begin: this.state.connectionBegin, end: this.state.connectionEnd},
         success: function(data) {
           this.setState({apiResponse: data}, function() {

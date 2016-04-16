@@ -1,13 +1,19 @@
 var React = require('react');
 var $ = require('jquery');
 import Paper from 'material-ui/lib/paper';
+import LinearProgress from 'material-ui/lib/linear-progress';
+
+import ConnectLink from './connectLink'
+import LastfmResultView from '../lastfm/lastfmResultView';
+import AdjacencyListResultView from '../adjacencyList/adjacencyListResultView'
 
 var RecentlySearchedView = React.createClass({
   getInitialState: function() {
     return {
       timeout: {},
       recentChain: [],
-      startIndex: 0
+      startIndex: 0,
+      apiLoading: false
     };
   },
 
@@ -52,15 +58,33 @@ var RecentlySearchedView = React.createClass({
     }
   },
 
-  render: function() {
-    const style = {
-      height: '75%',
-      width: '25%',
-      fontSize: '16px',
-      padding: 5,
-      margin: 20,
-    };
+  getUrlFromName: function(name) {
+    switch(name) {
+      case 'Adjacency List':
+        return '/api/connectAdjacency';
+        break;
+      case 'Last.fm':
+        return '/api/connectLastfm';
+        break;
+    }
+  },
 
+  getViewFromName: function(name) {
+    switch(name) {
+      case 'Adjacency List':
+        return AdjacencyListResultView;
+        break;
+      case 'Last.fm':
+        return LastfmResultView;
+        break;
+    }
+  },
+
+  setLoading: function(set) {
+    this.setState({apiLoading: set});
+  },
+
+  generateRecents: function() {
     var recents = [];
     var end = 0;
 
@@ -75,16 +99,46 @@ var RecentlySearchedView = React.createClass({
 
     for (var i = 0; i < end; i++) {
       var responseObject = wrapArray[this.state.startIndex + i];
+      var url = this.getUrlFromName(responseObject.site);
+      var view = this.getViewFromName(responseObject.site);
 
       recents.push(
         <div key={i}>
-          {responseObject.site}: {responseObject.begin} connected to {responseObject.end}
+          <ConnectLink
+            begin={responseObject.begin}
+            end={responseObject.end}
+            url={url}
+            setLoading={this.setLoading}
+            setActiveView={this.props.setActiveView}
+            linkView={view} >
+            {responseObject.site}: {responseObject.begin} connected to {responseObject.end}
+          </ConnectLink>
         </div>
       );
     }
 
+    return recents;
+  },
+
+  render: function() {
+    const style = {
+      height: '75%',
+      width: '25%',
+      fontSize: '16px',
+      padding: 5,
+      margin: 20,
+    };
+
+    var recents = this.generateRecents();
+    var linearProgress;
+
+    if (this.state.apiLoading) {
+      linearProgress = <LinearProgress mode="indeterminate" />
+    }
+
     return (
       <Paper style={style} zDepth={1}>
+        {linearProgress}
         <p><strong>Recently Connected:</strong></p>
         <div>{recents}</div>
       </Paper>

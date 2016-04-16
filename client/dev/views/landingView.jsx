@@ -37,7 +37,7 @@ var LandingView = React.createClass({
           </div>
           <SocialButtons />
         </Paper>
-        <RecentlySearchedView />
+        <RecentlySearchedView setActiveView={this.props.setActiveView} />
       </div>
     );
   }
