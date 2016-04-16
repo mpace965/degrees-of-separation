@@ -313,12 +313,8 @@ public class WebApp extends SimpleWebServer {
 						maxDBNodes, cachePurgePrecent);
 				t1.start();
 			}
+			addRecentConnection(nodes);
 		}
-		
-		InsertStatisticsInDBThread t2 = new InsertStatisticsInDBThread(database, username, password, statisticKeys, statisticMap);
-		t2.start();
-		
-		addRecentConnection(nodes);
 
 		c.setNodeCount(nodes.size());
 
