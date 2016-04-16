@@ -28,6 +28,7 @@ var LastfmSiteSearchView = React.createClass({
         url: '/api/connectLastfm',
         dataType: 'json',
         cache: false,
+        timeout: 60000,
         data: {begin: this.state.connectionBegin, end: this.state.connectionEnd},
         success: function(data) {
           this.setState({apiResponse: data}, function() {

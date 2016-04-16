@@ -15,6 +15,7 @@ import API.AdjacencyListConnectResponse;
 import API.Edge;
 import API.LastfmArtist;
 import API.LastfmConnectResponse;
+import API.RecentResponse;
 import algorithm.Algorithm;
 
 import com.google.gson.Gson;
@@ -264,32 +265,28 @@ public class WebApp extends SimpleWebServer {
 	}
 
 	private Response getRecentConnections(IHTTPSession session, Gson gson) {
-		ArrayList<String> connections = new ArrayList<String>();
-		StringBuilder builder;
+		ArrayList<RecentResponse> connections = new ArrayList<RecentResponse>();
 
 		for (ArrayList<Node> subRecent : recentConnections) {
-			builder = new StringBuilder();
+			RecentResponse r = new RecentResponse();
 
 			if (subRecent.get(0) instanceof AdjListNode) {
-				builder.append("Adjacency List: ");
+				r.setSite("Adjacency List");
 			} else if (subRecent.get(0) instanceof LastfmNode) {
-				builder.append("Last.fm: ");
+				r.setSite("Last.fm");
 			} else if (subRecent.get(0) instanceof ThesaurusNode) {
-				builder.append("Thesaurus: ");
+				r.setSite("Thesaurus");
 			}
-
-			for (int i = 0; i < subRecent.size(); i++) {
-				if (subRecent.get(i) instanceof LastfmNode) {
-					builder.append( ((LastfmNode) subRecent.get(i)).getName() );
-				} else {
-					builder.append(subRecent.get(i).getNodeID());
-				}
-				
-				if (i != subRecent.size() - 1) {
-					builder.append("->");
-				}
+			
+			if (subRecent.get(0) instanceof LastfmNode) {
+				r.setBegin( ((LastfmNode) subRecent.get(0)).getName() );
+				r.setEnd( ((LastfmNode) subRecent.get(subRecent.size() - 1)).getName() );
+			} else {
+				r.setBegin(subRecent.get(0).getNodeID());
+				r.setEnd(subRecent.get(subRecent.size() - 1).getNodeID());
 			}
-			connections.add(builder.toString());
+			
+			connections.add(r);
 		}
 
 		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(connections));

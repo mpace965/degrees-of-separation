@@ -74,10 +74,12 @@ var RecentlySearchedView = React.createClass({
     var wrapArray = this.state.recentChain.concat(this.state.recentChain.slice(0, this.props.length - 1));
 
     for (var i = 0; i < end; i++) {
-      var index = this.state.startIndex + i;
+      var responseObject = wrapArray[this.state.startIndex + i];
 
       recents.push(
-        <div key={index}>{wrapArray[index]}</div>
+        <div key={i}>
+          {responseObject.site}: {responseObject.begin} connected to {responseObject.end}
+        </div>
       );
     }
 
