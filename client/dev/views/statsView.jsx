@@ -45,6 +45,12 @@ var StatsView = React.createClass({
       margin: 20
     }
 
+    var stats = this.state.stats.map(function(stat) {
+      return (
+        <div key={stat}>{stat}</div>
+      );
+    });
+
     return (
       <div className="statsView">
         <Paper style={style} zDepth={1}>
@@ -52,7 +58,7 @@ var StatsView = React.createClass({
             <center><h2>Statistics</h2></center>
           </div>
           <div>
-            <p>{this.state.stats[0]}</p>
+            {stats}
           </div>
         </Paper>
         <RecentlySearchedView />
