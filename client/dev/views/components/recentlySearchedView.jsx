@@ -2,6 +2,8 @@ var React = require('react');
 var $ = require('jquery');
 import Paper from 'material-ui/lib/paper';
 import LinearProgress from 'material-ui/lib/linear-progress';
+import DefaultTheme from 'material-ui/lib/styles/baseThemes/lightBaseTheme'
+import LastfmTheme from '../lastfm/lastfmTheme';
 
 import ConnectLink from './connectLink'
 import LastfmResultView from '../lastfm/lastfmResultView';
@@ -58,24 +60,21 @@ var RecentlySearchedView = React.createClass({
     }
   },
 
-  getUrlFromName: function(name) {
+  getInfoFromName: function(name) {
     switch(name) {
       case 'Adjacency List':
-        return '/api/connectAdjacency';
+        return {
+          url: '/api/connectAdjacency',
+          view: AdjacencyListResultView,
+          theme: DefaultTheme
+        };
         break;
       case 'Last.fm':
-        return '/api/connectLastfm';
-        break;
-    }
-  },
-
-  getViewFromName: function(name) {
-    switch(name) {
-      case 'Adjacency List':
-        return AdjacencyListResultView;
-        break;
-      case 'Last.fm':
-        return LastfmResultView;
+        return {
+          url: '/api/connectLastfm',
+          view: LastfmResultView,
+          theme: LastfmTheme
+        };
         break;
     }
   },
@@ -99,18 +98,19 @@ var RecentlySearchedView = React.createClass({
 
     for (var i = 0; i < end; i++) {
       var responseObject = wrapArray[this.state.startIndex + i];
-      var url = this.getUrlFromName(responseObject.site);
-      var view = this.getViewFromName(responseObject.site);
+      var info = this.getInfoFromName(responseObject.site);
 
       recents.push(
         <div key={i}>
           <ConnectLink
             begin={responseObject.begin}
             end={responseObject.end}
-            url={url}
+            url={info.url}
             setLoading={this.setLoading}
             setActiveView={this.props.setActiveView}
-            linkView={view} >
+            setActiveTheme={this.props.setActiveTheme}
+            linkView={info.view}
+            linkTheme={info.theme} >
             {responseObject.site}: {responseObject.begin} connected to {responseObject.end}
           </ConnectLink>
         </div>

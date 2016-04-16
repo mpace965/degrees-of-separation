@@ -22,6 +22,7 @@ var ConnectLink = React.createClass({
             this.props.setLoading(false);
             var newGraph = this.processApiResponse();
             this.props.setActiveView(this.props.linkView, {graph: newGraph});
+            this.props.setActiveTheme(this.props.linkTheme);
           });
         }.bind(this),
         error: function(xhr, status, err) {
