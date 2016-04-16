@@ -53,6 +53,7 @@ public class WebApp extends SimpleWebServer {
 		maxDBNodes = 10000000;
 		cachePurgePrecent = 0.2;
 		
+		statisticMap = new HashMap<String, Object>();
 		initalizeStatistics();
 	}
 
