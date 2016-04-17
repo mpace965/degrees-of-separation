@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import siteClasses.AdjListNode;
 import siteClasses.AdjListSite;
@@ -37,6 +39,7 @@ public class WebApp extends SimpleWebServer {
 	
 	// Note: if statisticKeys is modified, be sure to modify initalizeStatistics and updateStatistics
 	public static ConcurrentHashMap<String, Object> statisticMap;
+	public static Lock threadLock;
 	public static String[] statisticKeys = { "TotalConnectionChains", "TotalConnections", "TotalDBNodes", 
 			"AverageChainLength", "LongestChainLength", "ShortestChainLength", "TotalChainLength", 
 			"AverageComputationTime", "LongestComputationTime", "ShortestComputationTime", "TotalComputationTime" };
@@ -54,6 +57,7 @@ public class WebApp extends SimpleWebServer {
 		cachePurgePrecent = 0.2;
 		
 		statisticMap = new ConcurrentHashMap<String, Object>();
+		threadLock = new ReentrantLock();
 		initalizeStatistics();
 	}
 
@@ -128,49 +132,7 @@ public class WebApp extends SimpleWebServer {
 			System.err.println("Error: Could not initialize statistics in db");
 		}
 	}
-	
-	private void updateStatistics(ArrayList<Node> nodes, ArrayList<Node> allNodes, Double algTime) {
-		// Get all current statistics
-		Integer totalConnectionChains = (Integer)statisticMap.get("TotalConnectionChains");
-		//Integer totalConnections = (Integer)statisticMap.get("TotalConnections");
-		Integer totalDBNodes = (Integer)statisticMap.get("TotalDBNodes");
-		Integer totalChainLength = (Integer)statisticMap.get("TotalChainLength");
-		Double totalComputationTime = (Double)statisticMap.get("TotalComputationTime");
-		Double averageChainLength;
-		Integer longestChainLength = (Integer)statisticMap.get("LongestChainLength");
-		Integer shortestChainLength = (Integer)statisticMap.get("ShortestChainLength");
-		Double averageComputationTime;
-		Double longestComputationTime = (Double)statisticMap.get("LongestComputationTime");
-		Double shortestComputationTime = (Double)statisticMap.get("ShortestComputationTime");
-		
-		// Update all statistics
-		totalConnectionChains++;
-		totalDBNodes += allNodes.size();
-		totalChainLength += nodes.size();
-		totalComputationTime += algTime;
-		averageChainLength = (double) (totalChainLength / totalConnectionChains);
-		if (nodes.size() < shortestChainLength || shortestChainLength == 0)
-			shortestChainLength = nodes.size();
-		if (nodes.size() > longestChainLength || longestChainLength == 0)
-			longestChainLength = nodes.size();
-		averageComputationTime = (double) (totalComputationTime / totalConnectionChains);
-		if (algTime < shortestComputationTime || shortestComputationTime == 0.0)
-			shortestComputationTime = algTime;
-		if (algTime > longestComputationTime || longestComputationTime == 0.0)
-			longestComputationTime = algTime;
-		
-		// Set all new statistics
-		statisticMap.put("TotalConnectionChains", totalConnectionChains);
-		statisticMap.put("TotalDBNodes", totalDBNodes);
-		statisticMap.put("TotalChainLength", totalChainLength);
-		statisticMap.put("TotalComputationTime", totalComputationTime);
-		statisticMap.put("AverageChainLength", averageChainLength);
-		statisticMap.put("LongestChainLength", longestChainLength);
-		statisticMap.put("ShortestChainLength", shortestChainLength);
-		statisticMap.put("AverageComputationTime", averageComputationTime);
-		statisticMap.put("LongestComputationTime", longestComputationTime);
-		statisticMap.put("ShortestComputationTime", shortestComputationTime);
-	}
+
 	
 	private ArrayList<Node> checkRecentConnections(Site site) {
 		Node n1 = site.getStartNode();
@@ -254,13 +216,11 @@ public class WebApp extends SimpleWebServer {
 				
 				allNodes = new ArrayList<Node>(lastfmSite.getAllNodes().values());
 				
-				updateStatistics(nodes, allNodes, (double)algTimeDiff / 1000.0);
-				
 				InsertNodesInDBThread t1 = new InsertNodesInDBThread(allNodes, database, username, password,
-						maxDBNodes, cachePurgePrecent);
-				InsertStatisticsInDBThread t2 = new InsertStatisticsInDBThread(database, username, password,
-						statisticKeys, statisticMap);
-
+						maxDBNodes, cachePurgePrecent, threadLock);
+				UpdateAndInsertStatisticsInDBThread t2 = new UpdateAndInsertStatisticsInDBThread(database, username, password,
+						statisticKeys, statisticMap, nodes, (double)algTimeDiff / 1000.0, threadLock);
+				
 				t1.start();
 				t2.start();
 			}
@@ -319,7 +279,7 @@ public class WebApp extends SimpleWebServer {
 				allNodes = new ArrayList<Node>(site.getAllNodes().values());
 				
 				InsertNodesInDBThread t1 = new InsertNodesInDBThread(allNodes, database, username, password,
-						maxDBNodes, cachePurgePrecent);
+						maxDBNodes, cachePurgePrecent, threadLock);
 				t1.start();
 			}
 			addRecentConnection(nodes);
@@ -394,18 +354,21 @@ class InsertNodesInDBThread extends Thread {
 	private String database, username, password;
 	private int maxDBNodes;
 	private double cachePurgePrecent;
+	private Lock lock;
 
 	InsertNodesInDBThread(ArrayList<Node> nodes, String database, String username, String password,
-			int maxDBNodes, double cachePurgePrecent) {
+			int maxDBNodes, double cachePurgePrecent, Lock lock) {
 		this.nodes = nodes;
 		this.database = database;
 		this.username = username;
 		this.password = password;
 		this.maxDBNodes = maxDBNodes;
 		this.cachePurgePrecent = cachePurgePrecent;
+		this.lock = lock;
 	}
 
 	public void run() {
+		lock.lock();
 		try {
 			DBInterfacer db = new DBInterfacer(database, username, password, maxDBNodes, cachePurgePrecent);
 						
@@ -426,6 +389,7 @@ class InsertNodesInDBThread extends Thread {
 			}
 
 			db.close();
+			lock.unlock();
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.err.println("Error: Could not add nodes to database");
@@ -434,30 +398,88 @@ class InsertNodesInDBThread extends Thread {
 
 }
 
-class InsertStatisticsInDBThread extends Thread {
+class UpdateAndInsertStatisticsInDBThread extends Thread {
+	private DBInterfacer db;
 	private String database, username, password;
 	private String[] statisticKeys;
 	private ConcurrentHashMap<String, Object> statisticMap;
+	private ArrayList<Node> nodes;
+	private Double algTime;
+	private Lock lock;
 	
-	public InsertStatisticsInDBThread(String database, String username, String password,
-			String[] statisticKeys, ConcurrentHashMap<String, Object> statisticMap) {
+	public UpdateAndInsertStatisticsInDBThread(String database, String username, String password,
+			String[] statisticKeys, ConcurrentHashMap<String, Object> statisticMap, 
+			ArrayList<Node> nodes, Double algTime, Lock lock) {
 		this.database = database;
 		this.username = username;
 		this.password = password;
 		this.statisticKeys = statisticKeys;
 		this.statisticMap = statisticMap;
+		this.nodes = nodes;
+		this.algTime = algTime;
+		this.lock = lock;
+	}
+	
+	public synchronized void updateStatistics(ArrayList<Node> nodes, Double algTime) {
+		// Get all current statistics
+		Integer totalConnectionChains = (Integer)statisticMap.get("TotalConnectionChains");
+		Integer totalConnections;
+		Integer totalDBNodes;
+		Integer totalChainLength = (Integer)statisticMap.get("TotalChainLength");
+		Double totalComputationTime = (Double)statisticMap.get("TotalComputationTime");
+		Double averageChainLength;
+		Integer longestChainLength = (Integer)statisticMap.get("LongestChainLength");
+		Integer shortestChainLength = (Integer)statisticMap.get("ShortestChainLength");
+		Double averageComputationTime;
+		Double longestComputationTime = (Double)statisticMap.get("LongestComputationTime");
+		Double shortestComputationTime = (Double)statisticMap.get("ShortestComputationTime");
+		
+		// Update all statistics
+		totalConnectionChains++;
+		totalConnections = db.countTotalEdges();
+		totalDBNodes = db.countTotalNodes();
+		totalChainLength += nodes.size();
+		totalComputationTime += algTime;
+		averageChainLength = (double) (totalChainLength / totalConnectionChains);
+		if (nodes.size() < shortestChainLength || shortestChainLength == 0)
+			shortestChainLength = nodes.size();
+		if (nodes.size() > longestChainLength || longestChainLength == 0)
+			longestChainLength = nodes.size();
+		averageComputationTime = (double) (totalComputationTime / totalConnectionChains);
+		if (algTime < shortestComputationTime || shortestComputationTime == 0.0)
+			shortestComputationTime = algTime;
+		if (algTime > longestComputationTime || longestComputationTime == 0.0)
+			longestComputationTime = algTime;
+		
+		// Set all new statistics
+		statisticMap.put("TotalConnectionChains", totalConnectionChains);
+		statisticMap.put("TotalConnections", totalConnections);
+		statisticMap.put("TotalDBNodes", totalDBNodes);
+		statisticMap.put("TotalChainLength", totalChainLength);
+		statisticMap.put("TotalComputationTime", totalComputationTime);
+		statisticMap.put("AverageChainLength", averageChainLength);
+		statisticMap.put("LongestChainLength", longestChainLength);
+		statisticMap.put("ShortestChainLength", shortestChainLength);
+		statisticMap.put("AverageComputationTime", averageComputationTime);
+		statisticMap.put("LongestComputationTime", longestComputationTime);
+		statisticMap.put("ShortestComputationTime", shortestComputationTime);
+	}
+	
+	public synchronized void insertStatistics() {
+		// Update number of connections made in db
+		for (String statisticKey : statisticKeys) {
+			db.setStatistic(statisticKey, statisticMap.get(statisticKey));
+		}
 	}
 	
 	public void run() {
 		try {
-			DBInterfacer db = new DBInterfacer(database, username, password);
-			
-			// Update number of connections made in db
-			for (String statisticKey : statisticKeys) {
-				db.setStatistic(statisticKey, statisticMap.get(statisticKey));
-			}
-			
+			lock.lock();
+			db = new DBInterfacer(database, username, password);
+			updateStatistics(nodes, algTime);
+			insertStatistics();
 			db.close();
+			lock.unlock();
 		} catch (Exception e) {
 			System.err.println("Error: Could not add statistics to database");
 		}

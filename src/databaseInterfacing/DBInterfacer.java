@@ -309,6 +309,14 @@ public class DBInterfacer {
 		return values;
 	}
 	
+	public Integer countTotalNodes() {
+		return (int)graph.countVertices();
+	}
+	
+	public Integer countTotalEdges() {
+		return (int)graph.countEdges();
+	}
+	
 	/**
 	 * Purges the oldest percent of the cache
 	 */
