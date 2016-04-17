@@ -113,7 +113,7 @@ public class WebApp extends SimpleWebServer {
 	
 	private void initalizeStatistics() {
 		// Initialize statistics in db to ensure they are present and correct
-		Object[] statisticInitialVals = { 0, 0, 0, 0.0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+		Object[] statisticInitialVals = { 0, 0, 0, 0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0 };
 		Object[] statVals = null;
 		try {
 			DBInterfacer db = new DBInterfacer(database, username, password);
@@ -134,36 +134,42 @@ public class WebApp extends SimpleWebServer {
 		Integer totalConnectionChains = (Integer)statisticMap.get("TotalConnectionChains");
 		//Integer totalConnections = (Integer)statisticMap.get("TotalConnections");
 		Integer totalDBNodes = (Integer)statisticMap.get("TotalDBNodes");
+		Integer totalChainLength = (Integer)statisticMap.get("TotalChainLength");
+		Double totalComputationTime = (Double)statisticMap.get("TotalComputationTime");
 		Double averageChainLength;
 		Integer longestChainLength = (Integer)statisticMap.get("LongestChainLength");
 		Integer shortestChainLength = (Integer)statisticMap.get("ShortestChainLength");
-		Integer totalChainLength = (Integer)statisticMap.get("TotalChainLength");
+		Double averageComputationTime;
 		Double longestComputationTime = (Double)statisticMap.get("LongestComputationTime");
 		Double shortestComputationTime = (Double)statisticMap.get("ShortestComputationTime");
-		Double totalComputationTime = (Double)statisticMap.get("TotalComputationTime");
 		
 		// Update all statistics
 		totalConnectionChains++;
 		totalDBNodes += allNodes.size();
-		averageChainLength = (double)totalChainLength / (double)totalConnectionChains;
+		totalChainLength += nodes.size();
+		totalComputationTime += algTime;
+		averageChainLength = (double) (totalChainLength / totalConnectionChains);
 		if (nodes.size() < shortestChainLength || shortestChainLength == 0)
 			shortestChainLength = nodes.size();
 		if (nodes.size() > longestChainLength || longestChainLength == 0)
 			longestChainLength = nodes.size();
-		totalChainLength += nodes.size();
+		averageComputationTime = (double) (totalComputationTime / totalConnectionChains);
 		if (algTime < shortestComputationTime || shortestComputationTime == 0.0)
 			shortestComputationTime = algTime;
 		if (algTime > longestComputationTime || longestComputationTime == 0.0)
 			longestComputationTime = algTime;
-		totalComputationTime += algTime;
 		
 		// Set all new statistics
 		statisticMap.put("TotalConnectionChains", totalConnectionChains);
 		statisticMap.put("TotalDBNodes", totalDBNodes);
+		statisticMap.put("TotalChainLength", totalChainLength);
+		statisticMap.put("TotalComputationTime", totalComputationTime);
 		statisticMap.put("AverageChainLength", averageChainLength);
 		statisticMap.put("LongestChainLength", longestChainLength);
 		statisticMap.put("ShortestChainLength", shortestChainLength);
-		statisticMap.put("TotalChainLength", totalChainLength);
+		statisticMap.put("AverageComputationTime", averageComputationTime);
+		statisticMap.put("LongestComputationTime", longestComputationTime);
+		statisticMap.put("ShortestComputationTime", shortestComputationTime);
 	}
 	
 	private ArrayList<Node> checkRecentConnections(Site site) {
