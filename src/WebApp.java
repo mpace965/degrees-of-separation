@@ -2,8 +2,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import siteClasses.AdjListNode;
 import siteClasses.AdjListSite;
@@ -36,7 +36,7 @@ public class WebApp extends SimpleWebServer {
 	public static double cachePurgePrecent;
 	
 	// Note: if statisticKeys is modified, be sure to modify initalizeStatistics and updateStatistics
-	public static HashMap<String, Object> statisticMap;
+	public static ConcurrentHashMap<String, Object> statisticMap;
 	public static String[] statisticKeys = { "TotalConnectionChains", "TotalConnections", "TotalDBNodes", 
 			"AverageChainLength", "LongestChainLength", "ShortestChainLength", "TotalChainLength", 
 			"AverageComputationTime", "LongestComputationTime", "ShortestComputationTime", "TotalComputationTime" };
@@ -53,7 +53,7 @@ public class WebApp extends SimpleWebServer {
 		maxDBNodes = 10000000;
 		cachePurgePrecent = 0.2;
 		
-		statisticMap = new HashMap<String, Object>();
+		statisticMap = new ConcurrentHashMap<String, Object>();
 		initalizeStatistics();
 	}
 
@@ -437,10 +437,10 @@ class InsertNodesInDBThread extends Thread {
 class InsertStatisticsInDBThread extends Thread {
 	private String database, username, password;
 	private String[] statisticKeys;
-	private HashMap<String, Object> statisticMap;
+	private ConcurrentHashMap<String, Object> statisticMap;
 	
 	public InsertStatisticsInDBThread(String database, String username, String password,
-			String[] statisticKeys, HashMap<String, Object> statisticMap) {
+			String[] statisticKeys, ConcurrentHashMap<String, Object> statisticMap) {
 		this.database = database;
 		this.username = username;
 		this.password = password;
