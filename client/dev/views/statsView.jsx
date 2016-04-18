@@ -3,6 +3,7 @@ var $ = require('jquery');
 var RecentlySearchedView = require('./components/recentlySearchedView');
 import Paper from 'material-ui/lib/paper';
 import Snackbar from 'material-ui/lib/snackbar';
+import RaisedButton from 'material-ui/lib/raised-button';
 
 var StatsView = React.createClass({
   getInitialState: function() {
@@ -78,7 +79,8 @@ var StatsView = React.createClass({
               </Paper>
             </div>
           </div>
-          <br/>
+
+          <RaisedButton label="Refresh" onMouseUp={this.getStatsFromServer} />
         </Paper>
         <RecentlySearchedView setActiveView={this.props.setActiveView} setActiveTheme={this.props.setActiveTheme} length={7} />
         <Snackbar
