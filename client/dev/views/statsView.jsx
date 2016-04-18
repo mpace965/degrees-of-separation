@@ -25,7 +25,7 @@ var StatsView = React.createClass({
           this.setState({snackbarOpen: true, snackbarMessage: xhr.responseText});
           console.error('/api/getStatistics', status, err.toString());
         }.bind(this),
-        timeout: 60000
+        timeout: 300000
     });
   },
 
@@ -80,7 +80,7 @@ var StatsView = React.createClass({
           </div>
           <br/>
         </Paper>
-        <RecentlySearchedView />
+        <RecentlySearchedView setActiveView={this.props.setActiveView} setActiveTheme={this.props.setActiveTheme} length={7} />
         <Snackbar
           open={this.state.snackbarOpen}
           message={this.state.snackbarMessage}

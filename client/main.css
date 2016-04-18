@@ -113,3 +113,8 @@ html, body {
   flex-direction: row;
   justify-content: center;
 }
+
+/* recentlySearchedView.jsx */
+.recentItem {
+  padding: 7px;
+}

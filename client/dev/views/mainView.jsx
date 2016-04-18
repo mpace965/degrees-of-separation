@@ -50,7 +50,7 @@ var Wrapper = React.createClass({
     return (
       <div>
         <Header setActiveView={this.setActiveView} setActiveTheme={this.setActiveTheme} />
-        <ActiveView setActiveView={this.setActiveView} activeViewState={this.state.activeViewState}/>
+        <ActiveView setActiveView={this.setActiveView} activeViewState={this.state.activeViewState} setActiveTheme={this.setActiveTheme} />
       </div>
     );
   }
