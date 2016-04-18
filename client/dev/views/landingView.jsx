@@ -37,7 +37,7 @@ var LandingView = React.createClass({
           </div>
           <SocialButtons />
         </Paper>
-        <RecentlySearchedView setActiveView={this.props.setActiveView} setActiveTheme={this.props.setActiveTheme} />
+        <RecentlySearchedView setActiveView={this.props.setActiveView} setActiveTheme={this.props.setActiveTheme} length={7} />
       </div>
     );
   }

@@ -101,7 +101,7 @@ var RecentlySearchedView = React.createClass({
       var info = this.getInfoFromName(responseObject.site);
 
       recents.push(
-        <div key={i}>
+        <div key={i} className="recentItem">
           <ConnectLink
             begin={responseObject.begin}
             end={responseObject.end}
@@ -111,7 +111,7 @@ var RecentlySearchedView = React.createClass({
             setActiveTheme={this.props.setActiveTheme}
             linkView={info.view}
             linkTheme={info.theme} >
-            {responseObject.site}: {responseObject.begin} connected to {responseObject.end}
+            {responseObject.site}: {responseObject.begin}→{responseObject.end}
           </ConnectLink>
         </div>
       );
@@ -124,9 +124,9 @@ var RecentlySearchedView = React.createClass({
     const style = {
       height: '75%',
       width: '25%',
-      fontSize: '16px',
-      padding: 5,
-      margin: 20,
+      fontSize: 'large',
+      padding: '5px',
+      margin: '20px',
     };
 
     var recents = this.generateRecents();
@@ -139,7 +139,7 @@ var RecentlySearchedView = React.createClass({
     return (
       <Paper style={style} zDepth={1}>
         {linearProgress}
-        <p><strong>Recently Connected:</strong></p>
+        <h3 className="recentItem">Recently Connected</h3>
         <div>{recents}</div>
       </Paper>
     );

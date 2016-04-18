@@ -55,7 +55,7 @@ var StatsView = React.createClass({
             <p>{this.state.stats[0]}</p>
           </div>
         </Paper>
-        <RecentlySearchedView setActiveView={this.props.setActiveView} setActiveTheme={this.props.setActiveTheme} />
+        <RecentlySearchedView setActiveView={this.props.setActiveView} setActiveTheme={this.props.setActiveTheme} length={7} />
         <Snackbar
           open={this.state.snackbarOpen}
           message={this.state.snackbarMessage}
