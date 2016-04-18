@@ -13,6 +13,7 @@ public class LastfmNode implements Node {
 	private String mbid;
 	private String name;
 	private HashMap<String, Integer> tags;
+	private Integer tagCount;
 
 	public LastfmNode(String name, String mbid) {
 		this.connections = null;
@@ -21,6 +22,7 @@ public class LastfmNode implements Node {
 		this.mbid = mbid;
 		this.name = name;
 		this.tags = null;
+		this.tagCount = null;
 	}
 	public LastfmNode(String name, String mbid, Double match) {
 		this.connections = null;
@@ -29,6 +31,7 @@ public class LastfmNode implements Node {
 		this.mbid = mbid;
 		this.name = name;
 		this.tags = null;
+		this.tagCount = null;
 	}
 
 	// Getters
@@ -51,6 +54,9 @@ public class LastfmNode implements Node {
 	public HashMap<String, Integer> getTags() {
 		return tags;
 	}
+	public Integer getTagCount() {
+		return tagCount;
+	}
 
 	// Setters
 
@@ -62,6 +68,9 @@ public class LastfmNode implements Node {
 	}
 	public void setTags(HashMap<String, Integer> tags) {
 		this.tags = tags;
+	}
+	public void setTagCount(Integer tagCount) {
+		this.tagCount = tagCount;
 	}
 
 	public String toString() {

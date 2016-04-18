@@ -23,7 +23,9 @@ public class Algorithm {
 	 * @param end
 	 * @return shortest path connection between the two nodes
 	 */
-	public static ArrayList<Node> processConnection(Site site) {
+	public static ArrayList<Node> processConnection(Site s) {
+		AdjListSite site = (AdjListSite) s;
+		
 		// keeps a reference of every nodes' fibonacciheapnode
 		HashMap<Node, FibonacciHeapNode<Node>> fibNodes = 
 				new HashMap<Node, FibonacciHeapNode<Node>>();
@@ -35,12 +37,6 @@ public class Algorithm {
 		if (site instanceof AdjListSite) 
 			if (!(start instanceof AdjListNode) || !(end instanceof AdjListNode)) 
 				return null;
-			else if (site instanceof LastfmSite) 
-				if (!(start instanceof LastfmNode) || !(end instanceof LastfmNode)) 
-					return null;
-				else 
-					return null;
-
 		//		boolean flipped = false;
 
 		if (start.getConnections() == null)
@@ -203,7 +199,7 @@ public class Algorithm {
 			}
 
 			// computer heuristic adjustment
-			heuristicAdjustment = site.heuristicCost(node);
+			heuristicAdjustment = site.heuristicDifference(node);
 			heuristicMultiplier = site.heuristicMultiplier(prev.get(node), node);
 			if (node.equals(start)) {
 				prev.put(node, null);

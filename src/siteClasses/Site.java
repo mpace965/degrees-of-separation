@@ -4,11 +4,11 @@ import java.util.HashMap;
 
 public interface Site {
 	
-	/**
-	 * @param node
-	 * @return heuristicCost from node to end node in siteclass
-	 */
-	public abstract double heuristicCost(Node node);
+//	/**
+//	 * @param node
+//	 * @return heuristicCost from node to end node in siteclass
+//	 */
+//	public abstract double heuristicCost(Node node);
 	
 	/**
 	 * populates the connections list of this node

@@ -24,8 +24,8 @@ public class LastfmSite implements Site {
 	private final String apiKey = "c6c45e68f6b2a663da996fc504cf9f8b";
 	private Long apiTimer;
 	private int fileAccesses = 0;
-	private Node start;
-	private Node end;
+	private LastfmNode start;
+	private LastfmNode end;
 	private Double heuristicConstant;
 
 	public LastfmSite() {
@@ -79,8 +79,8 @@ public class LastfmSite implements Site {
 		String startID = LastfmNode.getID(startName, startMbid);
 		String endID = LastfmNode.getID(endName, endMbid);
 
-		this.start = this.allNodes.get(startID);
-		this.end = this.allNodes.get(endID);
+		this.start = (LastfmNode) this.allNodes.get(startID);
+		this.end = (LastfmNode) this.allNodes.get(endID);
 
 		// if they're still null at this point, create new nodes
 		if (this.start == null) {
@@ -91,31 +91,28 @@ public class LastfmSite implements Site {
 			this.end = new LastfmNode(endName, startMbid);
 			this.allNodes.put(this.end.getNodeID(), this.end);
 		}
+		
+		// set heuristic constant based on start and end
+		this.heuristicConstant = heuristicCompare(this.start, this.end);
 	}
 
 	// Heuristics
 
 	public double heuristicMultiplier(Node p, Node n) {
-		// returns the difference that the "match" variable will be adjusted by
+		// returns the multiplier that the "match" variable will be adjusted by
 		if (n == null)
 			return 1d;
-		if (heuristicConstant == null) 
-			heuristicConstant = heuristicCost(this.start, this.end);
 
 		LastfmNode node = (LastfmNode) n;
 		LastfmNode prev = (LastfmNode) p;
-		if (node.getTags() == null) 
-			populateTags(node);
-		if (prev.getTags() == null)
-			populateTags(prev);
 
-		double nodeToEnd = heuristicCost(node, this.end);
-		double nodeToPrev = heuristicCost(node, prev);
+		Double nodeToEnd = heuristicCompare(node, this.end);
+		Double nodeToPrev = heuristicCompare(node, prev);
 
 		double ret = Math.abs(nodeToEnd - this.heuristicConstant);
 
 		if (node.equals(this.start)) {
-			double prevToEnd = heuristicCost(prev, this.end);
+			Double prevToEnd = heuristicCompare(prev, this.end);
 			return (Math.abs(prevToEnd - nodeToEnd) / nodeToPrev);
 		}
 		else {
@@ -123,20 +120,17 @@ public class LastfmSite implements Site {
 		}
 	}
 
-	public double heuristicCost(Node n) {
+	public double heuristicDifference(Node n) {
 		// returns the difference that the "match" variable will be adjusted by
 		if (n == null)
-			return 1d;
-		if (heuristicConstant == null) 
-			heuristicConstant = heuristicCost(this.start, this.end);
+			return 0d;
 
 		LastfmNode node = (LastfmNode) n;
-		if (node.getTags() == null) 
-			populateTags(node);
 
-		double nodeToEnd = heuristicCost(node, this.end);
-		//		double nodeToPrev = heuristicCost(node, this.start);
-
+		Double nodeToEnd = heuristicCompare(node, this.end);
+		if (nodeToEnd == null)
+			return 0d;
+		
 		double ret = Math.abs(nodeToEnd - this.heuristicConstant);
 
 		if (nodeToEnd > this.heuristicConstant) {
@@ -145,45 +139,50 @@ public class LastfmSite implements Site {
 			//			if (nodeToStart > this.heuristicConstant) 	// middle left
 			//			else 										// middle right
 		}
-		//		else {
-		//			if (nodeToEnd > nodeToStart) 	// far left side
+		//	else {	if (nodeToEnd > nodeToStart) 	// far left side
 		//			else 							// far right side
-		//			
-		//		}
 
 		return ret;
 	}
 
-	public double heuristicCost(LastfmNode start, LastfmNode end) {
+	public Double heuristicCompare(LastfmNode start, LastfmNode end) {
 		// estimates match value a artist.getSimilar call
 		// where artist = startNode and endNode is a similar artist
 		// i.e. how similar endnode is to startnode
-		double tag1tot = (double) start.getTagTotal();
-		double tag2tot = (double) end.getTagTotal();
-		if (tag1tot == 0 || tag2tot == 0)
-			return 1d;
+		if (start == null || end == null)
+			return null;
+		
+		if (start.getTags() == null)
+			populateTags(start);
+		if (end.getTags() == null)
+			populateTags(end);
+		if (start.getTagCount() == null || start.getTagCount() < 1
+				|| end.getTagCount() == null || end.getTagCount() < 1
+				|| start.getTags().size() < 1 || end.getTags().size() < 1)
+			return null;
+		
 		HashMap<String, Integer> tag1 = start.getTags();
 		HashMap<String, Integer> tag2 = end.getTags();
+		Integer tag1Count = start.getTagCount();
+		Integer tag2Count = end.getTagCount();
 
-		double incommon = 0;
-		Integer temp, min;
-		String tag;
+		int incommon = 0;
 		Map.Entry<String, Integer> entry;
 		Iterator<Map.Entry<String, Integer>> it = tag1.entrySet().iterator();
 		while (it.hasNext()) {
 			entry = it.next();
-			tag = entry.getKey();
-			min = entry.getValue();
+			String tag = entry.getKey();
+			int min = entry.getValue();
 
-			temp = tag2.get(tag);
+			Integer temp = tag2.get(tag);
 			if (temp != null) {
 				if (temp < min)
 					min = temp;
-				incommon += min.intValue();
+				incommon += min;
 			}
 		}
 
-		double ret = (2d * incommon) / (tag1tot + tag2tot); 
+		double ret = (2d * incommon) / (tag1Count + tag2Count); 
 		return ret;
 	}
 
@@ -232,7 +231,7 @@ public class LastfmSite implements Site {
 			String mbid = artist.has("mbid") ? artist.get("mbid").getAsString() : null;
 			if (name == null || name.length() < 1 || match == null)
 				continue;
-			if (mbid.length() < 1)
+			if (mbid != null && mbid.length() < 1)
 				mbid = null;
 
 			// check if node already exists
@@ -247,32 +246,46 @@ public class LastfmSite implements Site {
 	}
 
 	public void populateTags(LastfmNode node) {
-		if (node.getTags() != null && node.getTags().size() > 0)
+		if (node == null)
 			return;
-		JsonArray tags;
+
+		// get Json object
+		JsonObject json = null;
 		try {
-			JsonObject json = getTagsJson(node);
-			tags = json.getAsJsonObject("toptags").getAsJsonArray("tag");
+			json = getTagsJson(node);
 		}
 		catch (Exception e) {
-			System.err.println("Problem in populate tags");
-			e.printStackTrace();
-			return;
+			System.err.printf("Could not get tags json for node: %s\n", node.toString());
+			System.err.printf("Error message: %s\n", e.getMessage());
 		}
-
-		JsonObject tempObj;
-		String tag;
-		Integer count;
+		
 		HashMap<String, Integer> tagMap = new HashMap<String, Integer>();
-		for (JsonElement elem : tags) {
-			tempObj = elem.getAsJsonObject();
-			tag = tempObj.has("name") ? tempObj.get("name").getAsString() : null;
-			count = tempObj.has("count") ? tempObj.get("count").getAsInt() : null;
-			if (tag != null && count != null) {
-				tagMap.put(tag, count);
-			}
-		}
 		node.setTags(tagMap);
+
+		if (json == null || !json.has("toptags")) 
+			return;
+		JsonObject toptags = json.getAsJsonObject("toptags");
+
+		if (!toptags.has("tag"))
+			return;
+		JsonArray tags = toptags.getAsJsonArray("tag");
+		
+		Integer tagCount = 0;
+		for (JsonElement elem : tags) {
+			JsonObject tag = elem.getAsJsonObject();
+			
+			if (!tag.has("name") || !tag.has("count"))
+				continue;
+			
+			String name = tag.get("name").getAsString();
+			int count = tag.get("count").getAsInt();
+			
+			if (count == 0 || name == null || name.length() < 1)
+				continue;
+			tagMap.put(name, count);
+			tagCount += count;
+		}
+		node.setTagCount(tagCount);
 	}
 
 	private String getNameFromJson(JsonObject json) {
@@ -311,7 +324,7 @@ public class LastfmSite implements Site {
 	private JsonObject getConnectionsJson(LastfmNode node) throws Exception {
 		if (node == null)
 			return null;
-		return getInfoJson(node.getName(), node.getMbid());
+		return getConnectionsJson(node.getName(), node.getMbid());
 	}
 	private JsonObject getTagsJson(LastfmNode node) throws Exception {
 		if (node == null)
@@ -375,6 +388,7 @@ public class LastfmSite implements Site {
 			return getJson(url + "&artist=" + URLEncoder.encode(name, "UTF-8"));
 		if (mbid != null) 
 			return getJson(url + "&mbid=" + mbid);
+		return null;
 	}
 	private JsonObject getJson(String url) throws Exception {
 		JsonObject simArt = null;
