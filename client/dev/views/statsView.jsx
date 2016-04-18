@@ -7,7 +7,7 @@ import Snackbar from 'material-ui/lib/snackbar';
 var StatsView = React.createClass({
   getInitialState: function() {
     return {
-      stats: [],
+      stats: {},
       snackbarOpen: false,
       snackbarMessage: ''
     };
@@ -45,21 +45,40 @@ var StatsView = React.createClass({
       margin: 20
     }
 
-    var stats = this.state.stats.map(function(stat) {
-      return (
-        <div key={stat}>{stat}</div>
-      );
-    });
-
     return (
       <div className="statsView">
         <Paper style={style} zDepth={1}>
           <div>
-            <center><h2>Statistics</h2></center>
+            <center><h2>Last.fm Statistics</h2></center>
           </div>
-          <div>
-            {stats}
+          <br/>
+          <div className="statCols">
+            <Paper className="statColItem" zDepth={2}>
+              <h3>General Statistics</h3>
+              <p>Total Connections Chains Made: <strong>{this.state.stats.totalConnectionChains}</strong></p>
+              <p>Total Connections Made: <strong>{this.state.stats.totalConnections}</strong></p>
+              <p>Total Nodes in the Database: <strong>{this.state.stats.totalDBNodes}</strong></p>
+            </Paper>
+
+            <div>
+              <Paper className="statColItem" zDepth={2}>
+                <h3>Chain Length Statistics</h3>
+                <p>Average Connection Chain Length: <strong>{parseFloat(this.state.stats.averageChainLength).toFixed(3)}</strong></p>
+                <p>Longest Connection Chain Length: <strong>{this.state.stats.longestChainLength}</strong></p>
+                <p>Shortest Connection Chain Length: <strong>{this.state.stats.shortestChainLength}</strong></p>
+                <p>Total Connection Chain Length: <strong>{this.state.stats.totalChainLength}</strong></p>
+              </Paper>
+
+              <Paper className="statColItem" zDepth={2}>
+                <h3>Computation Time Statistics</h3>
+                <p>Average Computation Time: <strong>{parseFloat(this.state.stats.averageComputationTime).toFixed(3)}</strong></p>
+                <p>Longest Computation Time: <strong>{parseFloat(this.state.stats.longestComputationTime).toFixed(3)}</strong></p>
+                <p>Shortest Computation Time: <strong>{parseFloat(this.state.stats.shortestComputationTime).toFixed(3)}</strong></p>
+                <p>Total Computation Time: <strong>{parseFloat(this.state.stats.totalComputationTime).toFixed(3)}</strong></p>
+              </Paper>
+            </div>
           </div>
+          <br/>
         </Paper>
         <RecentlySearchedView />
         <Snackbar

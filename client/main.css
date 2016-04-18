@@ -60,6 +60,22 @@ html, body {
   align-items: flex-start;
   justify-content: center;
   font-size: medium;
+  font-size: x-large;
+}
+
+.statCols {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+}
+
+.statColItem {
+  padding: 10px;
+  margin: 15px;
+}
+
+.statColItem h3{
+  text-align: center;
 }
 
 /* header.jsx */

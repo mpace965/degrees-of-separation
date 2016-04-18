@@ -18,6 +18,7 @@ import API.AdjacencyListConnectResponse;
 import API.Edge;
 import API.LastfmArtist;
 import API.LastfmConnectResponse;
+import API.StatisticsResponse;
 import algorithm.Algorithm;
 
 import com.google.gson.Gson;
@@ -117,7 +118,7 @@ public class WebApp extends SimpleWebServer {
 	
 	private void initalizeStatistics() {
 		// Initialize statistics in db to ensure they are present and correct
-		Object[] statisticInitialVals = { 0, 0, 0, 0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0 };
+		Object[] statisticInitialVals = { 0, 0, 0, 0.0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0 };
 		Object[] statVals = null;
 		try {
 			DBInterfacer db = new DBInterfacer(database, username, password);
@@ -332,21 +333,21 @@ public class WebApp extends SimpleWebServer {
 	}
 	
 	private Response getStatistics(IHTTPSession session, Gson gson) {
-		String[] ReadableStats = new String[statisticKeys.length];
+		StatisticsResponse sr = new StatisticsResponse();
 		
-		ReadableStats[0] = "Total Connections Chains Made: " + statisticMap.get(statisticKeys[0]).toString();
-		ReadableStats[1] = "Total Connections Made: " + statisticMap.get(statisticKeys[1]).toString();
-		ReadableStats[2] = "Total Nodes in our Database: " + statisticMap.get(statisticKeys[2]).toString();
-		ReadableStats[3] = "Average Connection Chain Length: " + statisticMap.get(statisticKeys[3]).toString();
-		ReadableStats[4] = "Longest Connection Chain Length: " + statisticMap.get(statisticKeys[4]).toString();
-		ReadableStats[5] = "Shortest Connection Chain Length: " + statisticMap.get(statisticKeys[5]).toString();
-		ReadableStats[6] = "Total Connection Chain Length: " + statisticMap.get(statisticKeys[6]).toString();
-		ReadableStats[7] = "Average Compuation Time: " + statisticMap.get(statisticKeys[7]).toString();
-		ReadableStats[8] = "Longest Computation Time: " + statisticMap.get(statisticKeys[8]).toString();
-		ReadableStats[9] = "Shortest Computation Time: " + statisticMap.get(statisticKeys[9]).toString();
-		ReadableStats[10] = "Total Compuation Time: " + statisticMap.get(statisticKeys[10]).toString();
-				
-		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(ReadableStats));
+		sr.setTotalConnectionChains((int) statisticMap.get(statisticKeys[0]));
+		sr.setTotalConnections((int) statisticMap.get(statisticKeys[1]));
+		sr.setTotalDBNodes((int) statisticMap.get(statisticKeys[2]));
+		sr.setAverageChainLength((double) statisticMap.get(statisticKeys[3]));
+		sr.setLongestChainLength((int) statisticMap.get(statisticKeys[4]));
+		sr.setShortestChainLength((int) statisticMap.get(statisticKeys[5]));
+		sr.setTotalChainLength((int) statisticMap.get(statisticKeys[6]));
+		sr.setAverageComputationTime((double) statisticMap.get(statisticKeys[7]));
+		sr.setLongestComputationTime((double) statisticMap.get(statisticKeys[8]));
+		sr.setShortestComputationTime((double) statisticMap.get(statisticKeys[9]));
+		sr.setTotalComputationTime((double) statisticMap.get(statisticKeys[10]));
+
+		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(sr));
 	}
 }
 
