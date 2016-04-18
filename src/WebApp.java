@@ -159,7 +159,11 @@ public class WebApp extends SimpleWebServer {
 		String endString = parms.get("end");
 		ArrayList<Node> nodes, allNodes;
 
-		lastfmSite.setStartAndEndNodes(beginString, endString);
+		try {
+			lastfmSite.setStartAndEndNodes(beginString, endString);
+		} catch (Exception e) {
+			return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "Could not find one or both of the artists you searched for.");
+		}
 		
 		// Check recents
 		nodes = checkRecentConnections(lastfmSite);
@@ -221,7 +225,11 @@ public class WebApp extends SimpleWebServer {
 			return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "Try a number in the range [0, 4040].");
 		}
 
-		site.setStartAndEndNodes(beginString, endString);
+		try {
+			site.setStartAndEndNodes(beginString, endString);
+		} catch (Exception e) {
+			return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "The nodes you entered do not exist");
+		}
 
 		// Check recents
 		nodes = checkRecentConnections(site);
