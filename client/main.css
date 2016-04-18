@@ -11,19 +11,6 @@ html, body {
 }
 
 /* utility */
-.text-button {
-  margin: 10px;
-  cursor: pointer;
-  white-space: nowrap;
-
-  -webkit-touch-callout: none; /* iOS Safari */
-  -webkit-user-select: none;   /* Chrome/Safari/Opera */
-  -khtml-user-select: none;    /* Konqueror */
-  -moz-user-select: none;      /* Firefox */
-  -ms-user-select: none;       /* IE/Edge */
-  user-select: none;
-}
-
 .flexRowItem {
   display: flex;
   flex-direction: row;
