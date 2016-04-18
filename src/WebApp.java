@@ -195,7 +195,7 @@ public class WebApp extends SimpleWebServer {
 		String endString = parms.get("end");
 		ArrayList<Node> nodes = null;
 		ArrayList<Node> allNodes = null;
-		Long algTime1, algTime2, algTimeDiff;
+		Long algTime1, algTime2, algTimeDiff = 0l;
 
 		try {
 			lastfmSite.setStartAndEndNodes(beginString, endString);
@@ -224,12 +224,13 @@ public class WebApp extends SimpleWebServer {
 				
 				InsertNodesInDBThread t1 = new InsertNodesInDBThread(allNodes, database, username, password,
 						maxDBNodes, cachePurgePrecent, threadLock);
-				UpdateAndInsertStatisticsInDBThread t2 = new UpdateAndInsertStatisticsInDBThread(database, username, password,
-						statisticKeys, statisticMap, nodes, (double)algTimeDiff / 1000.0, threadLock);
 				
 				t1.start();
-				t2.start();
 			}
+			
+			UpdateAndInsertStatisticsInDBThread t2 = new UpdateAndInsertStatisticsInDBThread(database, username, password,
+					statisticKeys, statisticMap, nodes, (double)algTimeDiff / 1000.0, threadLock);
+			t2.start();
 		}
 		
 		addRecentConnection(nodes);
@@ -454,9 +455,9 @@ class UpdateAndInsertStatisticsInDBThread extends Thread {
 		if (nodes.size() > longestChainLength || longestChainLength == 0)
 			longestChainLength = nodes.size();
 		averageComputationTime = (double)totalComputationTime / (double)totalConnectionChains;
-		if (algTime < shortestComputationTime || shortestComputationTime == 0.0)
+		if (algTime != 0.0 && (algTime < shortestComputationTime || shortestComputationTime == 0.0))
 			shortestComputationTime = algTime;
-		if (algTime > longestComputationTime || longestComputationTime == 0.0)
+		if (algTime != 0.0 && (algTime > longestComputationTime || longestComputationTime == 0.0))
 			longestComputationTime = algTime;
 		
 		// Set all new statistics
