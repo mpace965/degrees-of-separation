@@ -49,6 +49,7 @@ var Header = React.createClass({
 
     handleStatsTap: function() {
     this.props.setActiveView(StatsView);
+    this.props.setActiveTheme(LastfmTheme);
     this.setState({open: false});
   },
 

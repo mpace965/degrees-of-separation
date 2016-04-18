@@ -3,6 +3,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import siteClasses.AdjListNode;
 import siteClasses.AdjListSite;
@@ -15,6 +18,7 @@ import API.AdjacencyListConnectResponse;
 import API.Edge;
 import API.LastfmArtist;
 import API.LastfmConnectResponse;
+import API.StatisticsResponse;
 import algorithm.Algorithm;
 
 import com.google.gson.Gson;
@@ -33,17 +37,29 @@ public class WebApp extends SimpleWebServer {
 	public static String database, username, password;
 	public static int maxDBNodes;
 	public static double cachePurgePrecent;
+	
+	// Note: if statisticKeys is modified, be sure to modify initalizeStatistics and updateStatistics
+	public static ConcurrentHashMap<String, Object> statisticMap;
+	public static Lock threadLock;
+	public static String[] statisticKeys = { "TotalConnectionChains", "TotalConnections", "TotalDBNodes", 
+			"AverageChainLength", "LongestChainLength", "ShortestChainLength", "TotalChainLength", 
+			"AverageComputationTime", "LongestComputationTime", "ShortestComputationTime", "TotalComputationTime" };
 
 	public WebApp() throws IOException {
 		super("localhost", 8000, new File("client/"), false);
 
 		recentConnections = new ArrayList<ArrayList<Node>>();
 		maxRecentConnections = 50;
+		
 		database = "remote:localhost/Connections";
 		username = "root";
 		password = "team4";
 		maxDBNodes = 10000000;
 		cachePurgePrecent = 0.2;
+		
+		statisticMap = new ConcurrentHashMap<String, Object>();
+		threadLock = new ReentrantLock();
+		initalizeStatistics();
 	}
 
 	public static void main(String[] args) {
@@ -99,6 +115,25 @@ public class WebApp extends SimpleWebServer {
 
 		return r;
 	}
+	
+	private void initalizeStatistics() {
+		// Initialize statistics in db to ensure they are present and correct
+		Object[] statisticInitialVals = { 0, 0, 0, 0.0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0 };
+		Object[] statVals = null;
+		try {
+			DBInterfacer db = new DBInterfacer(database, username, password);
+			statVals = db.initializeStatistics(statisticKeys, statisticInitialVals);
+			db.close();
+			
+			for (int i = 0; i < statisticKeys.length; i++) {
+				statisticMap.put(statisticKeys[i], statVals[i]);
+			}
+			
+		} catch (Exception e) {
+			System.err.println("Error: Could not initialize statistics in db");
+		}
+	}
+
 	
 	private ArrayList<Node> checkRecentConnections(Site site) {
 		Node n1 = site.getStartNode();
@@ -157,7 +192,9 @@ public class WebApp extends SimpleWebServer {
 		Map<String, String> parms = session.getParms();
 		String beginString = parms.get("begin");
 		String endString = parms.get("end");
-		ArrayList<Node> nodes, allNodes;
+		ArrayList<Node> nodes = null;
+		ArrayList<Node> allNodes = null;
+		Long algTime1, algTime2, algTimeDiff;
 
 		try {
 			lastfmSite.setStartAndEndNodes(beginString, endString);
@@ -173,7 +210,10 @@ public class WebApp extends SimpleWebServer {
 			nodes = checkDB(lastfmSite);
 			
 			if (nodes == null) {
+				algTime1 = System.currentTimeMillis();
 				nodes = Algorithm.processConnectionLastfmSite(lastfmSite);
+				algTime2 = System.currentTimeMillis();
+				algTimeDiff = algTime2 - algTime1;
 				
 				if (nodes == null || nodes.size() == 0) {
 					return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "No match was found from these inputs.");
@@ -182,13 +222,14 @@ public class WebApp extends SimpleWebServer {
 				allNodes = new ArrayList<Node>(lastfmSite.getAllNodes().values());
 				
 				InsertNodesInDBThread t1 = new InsertNodesInDBThread(allNodes, database, username, password,
-						maxDBNodes, cachePurgePrecent);
+						maxDBNodes, cachePurgePrecent, threadLock);
+				UpdateAndInsertStatisticsInDBThread t2 = new UpdateAndInsertStatisticsInDBThread(database, username, password,
+						statisticKeys, statisticMap, nodes, (double)algTimeDiff / 1000.0, threadLock);
+				
 				t1.start();
+				t2.start();
 			}
 		}
-		
-		InsertStatisticsInDBThread t2 = new InsertStatisticsInDBThread(database, username, password);
-		t2.start();
 		
 		addRecentConnection(nodes);
 		
@@ -248,15 +289,11 @@ public class WebApp extends SimpleWebServer {
 				allNodes = new ArrayList<Node>(site.getAllNodes().values());
 				
 				InsertNodesInDBThread t1 = new InsertNodesInDBThread(allNodes, database, username, password,
-						maxDBNodes, cachePurgePrecent);
+						maxDBNodes, cachePurgePrecent, threadLock);
 				t1.start();
 			}
+			addRecentConnection(nodes);
 		}
-		
-		InsertStatisticsInDBThread t2 = new InsertStatisticsInDBThread(database, username, password);
-		t2.start();
-		
-		addRecentConnection(nodes);
 
 		c.setNodeCount(nodes.size());
 
@@ -304,24 +341,21 @@ public class WebApp extends SimpleWebServer {
 	}
 	
 	private Response getStatistics(IHTTPSession session, Gson gson) {
-		try {
-			ArrayList<String> stats = new ArrayList<String>();
-			
-			DBInterfacer db = new DBInterfacer(database, username, password);
-			String connectionsMade = db.getStatistic("NumberOfConnections");
-			
-			if (connectionsMade == null) {
-				db.setStatistic("NumberOfConnections", "0");
-				connectionsMade = "0";
-			}
-			
-			stats.add("Number of Connections Made: " + connectionsMade);
-			db.close();
-			
-			return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(stats));
-		} catch (Exception e) {
-			return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "Could not get Statistics");
-		}
+		StatisticsResponse sr = new StatisticsResponse();
+		
+		sr.setTotalConnectionChains((int) statisticMap.get(statisticKeys[0]));
+		sr.setTotalConnections((int) statisticMap.get(statisticKeys[1]));
+		sr.setTotalDBNodes((int) statisticMap.get(statisticKeys[2]));
+		sr.setAverageChainLength((double) statisticMap.get(statisticKeys[3]));
+		sr.setLongestChainLength((int) statisticMap.get(statisticKeys[4]));
+		sr.setShortestChainLength((int) statisticMap.get(statisticKeys[5]));
+		sr.setTotalChainLength((int) statisticMap.get(statisticKeys[6]));
+		sr.setAverageComputationTime((double) statisticMap.get(statisticKeys[7]));
+		sr.setLongestComputationTime((double) statisticMap.get(statisticKeys[8]));
+		sr.setShortestComputationTime((double) statisticMap.get(statisticKeys[9]));
+		sr.setTotalComputationTime((double) statisticMap.get(statisticKeys[10]));
+
+		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(sr));
 	}
 }
 
@@ -330,18 +364,21 @@ class InsertNodesInDBThread extends Thread {
 	private String database, username, password;
 	private int maxDBNodes;
 	private double cachePurgePrecent;
+	private Lock lock;
 
 	InsertNodesInDBThread(ArrayList<Node> nodes, String database, String username, String password,
-			int maxDBNodes, double cachePurgePrecent) {
+			int maxDBNodes, double cachePurgePrecent, Lock lock) {
 		this.nodes = nodes;
 		this.database = database;
 		this.username = username;
 		this.password = password;
 		this.maxDBNodes = maxDBNodes;
 		this.cachePurgePrecent = cachePurgePrecent;
+		this.lock = lock;
 	}
 
 	public void run() {
+		lock.lock();
 		try {
 			DBInterfacer db = new DBInterfacer(database, username, password, maxDBNodes, cachePurgePrecent);
 						
@@ -362,6 +399,7 @@ class InsertNodesInDBThread extends Thread {
 			}
 
 			db.close();
+			lock.unlock();
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.err.println("Error: Could not add nodes to database");
@@ -370,29 +408,89 @@ class InsertNodesInDBThread extends Thread {
 
 }
 
-class InsertStatisticsInDBThread extends Thread {
+class UpdateAndInsertStatisticsInDBThread extends Thread {
+	private DBInterfacer db;
 	private String database, username, password;
+	private String[] statisticKeys;
+	private ConcurrentHashMap<String, Object> statisticMap;
+	private ArrayList<Node> nodes;
+	private Double algTime;
+	private Lock lock;
 	
-	public InsertStatisticsInDBThread(String database, String username, String password) {
+	public UpdateAndInsertStatisticsInDBThread(String database, String username, String password,
+			String[] statisticKeys, ConcurrentHashMap<String, Object> statisticMap, 
+			ArrayList<Node> nodes, Double algTime, Lock lock) {
 		this.database = database;
 		this.username = username;
 		this.password = password;
+		this.statisticKeys = statisticKeys;
+		this.statisticMap = statisticMap;
+		this.nodes = nodes;
+		this.algTime = algTime;
+		this.lock = lock;
+	}
+	
+	public synchronized void updateStatistics(ArrayList<Node> nodes, Double algTime) {
+		Math.round(algTime);
+		// Get all current statistics
+		Integer totalConnectionChains = (Integer)statisticMap.get("TotalConnectionChains");
+		Integer totalConnections;
+		Integer totalDBNodes;
+		Integer totalChainLength = (Integer)statisticMap.get("TotalChainLength");
+		Double totalComputationTime = (Double)statisticMap.get("TotalComputationTime");
+		Double averageChainLength;
+		Integer longestChainLength = (Integer)statisticMap.get("LongestChainLength");
+		Integer shortestChainLength = (Integer)statisticMap.get("ShortestChainLength");
+		Double averageComputationTime;
+		Double longestComputationTime = (Double)statisticMap.get("LongestComputationTime");
+		Double shortestComputationTime = (Double)statisticMap.get("ShortestComputationTime");
+		
+		// Update all statistics
+		totalConnectionChains++;
+		totalConnections = db.countTotalEdges();
+		totalDBNodes = db.countTotalNodes();
+		totalChainLength += nodes.size();
+		totalComputationTime += algTime;
+		averageChainLength = (double)totalChainLength / (double)totalConnectionChains;
+		if (nodes.size() < shortestChainLength || shortestChainLength == 0)
+			shortestChainLength = nodes.size();
+		if (nodes.size() > longestChainLength || longestChainLength == 0)
+			longestChainLength = nodes.size();
+		averageComputationTime = (double)totalComputationTime / (double)totalConnectionChains;
+		if (algTime < shortestComputationTime || shortestComputationTime == 0.0)
+			shortestComputationTime = algTime;
+		if (algTime > longestComputationTime || longestComputationTime == 0.0)
+			longestComputationTime = algTime;
+		
+		// Set all new statistics
+		statisticMap.put("TotalConnectionChains", totalConnectionChains);
+		statisticMap.put("TotalConnections", totalConnections);
+		statisticMap.put("TotalDBNodes", totalDBNodes);
+		statisticMap.put("TotalChainLength", totalChainLength);
+		statisticMap.put("TotalComputationTime", totalComputationTime);
+		statisticMap.put("AverageChainLength", averageChainLength);
+		statisticMap.put("LongestChainLength", longestChainLength);
+		statisticMap.put("ShortestChainLength", shortestChainLength);
+		statisticMap.put("AverageComputationTime", averageComputationTime);
+		statisticMap.put("LongestComputationTime", longestComputationTime);
+		statisticMap.put("ShortestComputationTime", shortestComputationTime);
+	}
+	
+	public synchronized void insertStatistics() {
+		// Update number of connections made in db
+		for (String statisticKey : statisticKeys) {
+			db.setStatistic(statisticKey, statisticMap.get(statisticKey));
+		}
 	}
 	
 	public void run() {
 		try {
-			DBInterfacer db = new DBInterfacer(database, username, password);
-			
-			// Update number of connections made in db
-			String statStr = db.getStatistic("NumberOfConnections");
-			if (statStr != null) {
-				int statInt = Integer.parseInt(statStr);
-				db.setStatistic("NumberOfConnections", Integer.toString(statInt + 1));
-			} else {
-				db.setStatistic("NumberOfConnections", "1");
-			}
-			
+			lock.lock();
+			db = new DBInterfacer(database, username, password);
+			updateStatistics(nodes, algTime);
+			insertStatistics();
 			db.close();
+			lock.unlock();
 		} catch (Exception e) {
 			System.err.println("Error: Could not add statistics to database");
 		}

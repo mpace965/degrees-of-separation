@@ -212,13 +212,27 @@ public class DBInterfacer {
 		}
 	}
 	
+	public Object[] initializeStatistics(String[] keys, Object[] values) {
+		Iterator<Vertex> stats = graph.getVerticesOfClass("Statistics").iterator();
+
+		// If there aren't any statistics then the default values should be set
+		if (!stats.hasNext()) {
+			setStatistics(keys, values);
+		}
+		
+		return this.getStatistics(keys);
+	}
+	
 	/**
-	 * Sets the given statistic to the value specified
+	 * Sets the given statistic to the values specified
+	 * (Each key must be gotten individually to ensure correct order)
 	 * @param key	Statistic type
-	 * @param value	Value of Statistic
+	 * @param value	Values of Statistic
 	 * @return	True if success otherwise false
 	 */
-	public boolean setStatistic(String key, String value) {
+	public void setStatistic(String key, Object value) {
+		String valuestr = value.toString();
+		
 		try {
 			Vertex v;
 			String[] statStr = { "Statistic" };
@@ -227,27 +241,25 @@ public class DBInterfacer {
 			
 			if (stat.hasNext()) {
 				v = stat.next();
-				v.setProperty("Statistic", key);
-				v.setProperty("Value", value);
+				v.setProperty("Value", valuestr);
 			} else {
 				v = graph.addVertex("Statistics", "Statistics");
 				v.setProperty("Statistic", key);
-				v.setProperty("Value", value);
-			}
-			
-			return true;
+				v.setProperty("Value", valuestr);
+			}				
 		} catch (Exception e) {
 			System.err.println("Error: Could not set statistic");
-			return false;
 		}
 	}
 	
 	/**
 	 * Gets the statistic by the specified key
+	 * (Each key must be gotten individually to ensure correct order)
 	 * @param key	Statistic type
-	 * @return	Value of the statistic
+	 * @return	Value of the statistics
 	 */
-	public String getStatistic(String key) {
+	public Object getStatistic(String key) {
+		String value;
 		try {
 			String[] statStr = { "Statistic" };
 			String[] keyStr = { key };
@@ -256,11 +268,57 @@ public class DBInterfacer {
 			if (!stat.hasNext())
 				return null;
 			
-			return stat.next().getProperty("Value");
+			value = stat.next().getProperty("Value");
 		} catch (Exception e) {
-			System.err.println("Error: Could not get statistic");
+			System.err.println("Error: Could not get statistic - " + key);
 			return null;
 		}
+		
+		try {
+			return Integer.parseInt(value);
+		} catch (Exception e) {}
+		
+		try {
+			return Double.parseDouble(value);
+		} catch (Exception e) {}
+		
+		return value;
+	}
+	
+	/**
+	 * Sets the given statistics to the values specified
+	 * (Each key must be gotten individually to ensure correct order)
+	 * @param keys		Statistic types
+	 * @param values	Values of Statistic
+	 * @return	True if success otherwise false
+	 */
+	public void setStatistics(String[] keys, Object[] values) {
+		for (int i = 0; i < keys.length; i++) {
+			setStatistic(keys[i], values[i]);
+		}
+	}
+	
+	/**
+	 * Gets the statistics by the specified keys
+	 * (Each key must be gotten individually to ensure correct order)
+	 * @param keys	Statistic types
+	 * @return	Value of the statistics
+	 */
+	public Object[] getStatistics(String[] keys) {
+		Object[] values = new Object[keys.length];
+		
+		for (int i = 0; i < keys.length; i++) {
+			values[i] = getStatistic(keys[i]);
+		}
+		return values;
+	}
+	
+	public Integer countTotalNodes() {
+		return (int)graph.countVertices();
+	}
+	
+	public Integer countTotalEdges() {
+		return (int)graph.countEdges();
 	}
 	
 	/**
