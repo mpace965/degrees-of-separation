@@ -421,6 +421,7 @@ class UpdateAndInsertStatisticsInDBThread extends Thread {
 	}
 	
 	public synchronized void updateStatistics(ArrayList<Node> nodes, Double algTime) {
+		Math.round(algTime);
 		// Get all current statistics
 		Integer totalConnectionChains = (Integer)statisticMap.get("TotalConnectionChains");
 		Integer totalConnections;
@@ -440,12 +441,12 @@ class UpdateAndInsertStatisticsInDBThread extends Thread {
 		totalDBNodes = db.countTotalNodes();
 		totalChainLength += nodes.size();
 		totalComputationTime += algTime;
-		averageChainLength = (double) (totalChainLength / totalConnectionChains);
+		averageChainLength = (double)totalChainLength / (double)totalConnectionChains;
 		if (nodes.size() < shortestChainLength || shortestChainLength == 0)
 			shortestChainLength = nodes.size();
 		if (nodes.size() > longestChainLength || longestChainLength == 0)
 			longestChainLength = nodes.size();
-		averageComputationTime = (double) (totalComputationTime / totalConnectionChains);
+		averageComputationTime = (double)totalComputationTime / (double)totalConnectionChains;
 		if (algTime < shortestComputationTime || shortestComputationTime == 0.0)
 			shortestComputationTime = algTime;
 		if (algTime > longestComputationTime || longestComputationTime == 0.0)
