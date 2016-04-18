@@ -224,8 +224,9 @@ public class WebApp extends SimpleWebServer {
 				t1.start();
 				t2.start();
 			}
-			addRecentConnection(nodes);
 		}
+		
+		addRecentConnection(nodes);
 		
 		c.setNodeCount(nodes.size());
 		
