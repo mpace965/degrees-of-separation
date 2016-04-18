@@ -108,14 +108,18 @@ var LastfmSiteSearchView = React.createClass({
     const style = {
       height: '75%',
       width: '75%',
-      padding: 10,
+      padding: 30,
       margin: 20
     }
 
     return (
       <div className="siteSearchView">
-        <Paper style={style} zDepth={1}>
-          <h2 className="flexRowItem">Connect two artists on Last.fm</h2>
+        <Paper className="siteSearchView" style={style} zDepth={1}>
+          <img src="res/lastfm-logo-sm.png"/>
+
+          <br/>
+          <br/>
+
           <div className="flexRowItem">
             <TextField
               hintText="Connect one artist"
@@ -131,6 +135,19 @@ var LastfmSiteSearchView = React.createClass({
           </div>
           <div className="flexRowItem">{circularProgress}</div>
           <div className="flexRowItem">{cancelButton}</div>
+
+          <br/>
+
+          <div>
+            <p>Last.fm is an online service which allows its users to catalog all of the music they listen to.
+            It uses this listening data to compile a massive database of artists from a wide variety of genres.
+            This database, along with other user-sourced statistics such as tags and more, is used by Last.fm to calculate how similar one artist is to another.
+            Our site harnesses this calculation of similarity to chain artists together, making sure each artist in a chain is significantly similar to the one next to it.
+            Use the input boxes above to specify which two artists you'd like to see connected. The more unrelated they are, the more intermediate artists will be present.</p>
+          </div>
+
+          <br/>
+
         </Paper>
         <Snackbar
           open={this.state.snackbarOpen}
