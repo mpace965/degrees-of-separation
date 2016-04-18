@@ -25,7 +25,7 @@ public class Algorithm {
 	 */
 	public static ArrayList<Node> processConnection(Site s) {
 		AdjListSite site = (AdjListSite) s;
-		
+
 		// keeps a reference of every nodes' fibonacciheapnode
 		HashMap<Node, FibonacciHeapNode<Node>> fibNodes = 
 				new HashMap<Node, FibonacciHeapNode<Node>>();
@@ -153,7 +153,7 @@ public class Algorithm {
 		// TODO: Check to make sure the SiteClass matches the proper Node class
 		if (start == null || end == null || !(start instanceof LastfmNode) || !(end instanceof LastfmNode)) 
 			return null;
-		
+
 		if (start.getConnections() == null)		site.populateConnections(start);
 		if (end.getConnections() == null)		site.populateConnections(end);
 
@@ -179,10 +179,11 @@ public class Algorithm {
 
 		fscore.insert(fibNodes.get(start), 1d);
 		openSet.put(start, 1d);
-		prev.put(start, start.getConnections().get(start.getConnections().size() - 1));
+		prev.put(start, null);
+		Node prevTemp = start.getConnections().get(start.getConnections().size() - 1);
 
 		Node node; 
-		double heuristicAdjustment, heuristicMultiplier, heur;
+		Double heuristicAdjustment, heuristicMultiplier, heur;
 		while (!fscore.isEmpty()) {
 			// remove min and add to closed set
 			FibonacciHeapNode<Node> f = fscore.removeMin();
@@ -200,10 +201,10 @@ public class Algorithm {
 
 			// computer heuristic adjustment
 			heuristicAdjustment = site.heuristicDifference(node);
-			heuristicMultiplier = site.heuristicMultiplier(prev.get(node), node);
-			if (node.equals(start)) {
-				prev.put(node, null);
-			}
+			if (!node.equals(start)) 
+				heuristicMultiplier = site.heuristicMultiplier(prev.get(node), node);
+			else 
+				heuristicMultiplier = site.heuristicMultiplier(prevTemp, node);
 
 			// check if connections are null, populate if the are
 			if (node.getConnections() == null)
@@ -231,8 +232,17 @@ public class Algorithm {
 
 				// calculate new distance TODO
 				LastfmNode temp = (LastfmNode) neighbor;
-				heur = (1 - ((1 - temp.getMatch()) * heuristicMultiplier)) + heuristicAdjustment;
-
+				heur = 1d;
+				try {
+					heur = (1 - ((1 - temp.getMatch()) * heuristicMultiplier)) + heuristicAdjustment;
+				}
+				catch (Exception e) {
+					System.out.printf("Error computing heuristic for: %s, match = %d\n", temp.toString(), temp.getMatch());
+					continue;
+				}
+				if (heur.isInfinite() || heur < 0d)
+					continue;
+				
 				// if new distance is greater than old distance, no need to check it
 				if (openSet.containsKey(neighbor) && heur >= openSet.get(neighbor)) 
 					continue;

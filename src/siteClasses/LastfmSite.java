@@ -88,7 +88,7 @@ public class LastfmSite implements Site {
 			this.allNodes.put(this.start.getNodeID(), this.start);
 		}
 		if (this.end == null) {
-			this.end = new LastfmNode(endName, startMbid);
+			this.end = new LastfmNode(endName, endMbid);
 			this.allNodes.put(this.end.getNodeID(), this.end);
 		}
 		
@@ -108,11 +108,15 @@ public class LastfmSite implements Site {
 
 		Double nodeToEnd = heuristicCompare(node, this.end);
 		Double nodeToPrev = heuristicCompare(node, prev);
+		if (nodeToPrev == null || nodeToEnd == null || nodeToPrev < 0.001)
+			return 0.10d;
 
 		double ret = Math.abs(nodeToEnd - this.heuristicConstant);
 
 		if (node.equals(this.start)) {
 			Double prevToEnd = heuristicCompare(prev, this.end);
+			if (prevToEnd == null) 
+				return 0.10d;
 			return (Math.abs(prevToEnd - nodeToEnd) / nodeToPrev);
 		}
 		else {
@@ -238,8 +242,10 @@ public class LastfmSite implements Site {
 			String id = LastfmNode.getID(name, mbid);
 			Node neighbor = allNodes.get(id);
 
-			if (neighbor == null) 
+			if (neighbor == null) {
 				neighbor = new LastfmNode(name, mbid, match);
+				allNodes.put(neighbor.getNodeID(), neighbor);
+			}
 
 			connections.add(neighbor);
 		}
