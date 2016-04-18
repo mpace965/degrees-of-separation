@@ -10,7 +10,8 @@ var StatsView = React.createClass({
     return {
       stats: {},
       snackbarOpen: false,
-      snackbarMessage: ''
+      snackbarMessage: '',
+      lastRefresh: 0
     };
   },
 
@@ -21,6 +22,7 @@ var StatsView = React.createClass({
         cache: false,
         success: function(data) {
           this.setState({stats: data});
+          this.setState({lastRefresh: Date.now()});
         }.bind(this),
         error: function(xhr, status, err) {
           this.setState({snackbarOpen: true, snackbarMessage: xhr.responseText});
@@ -28,6 +30,14 @@ var StatsView = React.createClass({
         }.bind(this),
         timeout: 300000
     });
+  },
+
+  throttleRefresh: function() {
+    if (Date.now() - this.state.lastRefresh > 5000) {
+      this.getStatsFromServer();
+    } else {
+      console.log("You've been throttled.");
+    }
   },
 
   handleRequestClose: function() {
@@ -80,7 +90,7 @@ var StatsView = React.createClass({
             </div>
           </div>
 
-          <RaisedButton label="Refresh" onMouseUp={this.getStatsFromServer} />
+          <RaisedButton label="Refresh" onMouseUp={this.throttleRefresh} />
         </Paper>
         <RecentlySearchedView setActiveView={this.props.setActiveView} setActiveTheme={this.props.setActiveTheme} length={7} />
         <Snackbar
