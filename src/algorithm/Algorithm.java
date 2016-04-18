@@ -156,6 +156,8 @@ public class Algorithm {
 
 		if (start.getConnections() == null)		site.populateConnections(start);
 		if (end.getConnections() == null)		site.populateConnections(end);
+		if (start.getConnections().size() < 1 || end.getConnections().size() < 1)
+			return null;
 
 		// adds more optimization by checking node against
 		// a set in O(1) rather than checking against a single node
@@ -234,13 +236,13 @@ public class Algorithm {
 				LastfmNode temp = (LastfmNode) neighbor;
 				heur = 1d;
 				try {
-					heur = (1 - ((1 - temp.getMatch()) * heuristicMultiplier)) + heuristicAdjustment;
+					heur = Math.abs((1 - ((1 - temp.getMatch()) * heuristicMultiplier)) + heuristicAdjustment);
 				}
 				catch (Exception e) {
-					System.out.printf("Error computing heuristic for: %s, match = %d\n", temp.toString(), temp.getMatch());
+					System.err.printf("Error computing heuristic for: %s, match = %d\n", temp.toString(), temp.getMatch());
 					continue;
 				}
-				if (heur.isInfinite() || heur < 0d)
+				if (heur.isInfinite())
 					continue;
 				
 				// if new distance is greater than old distance, no need to check it
