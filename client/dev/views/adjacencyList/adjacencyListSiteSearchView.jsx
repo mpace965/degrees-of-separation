@@ -108,25 +108,26 @@ var AdjacencyListSiteSearchView = React.createClass({
     const style = {
       height: '75%',
       width: '75%',
-      padding: 10,
+      padding: 30,
       margin: 20
     }
 
     return (
       <div className="siteSearchView">
-        <Paper style={style} zDepth={1}>
-          <div className="flexRowItem">
-            <img src="http://placehold.it/300?text=A"></img>
-            <img src="http://placehold.it/300?text=B"></img>
-          </div>
+        <Paper className="siteSearchView" style={style} zDepth={1}>
+          <img src="res/snap-logo.png"/>
+
+          <br/>
+          <br/>
+
           <div className="flexRowItem">
             <TextField
-              hintText="Connect node A..."
+              hintText="Connect one person..."
               value={this.state.connectionBegin}
               onChange={this.handleConnectionBeginChange}
               onKeyDown={this.handleKeyDown} />
             <TextField
-              hintText="...to node B"
+              hintText="...to another"
               value={this.state.connectionEnd}
               onChange={this.handleConnectionEndChange}
               onKeyDown={this.handleKeyDown} />
@@ -134,6 +135,20 @@ var AdjacencyListSiteSearchView = React.createClass({
           </div>
           <div className="flexRowItem">{circularProgress}</div>
           <div className="flexRowItem">{cancelButton}</div>
+
+          <br/>
+
+          <p>
+            SNAP is the <a href="https://snap.stanford.edu/index.html">Stanford Network Analysis Project</a>.
+            SNAP has made available a dataset which is composed of anonymized social circles on Facebook.
+            Each number in the dataset represents a person, and every edge in the graph represents a friendship.
+            Input a number in the range [0, 4039] in each of the input boxes above to see how they are connected.
+            The resulting chain represents how one person knows another in the form of "friend of a friend" statements.
+            You can read more about the dataset used <a href="https://snap.stanford.edu/data/egonets-Facebook.html">here</a>.
+          </p>
+
+          <br/>
+
         </Paper>
         <Snackbar
           open={this.state.snackbarOpen}
