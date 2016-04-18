@@ -378,7 +378,7 @@ class InsertNodesInDBThread extends Thread {
 			ArrayList<Node> connections;
 
 			db.addVertices(nodes);
-			statisticMap.put("TotalDBNodes", db.countTotalNodes());
+			statisticMap.put("TotalDBNodes", db.countTotalNodes() - statisticMap.size());
 			
 			for (Node n1 : nodes) {
 				connections = n1.getConnections();
@@ -440,7 +440,7 @@ class UpdateAndInsertStatisticsInDBThread extends Thread {
 		// Update all statistics
 		totalConnectionChains++;
 		totalConnections = db.countTotalEdges();
-		totalDBNodes = db.countTotalNodes();
+		totalDBNodes = db.countTotalNodes() - statisticMap.size();
 		totalChainLength += nodes.size();
 		totalComputationTime += algTime;
 		averageChainLength = (double)totalChainLength / (double)totalConnectionChains;
