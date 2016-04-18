@@ -12,90 +12,109 @@ public class LastfmNode implements Node {
 	private Double match;
 	private String mbid;
 	private String name;
-	private String nameUrl;
 	private HashMap<String, Integer> tags;
-	private Integer tagTotal = 0;
-	
-	public LastfmNode(String mbid, String name) {
+	private Integer tagCount;
+
+	public LastfmNode(String name, String mbid) {
 		this.connections = null;
 		this.json = null;
 		this.match = null;
 		this.mbid = mbid;
 		this.name = name;
-		this.nameUrl = formatName(name);
 		this.tags = null;
+		this.tagCount = null;
 	}
-	public LastfmNode(String mbid, String name, Double match) {
+	public LastfmNode(String name, String mbid, Double match) {
 		this.connections = null;
 		this.json = null;
 		this.match = match;
 		this.mbid = mbid;
 		this.name = name;
-		this.nameUrl = formatName(name);
 		this.tags = null;
+		this.tagCount = null;
 	}
 
+	// Getters
+
 	public ArrayList<Node> getConnections() {
-		return this.connections;
-	}
-	public Double getMatch() {
-		return this.match;
-	}
-	public String getMbid() {
-		return this.mbid;
-	}
-	public String getName() {
-		return this.name;
-	}
-	public String getNameUrl() {
-		return this.nameUrl;
-	}
-	public String getNodeID() {
-		if (this.mbid == null)
-			return this.nameUrl;
-		else
-			return this.mbid;
+		return connections;
 	}
 	public JsonObject getJson() {
-		return this.json;
+		return json;
+	}
+	public Double getMatch() {
+		return match;
+	}
+	public String getMbid() {
+		return mbid;
+	}
+	public String getName() {
+		return name;
 	}
 	public HashMap<String, Integer> getTags() {
-		return this.tags;
+		return tags;
 	}
-	public Integer getTagTotal() {
-		return this.tagTotal;
+	public Integer getTagCount() {
+		return tagCount;
 	}
-	
-	public boolean addConnection(Node node) {
-		if (this.connections == null)
-			this.connections = new ArrayList<Node>();
-		return this.connections.add(node);
+
+	// Setters
+
+	public void setConnections(ArrayList<Node> connections) {
+		this.connections = connections;
 	}
-	public void addTag(String tag, int count) {
-		if (this.tags == null)
-			this.tags = new HashMap<String, Integer>();
-		if (this.tagTotal == null)
-			this.tagTotal = 0;
-		this.tagTotal += count;
-		this.tags.put(tag, count);
-	}
-	
 	public void setJson(JsonObject json) {
 		this.json = json;
 	}
-	public void setMatch(Double match) {
-		this.match = match;
+	public void setTags(HashMap<String, Integer> tags) {
+		this.tags = tags;
 	}
-	public void setMbid(String mbid) {
-		this.mbid = mbid;
+	public void setTagCount(Integer tagCount) {
+		this.tagCount = tagCount;
 	}
 
 	public String toString() {
 		return this.getName();
 	}
+
+	@Override
+	public String getNodeID() {
+		return LastfmNode.getID(this.name, this.mbid);
+	}
+
+	// static methods
 	
-	private String formatName(String str) {
-		str = str.trim();
-		return str.replaceAll(" ", "%20");
+	private static final String splitter = "|MBID|";
+	public static String getID(String name, String mbid) {
+		if (name == null || name.length() < 1)
+			return null;
+		name = name.trim();
+		name = name.concat(LastfmNode.splitter);
+		if (mbid != null) 
+			return name.concat(mbid.trim());
+		else 
+			return name;
+	}
+	public static String getNamefromID(String id) {
+		if (id == null || id.length() < LastfmNode.splitter.length())
+			return null;
+		
+		int index = id.lastIndexOf(LastfmNode.splitter);
+		if (index < 0)
+			return null;
+		
+		String name = id.substring(0, index);
+		return name;
+	}
+	public static String getMbidfromID(String id) {
+		if (id == null || id.length() < LastfmNode.splitter.length())
+			return null;
+		
+		int index = id.lastIndexOf(LastfmNode.splitter) + LastfmNode.splitter.length();
+		if (index >= id.length())
+			return null;
+		
+		String mbid = id.substring(index);
+		return mbid;
 	}
 }

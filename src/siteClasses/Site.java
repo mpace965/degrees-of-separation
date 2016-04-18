@@ -4,11 +4,11 @@ import java.util.HashMap;
 
 public interface Site {
 	
-	/**
-	 * @param node
-	 * @return heuristicCost from node to end node in siteclass
-	 */
-	public abstract double heuristicCost(Node node);
+//	/**
+//	 * @param node
+//	 * @return heuristicCost from node to end node in siteclass
+//	 */
+//	public abstract double heuristicCost(Node node);
 	
 	/**
 	 * populates the connections list of this node
@@ -23,7 +23,7 @@ public interface Site {
 	
 	public abstract Node getStartNode();
 	public abstract Node getEndNode();
-	public abstract String setStartAndEndNodes(String start, String end);
+	public abstract void setStartAndEndNodes(String start, String end) throws Exception;
 	
 	public abstract HashMap<String, Node> getAllNodes();
 }
