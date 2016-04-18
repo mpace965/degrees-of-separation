@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import siteClasses.AdjListNode;
 import siteClasses.AdjListSite;
 import siteClasses.LastfmNode;
@@ -41,7 +38,6 @@ public class WebApp extends SimpleWebServer {
 	
 	// Note: if statisticKeys is modified, be sure to modify initalizeStatistics and updateStatistics
 	public static ConcurrentHashMap<String, Object> statisticMap;
-	public static Lock threadLock;
 	public static String[] statisticKeys = { "TotalConnectionChains", "TotalConnections", "TotalDBNodes", 
 			"AverageChainLength", "LongestChainLength", "ShortestChainLength", "TotalChainLength", 
 			"AverageComputationTime", "LongestComputationTime", "ShortestComputationTime", "TotalComputationTime" };
@@ -59,7 +55,6 @@ public class WebApp extends SimpleWebServer {
 		cachePurgePrecent = 0.2;
 		
 		statisticMap = new ConcurrentHashMap<String, Object>();
-		threadLock = new ReentrantLock();
 		initalizeStatistics();
 	}
 
@@ -223,13 +218,13 @@ public class WebApp extends SimpleWebServer {
 				allNodes = new ArrayList<Node>(lastfmSite.getAllNodes().values());
 				
 				InsertNodesInDBThread t1 = new InsertNodesInDBThread(allNodes, database, username, password,
-						maxDBNodes, cachePurgePrecent, threadLock);
+						maxDBNodes, cachePurgePrecent, statisticMap);
 				
 				t1.start();
 			}
 			
 			UpdateAndInsertStatisticsInDBThread t2 = new UpdateAndInsertStatisticsInDBThread(database, username, password,
-					statisticKeys, statisticMap, nodes, (double)algTimeDiff / 1000.0, threadLock);
+					statisticKeys, statisticMap, nodes, (double)algTimeDiff / 1000.0);
 			t2.start();
 		}
 		
@@ -291,7 +286,7 @@ public class WebApp extends SimpleWebServer {
 				allNodes = new ArrayList<Node>(site.getAllNodes().values());
 				
 				InsertNodesInDBThread t1 = new InsertNodesInDBThread(allNodes, database, username, password,
-						maxDBNodes, cachePurgePrecent, threadLock);
+						maxDBNodes, cachePurgePrecent, statisticMap);
 				t1.start();
 			}
 			addRecentConnection(nodes);
@@ -362,21 +357,20 @@ class InsertNodesInDBThread extends Thread {
 	private String database, username, password;
 	private int maxDBNodes;
 	private double cachePurgePrecent;
-	private Lock lock;
+	private ConcurrentHashMap<String, Object> statisticMap;
 
 	InsertNodesInDBThread(ArrayList<Node> nodes, String database, String username, String password,
-			int maxDBNodes, double cachePurgePrecent, Lock lock) {
+			int maxDBNodes, double cachePurgePrecent, ConcurrentHashMap<String, Object> statisticMap) {
 		this.nodes = nodes;
 		this.database = database;
 		this.username = username;
 		this.password = password;
 		this.maxDBNodes = maxDBNodes;
 		this.cachePurgePrecent = cachePurgePrecent;
-		this.lock = lock;
+		this.statisticMap = statisticMap;
 	}
 
 	public void run() {
-		lock.lock();
 		try {
 			DBInterfacer db = new DBInterfacer(database, username, password, maxDBNodes, cachePurgePrecent);
 						
@@ -384,6 +378,8 @@ class InsertNodesInDBThread extends Thread {
 			ArrayList<Node> connections;
 
 			db.addVertices(nodes);
+			statisticMap.put("TotalDBNodes", db.countTotalNodes());
+			
 			for (Node n1 : nodes) {
 				connections = n1.getConnections();
 				
@@ -395,9 +391,9 @@ class InsertNodesInDBThread extends Thread {
 					db.addConnection(n1, n2);
 				}
 			}
-
+			statisticMap.put("TotalConnections", db.countTotalEdges());
+			
 			db.close();
-			lock.unlock();
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.err.println("Error: Could not add nodes to database");
@@ -413,11 +409,10 @@ class UpdateAndInsertStatisticsInDBThread extends Thread {
 	private ConcurrentHashMap<String, Object> statisticMap;
 	private ArrayList<Node> nodes;
 	private Double algTime;
-	private Lock lock;
 	
 	public UpdateAndInsertStatisticsInDBThread(String database, String username, String password,
 			String[] statisticKeys, ConcurrentHashMap<String, Object> statisticMap, 
-			ArrayList<Node> nodes, Double algTime, Lock lock) {
+			ArrayList<Node> nodes, Double algTime) {
 		this.database = database;
 		this.username = username;
 		this.password = password;
@@ -425,7 +420,6 @@ class UpdateAndInsertStatisticsInDBThread extends Thread {
 		this.statisticMap = statisticMap;
 		this.nodes = nodes;
 		this.algTime = algTime;
-		this.lock = lock;
 	}
 	
 	public synchronized void updateStatistics(ArrayList<Node> nodes, Double algTime) {
@@ -483,12 +477,10 @@ class UpdateAndInsertStatisticsInDBThread extends Thread {
 	
 	public void run() {
 		try {
-			lock.lock();
 			db = new DBInterfacer(database, username, password);
 			updateStatistics(nodes, algTime);
 			insertStatistics();
 			db.close();
-			lock.unlock();
 		} catch (Exception e) {
 			System.err.println("Error: Could not add statistics to database");
 		}
