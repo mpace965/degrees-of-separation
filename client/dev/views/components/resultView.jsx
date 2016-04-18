@@ -85,6 +85,7 @@ var ResultView = React.createClass({
     node.append("text")
       .attr("x", 20)
       .attr("dy", ".35em")
+      .attr("fill", "#000")
       .text(function(d) { return d.name; });
 
     node.append("index")
