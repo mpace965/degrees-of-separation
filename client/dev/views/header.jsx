@@ -5,6 +5,7 @@ import List from 'material-ui/lib/lists/list';
 import ListItem from 'material-ui/lib/lists/list-item';
 import getMuiTheme from 'material-ui/lib/styles/getMuiTheme';
 import LastfmTheme from './lastfm/lastfmTheme';
+import SteamTheme from './steam/steamTheme';
 import DefaultTheme from 'material-ui/lib/styles/baseThemes/lightBaseTheme'
 
 var LandingView = require('./landingView');
@@ -12,6 +13,8 @@ var AdjacencyListSiteSearchView = require('./adjacencyList/adjacencyListSiteSear
 var LastfmSiteSearchView = require('./lastfm/lastfmSiteSearchView');
 var StatsView = require('./statsView');
 var AboutView = require('./aboutView');
+var SteamSiteSearchView = require('./steam/steamSiteSearchView');
+
 
 var Header = React.createClass({
   getInitialState: function() {
@@ -52,6 +55,12 @@ var Header = React.createClass({
     this.props.setActiveTheme(LastfmTheme);
     this.setState({open: false});
   },
+  
+    handleSteamTap: function () {
+    this.props.setActiveView(SteamSiteSearchView);
+    this.props.setActiveTheme(SteamTheme);
+    this.setState({open: false});
+  },
 
   handleLastfmTap: function () {
     this.props.setActiveView(LastfmSiteSearchView);
@@ -81,7 +90,8 @@ var Header = React.createClass({
               primaryTogglesNestedList={true}
               nestedItems={[
                 <ListItem key={1} primaryText="Adjacency List" onTouchTap={this.handleAdjListTap} />,
-                <ListItem key={2} primaryText="Last.fm" onTouchTap={this.handleLastfmTap} />
+                <ListItem key={2} primaryText="Last.fm" onTouchTap={this.handleLastfmTap} />,
+                <ListItem key={3} primaryText="Steam" onTouchTap={this.handleSteamTap} />
               ]} />
           </List>
         </LeftNav>
