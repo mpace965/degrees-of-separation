@@ -72,6 +72,10 @@ public class WebApp extends SimpleWebServer {
 
 	@Override
 	public Response serve(IHTTPSession session) {
+		if (session.getMethod() == Method.POST) {
+			return uploadFile(session);
+		}
+		
 		if (session.getHeaders().get("accept").contains(MIME_JSON)) {
 			return handleAPIRequest(session);
 		} else {
@@ -109,7 +113,7 @@ public class WebApp extends SimpleWebServer {
 			}
 			
 			case "/api/uploadFile": {
-				r = uploadFile(session, gson);
+				r = uploadFile(session);
 				break;
 			}
 			
@@ -360,7 +364,7 @@ public class WebApp extends SimpleWebServer {
 		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(sr));
 	}
 	
-	private Response uploadFile(IHTTPSession session, Gson gson) {
+	private Response uploadFile(IHTTPSession session) {
 		try {
 	        Map<String, String> files = new HashMap<String, String>();
 	        session.parseBody(files);

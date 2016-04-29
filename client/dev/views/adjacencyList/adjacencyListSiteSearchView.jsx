@@ -149,6 +149,12 @@ var AdjacencyListSiteSearchView = React.createClass({
 
           <br/>
 
+            <form method="post" enctype="multipart/form-data">
+        choose a file
+        <input name="file" type="file" size="50" maxlength="100000" />
+        <button type="submit">upload</button>
+    </form>
+
         </Paper>
         <Snackbar
           open={this.state.snackbarOpen}
