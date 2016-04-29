@@ -1,8 +1,12 @@
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import siteClasses.AdjListNode;
 import siteClasses.AdjListSite;
@@ -101,6 +105,11 @@ public class WebApp extends SimpleWebServer {
 			
 			case "/api/recentConnections": {
 				r = getRecentConnections(session, gson);
+				break;
+			}
+			
+			case "/api/uploadFile": {
+				r = uploadFile(session, gson);
 				break;
 			}
 			
@@ -349,6 +358,29 @@ public class WebApp extends SimpleWebServer {
 		sr.setTotalComputationTime((double) statisticMap.get(statisticKeys[10]));
 
 		return newFixedLengthResponse(Response.Status.OK, MIME_JSON, gson.toJson(sr));
+	}
+	
+	private Response uploadFile(IHTTPSession session, Gson gson) {
+		try {
+	        Map<String, String> files = new HashMap<String, String>();
+	        session.parseBody(files);
+	        
+	        Set<String> names = files.keySet();
+	        for(String name : names){
+	        	System.out.println(name);
+	        	
+	            String location = files.get(name);
+
+	            File tempfile = new File(location);
+	            Files.copy(tempfile.toPath(), new File("../uploads" + name).toPath(), StandardCopyOption.REPLACE_EXISTING);
+	        }
+	        
+		} catch (Exception e) {
+			System.err.println("Could not upload file.");
+			return newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "Could not upload file.");
+		}
+		
+		return newFixedLengthResponse(Response.Status.OK, MIME_PLAINTEXT, "File was successfully uploaded.");
 	}
 }
 
