@@ -2,10 +2,13 @@ package databaseInterfacing;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+
 import com.orientechnologies.orient.core.sql.query.OSQLSynchQuery;
 import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.impls.orient.OrientGraph;
+import com.tinkerpop.blueprints.impls.orient.OrientVertex;
 
 import siteClasses.AdjListNode;
 import siteClasses.LastfmNode;
@@ -69,9 +72,10 @@ public class DBInterfacer {
 	 * @return Vertex with value attribute
 	 */
 	public Vertex getVertexByID(String className, String value) {
-		String[] ids = new String[] {"ID"};
-		Object[] values = new Object[] {value};
-		Iterable<Vertex> vertices = graph.getVertices(className, ids, values);
+		//String[] ids = new String[] {"ID"};
+		//Object[] values = new Object[] {value};
+		//Iterable<Vertex> vertices = graph.getVertices(className, ids, values);
+		Iterable<Vertex> vertices = graph.getVertices("ID", value);
 
 		if (!vertices.iterator().hasNext())
 			return null;
@@ -145,18 +149,24 @@ public class DBInterfacer {
 			Vertex v1 = getVertexByID(className, n1.getNodeID());
 			Vertex v2 = getVertexByID(className, n2.getNodeID());
 			
-			boolean found = false;
-			Iterable<Vertex> v1Connections = v1.getVertices(Direction.BOTH);
-			for (Vertex vc : v1Connections) {
-				if (vc.getProperty("ID").equals(v2.getProperty("ID"))) {
-					found = true;
-				}
-			}
+			Iterable<Edge> vertices = ((OrientVertex) v1).getEdges((OrientVertex) v2, Direction.BOTH);
 			
-			if (!found)
-				graph.addEdge(className, v1, v2, "Connection");
+			if (!vertices.iterator().hasNext())
+				v1.addEdge("Connection", v2);
+			
+//			boolean found = false;
+//			Iterable<Vertex> v1Connections = v1.getVertices(Direction.BOTH);
+//			for (Vertex vc : v1Connections) {
+//				if (vc.getProperty("ID").equals(v2.getProperty("ID"))) {
+//					found = true;
+//				}
+//			}
+//			
+//			if (!found)
+//				graph.addEdge(className, v1, v2, "Connection");
+			
 		} catch (Exception e) {
-			//e.printStackTrace();
+			System.err.println("Could not add connection" + n1.getNodeID() + " -> " + n2.getNodeID());
 			return false;
 		}
 		
